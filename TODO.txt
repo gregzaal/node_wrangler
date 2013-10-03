@@ -1,0 +1,8 @@
+UV node interactive placement
+Zoom fit image: remove 'Image' mode, just Render and Custom
+Tools for object/material index
+Addon prefs to clean up UI
+Switch nodes ('swap' is a better name, so change them both maybe?) exchange positions, exchange links
+
+Node templates (store selection, new menu in Shift+A menu)
+Better auto-layout
