@@ -496,11 +496,11 @@ class ZoomFit(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapNodes(bpy.types.Operator):
+class NWSwapType(bpy.types.Operator):
 
     "Swap the selected nodes to another type"
     bl_idname = 'nw.swap'
-    bl_label = 'Swap Nodes'
+    bl_label = 'Swap Type'
     newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -559,8 +559,8 @@ class NWSwapNodes(bpy.types.Operator):
 
 
 class NWSwapMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_node_swap_menu"
-    bl_label = "Swap selected nodes"
+    bl_idname = "NODE_MT_type_swap_menu"
+    bl_label = "Swap the type of selected nodes"
 
     @classmethod
     def poll(cls, context):
@@ -614,10 +614,9 @@ class NWAddUVNode(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.ops.node.add_node(use_transform=True, type="ShaderNodeAttribute")
+        bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type="ShaderNodeAttribute")
         nodes, links = get_nodes_links(context)
         nodes.active.attribute_name = self.uv_name
-
         return {'FINISHED'}
 
 
@@ -954,7 +953,7 @@ def register():
     kmi = km.keymap_items.new("nodes.del_unused", 'X', 'PRESS', alt=True, shift=True)
     kmi = km.keymap_items.new("nw.frame_selected", 'P', 'PRESS', shift=True)
     kmi = km.keymap_items.new("nw.emission_viewer", 'LEFTMOUSE', 'PRESS', ctrl=True, shift=True)
-    km.keymap_items.new("wm.call_menu", 'S', 'PRESS', alt=True).properties.name='NODE_MT_node_swap_menu'
+    km.keymap_items.new("wm.call_menu", 'S', 'PRESS', alt=True).properties.name='NODE_MT_type_swap_menu'
 
     addon_keymaps.append(km)
 
