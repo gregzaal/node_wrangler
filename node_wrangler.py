@@ -110,6 +110,7 @@ def get_nodes_links_withsel(context):  # Taken from Node Efficiency Tools by Bar
     links_sorted = sorted(links, key=lambda x: x.from_node.name)   # results (order was changed based on selection).
     return nodes_sorted, links_sorted
 
+
 def get_nodes_links(context):
     space = context.space_data
     tree = space.node_tree
