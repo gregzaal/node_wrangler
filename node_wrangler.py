@@ -238,8 +238,8 @@ class LinkToOutputNode(bpy.types.Operator):  # Partially taken from Node Efficie
 
 class ArrangeNodes(bpy.types.Operator):
 
-    'Automatically layout the node tree in a linear and non-overlapping fasion.'
-    bl_idname = 'nodes.layout'
+    'Automatically layout the selected nodes in a linear and non-overlapping fashion.'
+    bl_idname = 'nw.layout'
     bl_label = 'Arrange Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -293,7 +293,7 @@ class ArrangeNodes(bpy.types.Operator):
                 if node.name in selection:
                     node.select = True
 
-        layout_iterations = len(nodes)
+        layout_iterations = len(nodes)*2
         for it in range(0, layout_iterations):
             for node in nodes:
                 isframe = False
@@ -352,32 +352,10 @@ class ArrangeNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ArrangeSelectedNodes(bpy.types.Operator):
-
-    'Automatically layout the selected nodes in a linear and non-overlapping fasion.'
-    bl_idname = 'nodes.layout_sel'
-    bl_label = 'Arrange Selected Nodes'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            #if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node is not None and context.active_node.type != "OUTPUT_MATERIAL":
-            if space.node_tree is not None and space.node_tree.nodes and len(list(x for x in space.node_tree.nodes if x.select==True)):
-                valid = True
-        return valid
-
-    def execute(self, context):
-        bpy.ops.nodes.layout()
-        return {'FINISHED'}
-
-
 class DeleteUnusedNodes(bpy.types.Operator):
 
     'Delete all nodes whose output is not used'
-    bl_idname = 'nodes.del_unused'
+    bl_idname = 'nw.del_unused'
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -410,7 +388,14 @@ class DeleteUnusedNodes(bpy.types.Operator):
         deleted_nodes = list(set(deleted_nodes))  # get unique list of deleted nodes (iterations would count the same node more than once)
         for n in deleted_nodes:
             self.report({'INFO'}, "Node " + n + " deleted")
-        self.report({'INFO'}, "Deleted " + str(len(deleted_nodes)) + " nodes")
+        num_deleted = len(deleted_nodes)
+        n=' node'
+        if num_deleted>1:
+            n+='s'
+        if num_deleted:
+            self.report({'INFO'}, "Deleted " + str(num_deleted) + n)
+        else:
+            self.report({'INFO'}, "Nothing deleted")
 
         # Restore selection
         nodes, links = get_nodes_links(context)
@@ -420,29 +405,11 @@ class DeleteUnusedNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class GetImage(bpy.types.Operator):
+class NWResetBG(bpy.types.Operator):
 
-    "Set the image to the active node's image"
-    bl_idname = 'zoom.get_image'
-    bl_label = 'Get Image'
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-        found_any = False
-        for node in nodes:
-            if node.select == True and node.type == "IMAGE":
-                found_any = True
-                context.scene.ImageName = node.image.name
-        if not found_any:
-            self.report({'INFO'}, "No Image node selected!")
-        return {'FINISHED'}
-
-
-class ZoomFit(bpy.types.Operator):
-
-    'Fit the background image'
-    bl_idname = 'zoom.fit'
-    bl_label = 'Zoom Fit'
+    'Reset the zoom and position of the background image'
+    bl_idname = 'nw.bg_reset'
+    bl_label = 'Reset Backdrop'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -451,49 +418,54 @@ class ZoomFit(bpy.types.Operator):
         return snode.tree_type == 'CompositorNodeTree'
 
     def execute(self, context):
-        renderwidth = int(actualRes(context, "x"))
-        renderheight = int(actualRes(context, "y"))
-        width = 100  # declare window size vars
-        height = 100
-        sbsize = 8  # Scrollbar size (set to 0 if not accounting for scrollbars), default 8
-        clamp = context.scene.Clamp
-        fit = context.scene.Fit
-        margin = context.scene.Margin
-        grace = context.scene.Grace
+        context.space_data.backdrop_zoom = 1
+        context.space_data.backdrop_x = 0
+        context.space_data.backdrop_y = 0
+        return {'FINISHED'}
 
-        if context.scene.ImageType == 'image':
-            img = bpy.data.images[context.scene.ImageName]
-            renderwidth = img.size[0]
-            renderheight = img.size[1]
-        elif context.scene.ImageType == 'custom':
-            renderwidth = context.scene.ImgSizeX
-            renderheight = context.scene.ImgSizeY
-        elif context.scene.ImageType == 'render':
-            if context.area.spaces[0].node_tree.nodes.active:
-                if context.area.spaces[0].node_tree.nodes.active.type == 'IMAGE':  # for when 'Render' mode is chosen, but an image node is selected
-                    img = context.area.spaces[0].node_tree.nodes.active.image
-                    renderwidth = img.size[0]
-                    renderheight = img.size[1]
 
-        for region in bpy.context.area.regions:
-            if region.type == "WINDOW":
-                width = region.width
-                height = region.height
-        for space in bpy.context.area.spaces:
-            if space.type == "NODE_EDITOR":
-                space.backdrop_x = sbsize * -1  # Account for scroll bars
-                space.backdrop_y = sbsize
+class NWSwapOutputs(bpy.types.Operator):
 
-                if fit and (renderwidth > width or renderheight > height):  # ensure it doesnt zoom in greater than 1:1
-                    ratiox = width / renderwidth
-                    ratioy = height / renderheight
-                    space.backdrop_zoom = 1
-                    if (width - (2 * sbsize) + grace < renderwidth) or (clamp == False):
-                        space.backdrop_zoom = ratiox - (margin / 100)  # Fit in window
-                    if height - (2 * sbsize) + grace < renderheight * ratiox:
-                        space.backdrop_zoom = ratioy - (margin / 100)
-                else:
-                    space.backdrop_zoom = 1
+    "Swap the output connections of the two selected nodes"
+    bl_idname = 'nw.swap_outputs'
+    bl_label = 'Swap Outputs'
+    newtype = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return len(context.selected_nodes) == 2
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+        selected_nodes = context.selected_nodes
+        n1 = selected_nodes[0]
+        n2 = selected_nodes[1]
+        n1_outputs = []
+        n2_outputs = []
+
+        out_index = 0
+        for output in n1.outputs:
+            if output.links:
+                for link in output.links:
+                    n1_outputs.append([out_index, link.to_socket])
+                    links.remove(link)
+            out_index += 1
+
+        out_index = 0
+        for output in n2.outputs:
+            if output.links:
+                for link in output.links:
+                    n2_outputs.append([out_index, link.to_socket])
+                    links.remove(link)
+            out_index += 1
+
+        for connection in n1_outputs:
+            links.new(n2.outputs[connection[0]], connection[1])
+        for connection in n2_outputs:
+            links.new(n1.outputs[connection[0]], connection[1])
+
         return {'FINISHED'}
 
 
@@ -791,7 +763,7 @@ class NWEmissionViewer(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class NodeFrameSelected(bpy.types.Operator):
+class NWFrameSelected(bpy.types.Operator):
     bl_idname = "nw.frame_selected"
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
@@ -822,8 +794,8 @@ class NodeFrameSelected(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NodeViewingPanel(bpy.types.Panel):
-    bl_idname = "NODE_PT_viewing"
+class NodeWranglerPanel(bpy.types.Panel):
+    bl_idname = "NODE_PT_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Node Wrangler"
@@ -832,49 +804,26 @@ class NodeViewingPanel(bpy.types.Panel):
         layout = self.layout
         scene = context.scene
 
-        if context.space_data.tree_type == 'CompositorNodeTree':
-            box = layout.box()
-            col = box.column(align=True)
-            col.operator("zoom.fit", icon="ZOOM_SELECTED", text="Backdrop Fit")
-            col.prop(scene, "Fit")
-            if scene.Fit:
-                col.prop(scene, "Clamp")
-                col.prop(scene, "Margin")
-                col.prop(scene, "Grace")
-                col.separator()
-                col.row().prop(scene, "ImageType", expand=True)
-                if context.scene.ImageType == 'custom':
-                    row = col.row(align=True)
-                    row.prop(scene, "ImgSizeX", text="X")
-                    row.prop(scene, "ImgSizeY", text="Y")
-                elif context.scene.ImageType == 'image':
-                    col = box.column(align=True)
-                    col.alignment = 'RIGHT'
-                    if scene.ImageName == "":
-                        col.operator("zoom.get_image", icon="EXPORT")
-                    else:
-                        dx = bpy.data.images[context.scene.ImageName].size[0]
-                        dy = bpy.data.images[context.scene.ImageName].size[1]
-                        col.prop_search(scene, "ImageName", bpy.data, 'images', text="")
-                        col.label(text="(Size: " + str(dx) + " x " + str(dy) + ")")
-
         box = layout.box()
         col = box.column(align=True)
-        col.operator("nodes.layout", icon="IMGDISPLAY", text="Arrange Node Tree")
-        col.operator("nodes.layout_sel", icon="IMGDISPLAY", text="Arrange Selection")
+        col.operator("nw.layout", icon="IMGDISPLAY")
         col.prop(scene, "StartAlign")
         col.prop(scene, "EndAlign")
         col.prop(scene, "DelReroutes")
-        col.prop(scene, "Spacing")
-        col.separator()
         col.prop(scene, "FrameHandling")
-
+        col.separator()
+        col.prop(scene, "Spacing")
         col = layout.column(align=True)
-        col.operator("nodes.del_unused", icon="CANCEL", text="Delete Unused Nodes")
+        col.operator("nw.del_unused", icon="CANCEL", text="Delete Unused Nodes")
+        col.operator("nw.frame_selected", icon="MENU_PANEL")
 
 
 def uvs_menu_func(self, context):
     self.layout.menu("NODE_MT_node_uvs_menu")
+
+
+def bgreset_menu_func(self, context):
+    self.layout.operator("nw.bg_reset")
 
 
 addon_keymaps = []
@@ -882,24 +831,6 @@ addon_keymaps = []
 
 def register():
     # props
-    bpy.types.Scene.Clamp = bpy.props.BoolProperty(
-        name="Max 1.0",
-        default=True,
-        description="Force the Zoom to stay below or at 1.0 even when there's space for a bigger image")
-    bpy.types.Scene.Fit = bpy.props.BoolProperty(
-        name="Fit",
-        default=True,
-        description="Scale the image to fit inside the window")
-    bpy.types.Scene.Margin = bpy.props.FloatProperty(
-        name="Margin Size",
-        default=5.0,
-        min=0.0,
-        description="Create margins around image when Fitting (percentage)")
-    bpy.types.Scene.Grace = bpy.props.FloatProperty(
-        name="Grace",
-        default=0.0,
-        min=0.0,
-        description="When the image is only slightly smaller than the window, set Zoom to 1.0 anyway")
     bpy.types.Scene.StartAlign = bpy.props.BoolProperty(
         name="Align Start Nodes",
         default=True,
@@ -917,25 +848,6 @@ def register():
         name="Delete Reroutes",
         default=True,
         description="Delete all Reroute nodes to avoid unexpected layouts")
-    bpy.types.Scene.ImageType = bpy.props.EnumProperty(
-        name="Image Type",
-        items=(("render", "Render", "Use the render size to calculate Zoom Fit, or the selected image node"), ("image", "Image", "Use a specific image's size to calculate Zoom Fit"), ("custom", "Custom", "Use custom dimensions to calculate Zoom Fit")),
-        default='render',
-        description="Which dimensions to calculate Zoom Fit from")
-    bpy.types.Scene.ImgSizeX = bpy.props.IntProperty(
-        name="Image Size",
-        default=1024,
-        min=0,
-        description="The number of horizontal pixels")
-    bpy.types.Scene.ImgSizeY = bpy.props.IntProperty(
-        name="Image Size",
-        default=1024,
-        min=0,
-        description="The number of vertical pixels")
-    bpy.types.Scene.ImageName = bpy.props.StringProperty(
-        name="Image",
-        default='',
-        description="The image whose dimensions will be used")
     bpy.types.Scene.FrameHandling = bpy.props.EnumProperty(
         name="Frames",
         items=(("ignore", "Ignore", "Do nothing about Frame nodes (can be messy)"), ("delete", "Delete", "Delete Frame nodes")),
@@ -945,15 +857,16 @@ def register():
     bpy.utils.register_module(__name__)
 
     bpy.types.NODE_MT_category_SH_NEW_INPUT.append(uvs_menu_func)
+    bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
 
     # add keymap entry
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type="NODE_EDITOR")
-    kmi = km.keymap_items.new("zoom.fit", 'Z', 'PRESS')
-    kmi = km.keymap_items.new("nodes.layout", 'Q', 'PRESS', ctrl=True)
-    kmi = km.keymap_items.new("nodes.layout_sel", 'Q', 'PRESS')
-    kmi = km.keymap_items.new("nodes.del_unused", 'X', 'PRESS', alt=True, shift=True)
+    kmi = km.keymap_items.new("nw.bg_reset", 'Z', 'PRESS')
+    kmi = km.keymap_items.new("nw.layout", 'Q', 'PRESS')
+    kmi = km.keymap_items.new("nw.del_unused", 'X', 'PRESS', alt=True)
     kmi = km.keymap_items.new("nw.frame_selected", 'P', 'PRESS', shift=True)
     kmi = km.keymap_items.new("nw.emission_viewer", 'LEFTMOUSE', 'PRESS', ctrl=True, shift=True)
+    kmi = km.keymap_items.new("nw.swap_outputs", 'S', 'PRESS', alt=True, shift=True)
     km.keymap_items.new("wm.call_menu", 'S', 'PRESS', alt=True).properties.name='NODE_MT_type_swap_menu'
 
     addon_keymaps.append(km)
@@ -961,23 +874,16 @@ def register():
 
 def unregister():
     # props
-    del bpy.types.Scene.Clamp
-    del bpy.types.Scene.Fit
-    del bpy.types.Scene.Margin
-    del bpy.types.Scene.Grace
     del bpy.types.Scene.StartAlign
     del bpy.types.Scene.EndAlign
     del bpy.types.Scene.Spacing
     del bpy.types.Scene.DelReroutes
-    del bpy.types.Scene.ImageType
-    del bpy.types.Scene.ImgSizeX
-    del bpy.types.Scene.ImgSizeY
-    del bpy.types.Scene.ImageName
     del bpy.types.Scene.FrameHandling
 
     bpy.utils.unregister_module(__name__)
 
     bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(uvs_menu_func)
+    bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
 
     # remove keymap entry
     for km in addon_keymaps:
