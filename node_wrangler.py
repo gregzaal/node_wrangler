@@ -462,9 +462,15 @@ class NWSwapOutputs(bpy.types.Operator):
             out_index += 1
 
         for connection in n1_outputs:
-            links.new(n2.outputs[connection[0]], connection[1])
+            try:
+                links.new(n2.outputs[connection[0]], connection[1])
+            except:
+                self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
         for connection in n2_outputs:
-            links.new(n1.outputs[connection[0]], connection[1])
+            try:
+                links.new(n1.outputs[connection[0]], connection[1])
+            except:
+                self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
 
         return {'FINISHED'}
 
