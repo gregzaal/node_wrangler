@@ -8,7 +8,8 @@ Current version: 2.0
 New to 2.0:
     Material Viewer Node (Ctrl+Shift+Click) Connects a node to a temporary Emission shader as a dummy Viewer node to quickly see what the output of a node looks like. Emission strength matches Film Exposure so that colours are never over/under bright. If Ctrl+Shift+Clicking on a shader node, connect that to the material output and remove the dummy Viewer.
     UV layer nodes (Add > Input > UV Maps > [uv name]) a list of all uv layers on all objects with this material, adds an Attribute node with the name already filled in.
-    Type swapping (Alt+S)
-        Change the type of selected nodes (either shaders or textures) to a similar type (eg. shader type), keeping inputs and outputs connected
-    More user friendly Zoom Fit for compositor background images (Z key to fit render image, or the selected image if an image node is selected)
+    Type swapping (Alt+S): Change the type of selected nodes (either shaders or textures) to a similar type (eg. shader type), keeping inputs and outputs connected
+    Output Swapping (Alt+Shift+S): Exchange two node's output connections
+    Removed backdrop Zoom-Fit (now in trunk as alt+Home)
+    Reset backdrop zoom and position with Z
     Frame the selected nodes with Shift+P (adds frame node, parents selection to it)

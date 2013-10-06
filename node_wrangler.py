@@ -74,17 +74,6 @@ mix_shader_types = ['MIX_SHADER', 'ADD_SHADER']
 output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
 
 
-def actualRes(context, type="x"):
-    rend = context.scene.render
-    rend_percent = rend.resolution_percentage * 0.01
-    x = (str(rend.resolution_x * rend_percent).split('.'))[0]
-    y = (str(rend.resolution_y * rend_percent).split('.'))[0]
-    returned = y
-    if type == "x":
-        returned = x
-    return (returned)
-
-
 def get_nodes_links_withsel(context):  # Taken from Node Efficiency Tools by Bartek Skorupa (link at bottom)
     space = context.space_data
     tree = space.node_tree
