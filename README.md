@@ -10,6 +10,26 @@ Current version: 2.0
 Features
 --------
 
+* Viewer node for Cycles materials (Ctrl+Shift+Click)
+* Delete unused nodes (Alt+X)
+* Add an attribute node from a list of available UV maps with the name field already filled in (Shift+A > Input > UV Maps > [map name])
+* Switch the type of one or more nodes to a related type, like a different shader (Alt+S)
+* Swap the output connections of two nodes (Alt+Shift+S)
+* Reset the compositor backdrop image zoom and position (Z)
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+
 New to 2.0:
     Material Viewer Node (Ctrl+Shift+Click) Connects a node to a temporary Emission shader as a dummy Viewer node to quickly see what the output of a node looks like. Emission strength matches Film Exposure so that colours are never over/under bright. If Ctrl+Shift+Clicking on a shader node, connect that to the material output and remove the dummy Viewer.
     UV layer nodes (Add > Input > UV Maps > [uv name]) a list of all uv layers on all objects with this material, adds an Attribute node with the name already filled in.
