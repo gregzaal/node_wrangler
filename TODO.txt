@@ -1,6 +1,6 @@
 Tools for object/material index
-Save viewer image
 Add coordinate setup for selected textures
+Node swap - match default values (test with image and enviro)
 
 Node templates (store selection, new menu in Shift+A menu)
 Better auto-layout

@@ -74,6 +74,7 @@ mix_shader_types = ['MIX_SHADER', 'ADD_SHADER']
 output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
 
 
+
 def hack_force_update(nodes):
     for node in nodes:
         if node.inputs:
@@ -248,11 +249,11 @@ class ArrangeNodes(bpy.types.Operator):
 
     def execute(self, context):
         nodes, links = get_nodes_links_withsel(context)
-        margin = context.scene.Spacing
+        margin = context.scene.NWSpacing
 
         oldmidx, oldmidy = treeMidPt(nodes)
 
-        if context.scene.DelReroutes:
+        if context.scene.NWDelReroutes:
             # Store selection
             selection = []
             for node in nodes:
@@ -277,7 +278,7 @@ class ArrangeNodes(bpy.types.Operator):
                 if node.select == True:
                     selection.append(node.name)
 
-        if context.scene.FrameHandling == "delete":
+        if context.scene.NWFrameHandling == "delete":
             # Store selection
             selection = []
             for node in nodes:
@@ -300,10 +301,10 @@ class ArrangeNodes(bpy.types.Operator):
         for it in range(0, layout_iterations):
             for node in nodes:
                 isframe = False
-                if node.type == "FRAME" and context.scene.FrameHandling == 'ignore':
+                if node.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
                     isframe = True
                 if not isframe:
-                    if isStartNode(node) and context.scene.StartAlign:  # line up start nodes
+                    if isStartNode(node) and context.scene.NWStartAlign:  # line up start nodes
                         node.location.x = node.dimensions.x / -2
                         node.location.y = node.dimensions.y / 2
                     for link in links:
@@ -321,7 +322,7 @@ class ArrangeNodes(bpy.types.Operator):
                     link.to_node.location.x = link.from_node.location.x + link.from_node.dimensions.x + margin
 
         # line up end nodes
-        if context.scene.EndAlign:
+        if context.scene.NWEndAlign:
             for node in nodes:
                 max_loc_x = (sorted(nodes, key=lambda x: x.location.x, reverse=True))[0].location.x
                 if isEndNode(node) and not isStartNode(node):
@@ -331,12 +332,12 @@ class ArrangeNodes(bpy.types.Operator):
         for it in range(0, overlap_iterations):
             for node in nodes:
                 isframe = False
-                if node.type == "FRAME" and context.scene.FrameHandling == 'ignore':
+                if node.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
                     isframe = True
                 if not isframe:
                     for nodecheck in nodes:
                         isframe = False
-                        if nodecheck.type == "FRAME" and context.scene.FrameHandling == 'ignore':
+                        if nodecheck.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
                             isframe = True
                         if not isframe:
                             if (node != nodecheck):  # dont look for overlaps with self
@@ -824,9 +825,10 @@ class NWReloadImages(bpy.types.Operator):
             if node.type in image_types:
                 if node.type == "TEXTURE":
                     if node.texture: # node has texture assigned
-                        if node.texture.image: # texture has image assigned
-                            node.texture.image.reload()
-                            num_reloaded += 1
+                        if node.texture.type in ['IMAGE', 'ENVIRONMENT_MAP']:
+                            if node.texture.image: # texture has image assigned
+                                node.texture.image.reload()
+                                num_reloaded += 1
                 else:
                     if node.image:
                         node.image.reload()
@@ -844,6 +846,80 @@ class NWReloadImages(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+class NWViewImage(bpy.types.Operator):
+    bl_idname = "nw.view_image"
+    bl_label = "View Image"
+    bl_description = "Switch this window to an image editor and show the image for this node"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        valid = False
+        if space.type == 'NODE_EDITOR':
+            if space.node_tree is not None:
+                node = space.node_tree.nodes.active
+                if node.type == "TEXTURE":
+                    if node.texture: # node has texture assigned
+                        if node.texture.type in ['IMAGE', 'ENVIRONMENT_MAP']:
+                            if node.texture.image: # texture has image assigned
+                                valid = True
+                elif node.type == 'MOVIECLIP':
+                    if node.clip:
+                        valid = True
+                elif node.type in ['R_LAYERS', 'VIEWER', 'COMPOSITE']:
+                    valid = True
+                elif node.type == 'MASK':
+                    if node.mask:
+                        valid = True
+                else:
+                    if node.image:
+                        valid = True
+        return valid
+
+    def execute(self, context):
+        node = context.space_data.node_tree.nodes.active
+        image = ""
+        if node.type == "TEXTURE":
+            image = node.texture.image
+            context.area.type = 'IMAGE_EDITOR'
+            context.space_data.image = image
+            context.space_data.mode = 'VIEW'
+        elif node.type == 'MOVIECLIP':
+            image = node.clip
+            context.area.type = 'CLIP_EDITOR'
+            context.space_data.clip = image
+        elif node.type in ['R_LAYERS', 'COMPOSITE']:
+            if "Render Result" in [img.name for img in bpy.data.images]:
+                context.area.type = 'IMAGE_EDITOR'
+                context.space_data.image = bpy.data.images['Render Result']
+                context.space_data.mode = 'VIEW'
+            else:
+                self.report({'ERROR'}, "Render Result not found, try rerendering")
+        elif node.type == 'VIEWER':
+            if "Viewer Node" in [img.name for img in bpy.data.images]:
+                context.area.type = 'IMAGE_EDITOR'
+                context.space_data.image = bpy.data.images['Viewer Node']
+                context.space_data.mode = 'VIEW'
+            else:
+                self.report({'ERROR'}, "Viewer not found, try reconnecting it")
+        elif node.type == 'MASK':
+            image = node.mask
+            context.area.type = 'IMAGE_EDITOR'
+            if "Viewer Node" in [img.name for img in bpy.data.images]:
+                context.space_data.image = bpy.data.images['Viewer Node']
+            elif "Render Result" in [img.name for img in bpy.data.images]:
+                context.space_data.image = bpy.data.images['Render Result']
+            context.space_data.mode = 'MASK'
+            context.space_data.mask = image
+        else:
+            image = node.image
+            context.area.type = 'IMAGE_EDITOR'
+            context.space_data.image = image
+            context.space_data.mode = 'VIEW'
+            
+        return {'FINISHED'}
+
+
 class NodeWranglerPanel(bpy.types.Panel):
     bl_idname = "NODE_PT_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
@@ -857,12 +933,12 @@ class NodeWranglerPanel(bpy.types.Panel):
         box = layout.box()
         col = box.column(align=True)
         col.operator("nw.layout", icon="IMGDISPLAY")
-        col.prop(scene, "StartAlign")
-        col.prop(scene, "EndAlign")
-        col.prop(scene, "DelReroutes")
-        col.prop(scene, "FrameHandling")
+        col.prop(scene, "NWStartAlign")
+        col.prop(scene, "NWEndAlign")
+        col.prop(scene, "NWDelReroutes")
+        col.prop(scene, "NWFrameHandling")
         col.separator()
-        col.prop(scene, "Spacing")
+        col.prop(scene, "NWSpacing")
         col = layout.column(align=True)
         col.operator("nw.del_unused", icon="CANCEL", text="Delete Unused Nodes")
         col.operator("nw.frame_selected", icon="MENU_PANEL")
@@ -876,29 +952,48 @@ def bgreset_menu_func(self, context):
     self.layout.operator("nw.bg_reset")
 
 
+def showimage_menu_func(self, context):
+    node = context.space_data.node_tree.nodes.active
+    if node.type in ["IMAGE", "TEX_IMAGE", "TEX_ENVIRONMENT", "TEXTURE", "R_LAYERS", "MOVIECLIP", "VIEWER", "COMPOSITE", "MASK"]:
+        txt = "View Image"
+        if node.type in ['R_LAYERS', 'COMPOSITE']:
+            txt = "View Render Result"
+        elif node.type == 'MOVIECLIP':
+            txt = "View Clip"
+        elif node.type == 'MASK':
+            txt = "Edit Mask"
+        if node.type == 'TEXTURE':
+            if node.texture.type != 'IMAGE':
+                txt = 'INVALID'
+        
+        if txt != 'INVALID':
+            self.layout.operator("nw.view_image", icon="UI", text=txt)
+
+
+
 addon_keymaps = []
 
 
 def register():
     # props
-    bpy.types.Scene.StartAlign = bpy.props.BoolProperty(
+    bpy.types.Scene.NWStartAlign = bpy.props.BoolProperty(
         name="Align Start Nodes",
         default=True,
         description="Put all nodes with no inputs on the left of the tree")
-    bpy.types.Scene.EndAlign = bpy.props.BoolProperty(
+    bpy.types.Scene.NWEndAlign = bpy.props.BoolProperty(
         name="Align End Nodes",
         default=True,
         description="Put all nodes with no outputs on the right of the tree")
-    bpy.types.Scene.Spacing = bpy.props.FloatProperty(
+    bpy.types.Scene.NWSpacing = bpy.props.FloatProperty(
         name="Spacing",
         default=80.0,
         min=0.0,
         description="The horizonal space between nodes (vertical is half this)")
-    bpy.types.Scene.DelReroutes = bpy.props.BoolProperty(
+    bpy.types.Scene.NWDelReroutes = bpy.props.BoolProperty(
         name="Delete Reroutes",
         default=True,
         description="Delete all Reroute nodes to avoid unexpected layouts")
-    bpy.types.Scene.FrameHandling = bpy.props.EnumProperty(
+    bpy.types.Scene.NWFrameHandling = bpy.props.EnumProperty(
         name="Frames",
         items=(("ignore", "Ignore", "Do nothing about Frame nodes (can be messy)"), ("delete", "Delete", "Delete Frame nodes")),
         default='ignore',
@@ -908,6 +1003,7 @@ def register():
 
     bpy.types.NODE_MT_category_SH_NEW_INPUT.append(uvs_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
+    bpy.types.NODE_PT_active_node_properties.append(showimage_menu_func)
 
     # add keymap entry
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name="Node Editor", space_type="NODE_EDITOR")
@@ -925,16 +1021,17 @@ def register():
 
 def unregister():
     # props
-    del bpy.types.Scene.StartAlign
-    del bpy.types.Scene.EndAlign
-    del bpy.types.Scene.Spacing
-    del bpy.types.Scene.DelReroutes
-    del bpy.types.Scene.FrameHandling
+    del bpy.types.Scene.NWStartAlign
+    del bpy.types.Scene.NWEndAlign
+    del bpy.types.Scene.NWSpacing
+    del bpy.types.Scene.NWDelReroutes
+    del bpy.types.Scene.NWFrameHandling
 
     bpy.utils.unregister_module(__name__)
 
     bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(uvs_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
+    bpy.types.NODE_PT_active_node_properties.remove(showimage_menu_func)
 
     # remove keymap entry
     for km in addon_keymaps:
