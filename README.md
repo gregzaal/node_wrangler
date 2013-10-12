@@ -12,29 +12,11 @@ Features
 
 * Viewer node for Cycles materials (Ctrl+Shift+Click)
 * Delete unused nodes (Alt+X)
-* Add an attribute node from a list of available UV maps with the name field already filled in (Shift+A > Input > UV Maps > [map name])
-* Switch the type of one or more nodes to a related type, like a different shader (Alt+S)
+* UV Layer nodes - add an attribute node from a list of available UV maps with the name field already filled in (Shift+A > Input > UV Maps > [map name])
+* Switch the type of one or more nodes to a related type, like a different shader (Alt+S), keeping inputs and outputs connected
 * Swap the output connections of two nodes (Alt+Shift+S)
 * Reset the compositor backdrop image zoom and position (Z)
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-* 
-
-New to 2.0:
-    Material Viewer Node (Ctrl+Shift+Click) Connects a node to a temporary Emission shader as a dummy Viewer node to quickly see what the output of a node looks like. Emission strength matches Film Exposure so that colours are never over/under bright. If Ctrl+Shift+Clicking on a shader node, connect that to the material output and remove the dummy Viewer.
-    UV layer nodes (Add > Input > UV Maps > [uv name]) a list of all uv layers on all objects with this material, adds an Attribute node with the name already filled in.
-    Type swapping (Alt+S): Change the type of selected nodes (either shaders or textures) to a similar type (eg. shader type), keeping inputs and outputs connected
-    Output Swapping (Alt+Shift+S): Exchange two node's output connections
-    Removed backdrop Zoom-Fit (now in trunk as alt+Home)
-    Reset backdrop zoom and position with Z
-    Frame the selected nodes with Shift+P (adds frame node, parents selection to it)
+* Frame the selected nodes (Shift+P)
+* Reload the images of all the image nodes in the current tree
+* Quickly jump to the Image Editor and view the image of the selected node. Works for textures, movie clips, environment images, render layers and viewer nodes. Also available for Masks, which will show the Viewer Node image or Render Result and switch to Mask edit mode.
+* Automatically arrange the selected nodes (or all of them) in a non-overlapping linear layout (Q)

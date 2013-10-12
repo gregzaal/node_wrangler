@@ -195,7 +195,7 @@ def treeMidPt(nodes):
     return midx, midy
 
 
-class LinkToOutputNode(bpy.types.Operator):  # Partially taken from Node Efficiency Tools by Bartek Skorupa
+class NWLinkToOutputNode(bpy.types.Operator):  # Partially taken from Node Efficiency Tools by Bartek Skorupa
     bl_idname = "nw.link_out"
     bl_label = "Connect to Output"
     bl_options = {'REGISTER', 'UNDO'}
@@ -240,7 +240,7 @@ class LinkToOutputNode(bpy.types.Operator):  # Partially taken from Node Efficie
         return {'FINISHED'}
 
 
-class ArrangeNodes(bpy.types.Operator):
+class NWArrangeNodes(bpy.types.Operator):
 
     'Automatically layout the selected nodes in a linear and non-overlapping fashion.'
     bl_idname = 'nw.layout'
@@ -356,7 +356,7 @@ class ArrangeNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class DeleteUnusedNodes(bpy.types.Operator):
+class NWDeleteUnusedNodes(bpy.types.Operator):
 
     'Delete all nodes whose output is not used'
     bl_idname = 'nw.del_unused'
@@ -381,7 +381,7 @@ class DeleteUnusedNodes(bpy.types.Operator):
             for node in nodes:
                 node.select = False
             for node in nodes:
-                if isEndNode(node) and not node.type in end_types:
+                if isEndNode(node) and not node.type in end_types and node.type != 'FRAME':
                     node.select = True
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
