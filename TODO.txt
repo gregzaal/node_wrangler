@@ -1,7 +1,6 @@
 Tools for object/material index
 Save viewer image
 Add coordinate setup for selected textures
-Reload all image nodes (both compositing and shading) with hotkey
 
 Node templates (store selection, new menu in Shift+A menu)
 Better auto-layout

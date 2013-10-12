@@ -74,6 +74,18 @@ mix_shader_types = ['MIX_SHADER', 'ADD_SHADER']
 output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
 
 
+def hack_force_update(nodes):
+    for node in nodes:
+        if node.inputs:
+            for inpt in node.inputs:
+                try:
+                    inpt.default_value = inpt.default_value # set value to itself to force update
+                    return True
+                except:
+                    pass
+    return False
+
+
 def get_nodes_links_withsel(context):  # Taken from Node Efficiency Tools by Bartek Skorupa (link at bottom)
     space = context.space_data
     tree = space.node_tree
@@ -221,6 +233,8 @@ class LinkToOutputNode(bpy.types.Operator):  # Partially taken from Node Efficie
                 if active.outputs[output_index].type != 'SHADER': # connect to displacement if not a shader
                     out_input_index = 2
             links.new(active.outputs[output_index], output_node.inputs[out_input_index])
+
+        hack_force_update(nodes) # viewport render does not update
 
         return {'FINISHED'}
 
@@ -656,9 +670,10 @@ class NWEmissionViewer(bpy.types.Operator):
             active = nodes.active
             valid = False
             if active:
-                if active.select:
-                    if active.type not in shader_types and active.type not in mix_shader_types:
-                        valid = True
+                if (active.name != "Emission Viewer") and (active.type not in output_types):
+                    if active.select:
+                        if active.type not in shader_types and active.type not in mix_shader_types:
+                            valid = True
             if valid:                        
                 # get material_output node
                 materialout_exists=False
@@ -732,11 +747,9 @@ class NWEmissionViewer(bpy.types.Operator):
                     if node.name in selection:
                         node.select=True 
             else: # if active node is a shader, connect to output
-                try:
+                if (active.name != "Emission Viewer") and (active.type not in output_types):
                     bpy.ops.nw.link_out()
-                except:
-                    self.report({'ERROR'}, "Shader viewing relies on a function of the Node Efficiency Tools addon") # for now!
-                finally:
+
                     # ----Delete Emission Viewer----            
                     if len(list(x for x in nodes if x.name == 'Emission Viewer')) > 0:
                         # Store selection
@@ -787,6 +800,48 @@ class NWFrameSelected(bpy.types.Operator):
             node.parent=frm
 
         return {'FINISHED'}
+
+
+class NWReloadImages(bpy.types.Operator):
+    bl_idname = "nw.reload_images"
+    bl_label = "Reload Images"
+    bl_description = "Update all the image nodes to match their files on disk"
+
+    @classmethod
+    def poll(cls, context):
+        space = context.space_data
+        valid = False
+        if space.type == 'NODE_EDITOR':
+            if space.node_tree is not None:
+                valid = True
+        return valid
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+        image_types = ["IMAGE", "TEX_IMAGE", "TEX_ENVIRONMENT", "TEXTURE"]
+        num_reloaded = 0
+        for node in nodes:
+            if node.type in image_types:
+                if node.type == "TEXTURE":
+                    if node.texture: # node has texture assigned
+                        if node.texture.image: # texture has image assigned
+                            node.texture.image.reload()
+                            num_reloaded += 1
+                else:
+                    if node.image:
+                        node.image.reload()
+                        num_reloaded += 1
+
+        if num_reloaded:
+            self.report({'INFO'}, "Reloaded images")
+            print ("Reloaded "+str(num_reloaded)+" images")
+            hack_force_update(nodes)
+            # bpy.ops.node.mute_toggle()
+            # bpy.ops.node.mute_toggle() # stupid hack to update the node tree
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, "No images found to reload in this node tree")
+            return {'CANCELLED'}
 
 
 class NodeWranglerPanel(bpy.types.Panel):
@@ -862,6 +917,7 @@ def register():
     kmi = km.keymap_items.new("nw.frame_selected", 'P', 'PRESS', shift=True)
     kmi = km.keymap_items.new("nw.emission_viewer", 'LEFTMOUSE', 'PRESS', ctrl=True, shift=True)
     kmi = km.keymap_items.new("nw.swap_outputs", 'S', 'PRESS', alt=True, shift=True)
+    kmi = km.keymap_items.new("nw.reload_images", 'R', 'PRESS', alt=True)
     km.keymap_items.new("wm.call_menu", 'S', 'PRESS', alt=True).properties.name='NODE_MT_type_swap_menu'
 
     addon_keymaps.append(km)
