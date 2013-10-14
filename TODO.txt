@@ -1,6 +1,7 @@
 Tools for object/material index
 Add coordinate setup for selected textures
 Add RGB colour nodes for all unconnected sockets of the selected nodes, linking identical colours to a single RGB colour node.
+Add driver for mapping node (option for offset)
 
 Node templates (store selection, new menu in Shift+A menu)
 Better auto-layout
