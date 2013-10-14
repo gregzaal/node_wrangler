@@ -247,6 +247,15 @@ class NWArrangeNodes(bpy.types.Operator):
     bl_label = 'Arrange Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        valid = False
+        if context.space_data:
+            if context.space_data.node_tree:
+                if context.space_data.node_tree.nodes:
+                    valid = True
+        return valid
+
     def execute(self, context):
         nodes, links = get_nodes_links_withsel(context)
         margin = context.scene.NWSpacing
@@ -362,6 +371,15 @@ class NWDeleteUnusedNodes(bpy.types.Operator):
     bl_idname = 'nw.del_unused'
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        valid = False
+        if context.space_data:
+            if context.space_data.node_tree:
+                if context.space_data.node_tree.nodes:
+                    valid = True
+        return valid
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -777,6 +795,9 @@ class NWFrameSelected(bpy.types.Operator):
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
+    label_prop = bpy.props.StringProperty(name='Label', default = ' ', description='The visual name of the frame node')
+    color_prop = bpy.props.FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
+                                                min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
 
     @classmethod
     def poll(cls, context):
@@ -796,6 +817,9 @@ class NWFrameSelected(bpy.types.Operator):
                 
         bpy.ops.node.add_node(type='NodeFrame')
         frm=nodes.active
+        frm.label = self.label_prop
+        frm.use_custom_color = True
+        frm.color = self.color_prop
         
         for node in selected:
             node.parent=frm
