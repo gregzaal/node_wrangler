@@ -73,6 +73,22 @@ texture_names = list(x[2] for x in texture_list)
 mix_shader_types = ['MIX_SHADER', 'ADD_SHADER']
 output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
 
+non_input_attrs = ['image',
+                   'color_space',
+                   'projection',
+                   'distribution',
+                   'component',
+                   'falloff',
+                   'sundirection',
+                   'wave_type',
+                   'coloring',
+                   'musgrave_type',
+                   'gradient_type',
+                   'turbulence_depth',
+                   'offset',
+                   'offset_frequency',
+                   'squash',
+                   'squash_frequency']
 
 
 def hack_force_update(nodes):
@@ -514,11 +530,13 @@ class NWSwapType(bpy.types.Operator):
             # connections list: to/from socket object, swapped node's socket name, swapped node's socket type
             input_connections = []
             output_connections = []
+            input_defaults = {}
             newnode = nodes.new(self.newtype)
             newnode.location.x = node.location.x
             newnode.location.y = node.location.y
 
             for inpt in node.inputs:
+                input_defaults[inpt.name] = inpt.default_value
                 for link in inpt.links:
                     input_connections.append((link.from_socket, link.to_socket.name, link.to_socket.type))
             for c in input_connections:
@@ -532,6 +550,17 @@ class NWSwapType(bpy.types.Operator):
                         if inpt.type == c[2] and not connection_made:
                             links.new(c[0], inpt)
                             connection_made = True
+            for inpt in newnode.inputs: # set default_values
+                if inpt.name in input_defaults:
+                    inpt.default_value = input_defaults[inpt.name]
+
+            for attr in non_input_attrs:
+                if hasattr(node, attr) and hasattr(newnode, attr):
+                    if getattr(node, attr):
+                        try:
+                            setattr(newnode, attr, getattr(node, attr))
+                        except:
+                            print ("Failed to set \'"+attr+"\'' on \'"+newnode.name+"\'")
 
             for outpt in node.outputs:
                 for link in outpt.links:
@@ -559,17 +588,77 @@ class NWSwapType(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class NWSwapInvert(bpy.types.Operator):
+
+    "Change the selected Invert nodes to Math nodes, or vice versa"
+    bl_idname = 'nw.swap_invert'
+    bl_label = 'Swap Invert'
+    mode = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        selected_nodes = context.selected_nodes
+        new_nodes = []
+        for node in selected_nodes:
+            input_connections = []
+            output_connections = []
+
+            if self.mode == 'inv_to_math':
+                if context.space_data.node_tree.type == 'SHADER':
+                    newnode = nodes.new('ShaderNodeMath')
+                else:
+                    newnode = nodes.new('CompositorNodeMath')
+                newnode.inputs[0].default_value = 1.0
+                newnode.operation = 'SUBTRACT'
+            else:
+                if context.space_data.node_tree.type == 'SHADER':
+                    newnode = nodes.new('ShaderNodeInvert')
+                else:
+                    newnode = nodes.new('CompositorNodeInvert')
+
+            newnode.location.x = node.location.x
+            newnode.location.y = node.location.y
+
+            
+            for link in node.inputs[1].links:
+                input_connections.append(link.from_socket)
+            for c in input_connections:
+                links.new(c, newnode.inputs[1])
+
+            for link in node.outputs[0].links:
+                output_connections.append(link.to_socket)
+            for c in output_connections:
+                links.new(c, newnode.outputs[0])
+
+            newnode.select = False
+            new_nodes.append(newnode)
+
+        bpy.ops.node.delete() # remove old nodes
+
+        for n in new_nodes:
+            n.select = True
+
+        return {'FINISHED'}
+
+
 class NWSwapMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_type_swap_menu"
     bl_label = "Swap the type of selected nodes"
 
     @classmethod
     def poll(cls, context):
-        if context.area.spaces[0].node_tree:
-            if context.area.spaces[0].node_tree.type == 'SHADER':
-                if len(list(x for x in context.area.spaces[0].node_tree.nodes if x.select == True)) > 0: # if any nodes are selected
-                    selected_types = list(k.type for k in context.area.spaces[0].node_tree.nodes if k.select == True)
-                    if list(x for x in selected_types if x in shader_types) or list(x for x in selected_types if x in texture_types):
+        if context.space_data.node_tree:
+            tree = context.space_data.node_tree
+            if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
+                if len(list(x for x in tree.nodes if x.select == True)) > 0: # if any nodes are selected
+                    selected_types = list(k.type for k in tree.nodes if k.select == True)
+                    math_nodes = list(n for n in tree.nodes if n.type == 'MATH' and n.select == True)
+                    if math_nodes:
+                        if list(x for x in math_nodes if x.operation == 'SUBTRACT' and x.inputs[0].default_value == 1.0 and not x.inputs[0].is_linked and x.inputs[1].is_linked): # one of the math nodes is used to invert
+                            return True
+                    if list(x for x in selected_types if x in shader_types) or list(x for x in selected_types if x in texture_types) or list(x for x in selected_types if x == 'INVERT'):
                         return True
                     else:
                         return False
@@ -585,12 +674,15 @@ class NWSwapMenu(bpy.types.Menu):
         nodes, links = get_nodes_links(context)
 
         selected_types = list(k.type for k in nodes if k.select == True)
+        math_nodes = list(n for n in nodes if n.type == 'MATH' and n.select == True)
 
         swap_type=''
         if list(x for x in selected_types if x in shader_types):
             swap_type += 'shader'
         if list(x for x in selected_types if x in texture_types):
             swap_type += 'texture'
+        if (list(x for x in selected_types if x == 'INVERT') or list(x for x in math_nodes if x.operation == 'SUBTRACT' and x.inputs[0].default_value == 1.0 and not x.inputs[0].is_linked and x.inputs[1].is_linked)) and not swap_type:
+            swap_type = 'invert'
 
         index=0
         if 'shader' in swap_type:
@@ -604,6 +696,9 @@ class NWSwapMenu(bpy.types.Menu):
             for node_type in texture_names:
                 l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
                 index+=1
+        if swap_type == 'invert':
+            l.operator("nw.swap_invert", text = 'Swap Invert to Math').mode = 'inv_to_math'
+            l.operator("nw.swap_invert", text = 'Swap Math to Invert').mode = 'math_to_inv' # here - dont use same operator
 
 
 class NWAddUVNode(bpy.types.Operator):
