@@ -1,6 +1,6 @@
 Tools for object/material index
 Add coordinate setup for selected textures
-Node swap - match default values (test with image and enviro)
+Add RGB colour nodes for all unconnected sockets of the selected nodes, linking identical colours to a single RGB colour node.
 
 Node templates (store selection, new menu in Shift+A menu)
 Better auto-layout
