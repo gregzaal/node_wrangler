@@ -656,9 +656,15 @@ class NWSwapMenu(bpy.types.Menu):
                     selected_types = list(k.type for k in tree.nodes if k.select == True)
                     math_nodes = list(n for n in tree.nodes if n.type == 'MATH' and n.select == True)
                     if math_nodes:
-                        if list(x for x in math_nodes if x.operation == 'SUBTRACT' and x.inputs[0].default_value == 1.0 and not x.inputs[0].is_linked and x.inputs[1].is_linked): # one of the math nodes is used to invert
+                        # one of the math nodes is used to invert:
+                        if list(x for x in math_nodes if x.operation == 'SUBTRACT' and \
+                                                         x.inputs[0].default_value == 1.0 and \
+                                                         not x.inputs[0].is_linked and \
+                                                         x.inputs[1].is_linked):
                             return True
-                    if list(x for x in selected_types if x in shader_types) or list(x for x in selected_types if x in texture_types) or list(x for x in selected_types if x == 'INVERT'):
+                    elif list(x for x in selected_types if x in shader_types) or \
+                       list(x for x in selected_types if x in texture_types) or \
+                       list(x for x in selected_types if x == 'INVERT'):
                         return True
                     else:
                         return False
@@ -681,8 +687,13 @@ class NWSwapMenu(bpy.types.Menu):
             swap_type += 'shader'
         if list(x for x in selected_types if x in texture_types):
             swap_type += 'texture'
-        if (list(x for x in selected_types if x == 'INVERT') or list(x for x in math_nodes if x.operation == 'SUBTRACT' and x.inputs[0].default_value == 1.0 and not x.inputs[0].is_linked and x.inputs[1].is_linked)) and not swap_type:
-            swap_type = 'invert'
+        if list(x for x in selected_types if x == 'INVERT'):
+            swap_type += 'invert_inv'
+        if list(x for x in math_nodes if x.operation == 'SUBTRACT' and \
+                                         x.inputs[0].default_value == 1.0 and \
+                                         not x.inputs[0].is_linked and \
+                                         x.inputs[1].is_linked):
+            swap_type += 'math_inv'
 
         index=0
         if 'shader' in swap_type:
@@ -696,9 +707,10 @@ class NWSwapMenu(bpy.types.Menu):
             for node_type in texture_names:
                 l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
                 index+=1
-        if swap_type == 'invert':
+        if 'invert_inv' in swap_type:
             l.operator("nw.swap_invert", text = 'Swap Invert to Math').mode = 'inv_to_math'
-            l.operator("nw.swap_invert", text = 'Swap Math to Invert').mode = 'math_to_inv' # here - dont use same operator
+        if 'math_inv' in swap_type:
+            l.operator("nw.swap_invert", text = 'Swap Math to Invert').mode = 'math_to_inv'
 
 
 class NWAddUVNode(bpy.types.Operator):
