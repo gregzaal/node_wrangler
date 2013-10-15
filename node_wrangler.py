@@ -662,7 +662,7 @@ class NWSwapMenu(bpy.types.Menu):
                                                          not x.inputs[0].is_linked and \
                                                          x.inputs[1].is_linked):
                             return True
-                    elif list(x for x in selected_types if x in shader_types) or \
+                    if list(x for x in selected_types if x in shader_types) or \
                        list(x for x in selected_types if x in texture_types) or \
                        list(x for x in selected_types if x == 'INVERT'):
                         return True
