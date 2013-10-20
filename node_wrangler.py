@@ -793,10 +793,11 @@ class NWEmissionViewer(bpy.types.Operator):
         select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
         if 'FINISHED' in select_node: # only run if mouse click is on a node
             nodes, links = get_nodes_links(context)
+            in_group = context.active_node != context.space_data.node_tree.nodes.active
             active = nodes.active
             valid = False
             if active:
-                if (active.name != "Emission Viewer") and (active.type not in output_types):
+                if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
                     if active.select:
                         if active.type not in shader_types and active.type not in mix_shader_types:
                             valid = True
@@ -873,7 +874,7 @@ class NWEmissionViewer(bpy.types.Operator):
                     if node.name in selection:
                         node.select=True 
             else: # if active node is a shader, connect to output
-                if (active.name != "Emission Viewer") and (active.type not in output_types):
+                if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
                     bpy.ops.nw.link_out()
 
                     # ----Delete Emission Viewer----            
