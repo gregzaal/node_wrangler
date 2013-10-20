@@ -3,6 +3,7 @@ Add coordinate setup for selected nodes (check for vector inputs, append to Inpu
 Add RGB colour nodes for all unconnected sockets of the selected nodes, linking identical colours to a single RGB colour node.
 Add driver for mapping node (option for offset)
 Color ramp element positions (node.color_ramp.elements[0])
+WHen viewing the image/mask/clip of a node, add button to header to jump back to node editor
 
 Node templates (store selection, new menu in Shift+A menu, new panel in toolbar)
 Better auto-layout

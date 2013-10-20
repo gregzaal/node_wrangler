@@ -1133,7 +1133,7 @@ def register():
 
     bpy.utils.register_module(__name__)
 
-    bpy.types.NODE_MT_category_SH_NEW_INPUT.append(uvs_menu_func)
+    bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(uvs_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
     bpy.types.NODE_PT_active_node_properties.append(showimage_menu_func)
 

@@ -18,5 +18,5 @@ Features
 * Reset the compositor backdrop image zoom and position (Z)
 * Frame the selected nodes (Shift+P)
 * Reload the images of all the image nodes in the current tree
-* Quickly jump to the Image Editor and view the image of the selected node. Works for textures, movie clips, environment images, render layers and viewer nodes. Also available for Masks, which will show the Viewer Node image or Render Result and switch to Mask edit mode.
+* Quickly jump to the Image Editor and view the image of the selected node. Works for textures, movie clips, environment images, render layers, viewer nodes and masks.
 * Automatically arrange the selected nodes (or all of them) in a non-overlapping linear layout (Q)
