@@ -17,6 +17,6 @@ Features
 * Swap the output connections of two nodes (Alt+Shift+S)
 * Reset the compositor backdrop image zoom and position (Z)
 * Frame the selected nodes (Shift+P)
-* Reload the images of all the image nodes in the current tree
+* Reload the images of all the image nodes in the current tree (Alt+R)
 * Quickly jump to the Image Editor and view the image of the selected node. Works for textures, movie clips, environment images, render layers, viewer nodes and masks.
 * Automatically arrange the selected nodes (or all of them) in a non-overlapping linear layout (Q)
