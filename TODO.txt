@@ -4,6 +4,9 @@ Add RGB colour nodes for all unconnected sockets of the selected nodes, linking 
 Add driver for mapping node (option for offset)
 Color ramp element positions (node.color_ramp.elements[0])
 WHen viewing the image/mask/clip of a node, add button to header to jump back to node editor
+Add Vertex colors menu
+Check for existance of UV layers or vert cols before appending to the menu
+Interactivly mix nodes (with BGL lines)
 
 Node templates (store selection, new menu in Shift+A menu, new panel in toolbar)
 Better auto-layout
