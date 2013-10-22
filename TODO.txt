@@ -1,13 +1,16 @@
-Tools for object/material index
-Add coordinate setup for selected nodes (check for vector inputs, append to Input menu)
-Add RGB colour nodes for all unconnected sockets of the selected nodes, linking identical colours to a single RGB colour node.
-Add driver for mapping node (option for offset)
+    Short term:
+Merge with Node Efficiency Tools (NET) - thanks Bartek!
+Improve NET texture setup (Ctrl+T on texture nodes to add setup; fix mapping node size; add mapping between coord and texture)
+Improve NET Merge nodes (preference not to Hide node; place in center with dimensions)
+Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
+Link Sky Texture vector with a Sun Lamp's rotation
 Color ramp element positions (node.color_ramp.elements[0])
 WHen viewing the image/mask/clip of a node, add button to header to jump back to node editor
-Add Vertex colors menu
+Add Vertex colors menu (same as UV Layers)
 Check for existance of UV layers or vert cols before appending to the menu
-Interactivly mix nodes (with BGL lines)
-Show a list of hotkeys in user prefs
+Show a list of hotkeys in user prefs (in expandable box)
 
-Node templates (store selection, new menu in Shift+A menu, new panel in toolbar)
-Better auto-layout
+    Long Term
+Tools for object/material index (both shading and compositing noodles, and for assigning)
+Node templates (store selection, new menu in Shift+A menu, new panel in toolbar) [something like this exists already? where?]
+Better auto-arrange that uses the starting position of nodes and centers them nicely rather than a long row at the top and ugly vertical 'columns'
