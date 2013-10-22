@@ -9,7 +9,7 @@ Short term:
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
-* WHen viewing the image/mask/clip of a node, add button to header to jump back to node editor
+* When viewing the image/mask/clip of a node, add button to header to jump back to node editor
 * Add Vertex colors menu (same as UV Layers)
 * Check for existance of UV layers or vert cols before appending to the menu
 * Show a list of hotkeys in user prefs (in expandable box)
