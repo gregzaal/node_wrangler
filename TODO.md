@@ -13,6 +13,7 @@ Short term:
 * Add Vertex colors menu (same as UV Layers)
 * Check for existance of UV layers or vert cols before appending to the menu
 * Show a list of hotkeys in user prefs (in expandable box)
+* Clamp the output of selected nodes (Mix node, second input, Clamp on)
 
 Long Term:
 ----------
