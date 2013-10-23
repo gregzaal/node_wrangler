@@ -292,7 +292,8 @@ class NWArrangeNodes(bpy.types.Operator):
                     node.select = True
                     bpy.ops.node.delete_reconnect()
             # Restore selection
-            #nodes, links = get_nodes_links(context)
+            nodes, links = get_nodes_links(context)
+            nodes = list(nodes)
             for node in nodes:
                 if node.name in selection:
                     node.select = True
@@ -317,7 +318,8 @@ class NWArrangeNodes(bpy.types.Operator):
                     node.select = True
                     bpy.ops.node.delete()
             # Restore selection
-            #nodes, links = get_nodes_links(context)
+            nodes, links = get_nodes_links(context)
+            nodes = list(nodes)
             for node in nodes:
                 if node.name in selection:
                     node.select = True
