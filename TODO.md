@@ -14,6 +14,7 @@ Short term:
 * Check for existance of UV layers or vert cols before appending to the menu
 * Show a list of hotkeys in user prefs (in expandable box)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
+* Batch Change - properties, non-input attributes (like SSS falloff), node labels, node colors... be smart, don't show options that aren't possible - perhaps use columns to prevent rediculously long lists.
 
 Long Term:
 ----------
