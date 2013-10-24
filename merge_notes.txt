@@ -1,0 +1,5 @@
+LinkToOutputNode: replaced whole class with my one - I'm fairly certain everyting should be fine, but it should be tested still
+
+TODO: Take NWSwapType (and NWSwapInvert and NWSwapMenu) from Wrangler and add the features from NET manually I think. Shouldn't be hard.
+
+TODO: Merge panels
