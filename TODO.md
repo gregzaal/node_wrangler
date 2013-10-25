@@ -15,6 +15,7 @@ Short term:
 * Show a list of hotkeys in user prefs (in expandable box)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
 * Batch Change - properties, non-input attributes (like SSS falloff), node labels, node colors... be smart, don't show options that aren't possible - perhaps use columns to prevent rediculously long lists.
+* Search function (Tab key?) to quickly search by node name, output socket name and enum name (eg 'Multiply' would show Mix and Math nodes)
 
 Long Term:
 ----------
