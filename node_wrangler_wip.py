@@ -429,7 +429,7 @@ def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
 
 
 def draw_callback_mixnodes(self, context, mode="MIX"):
-    #bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     if self.mouse_path:
         colors = []
@@ -466,6 +466,7 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 # TODO - merge NWMixNodes and NWLazyConnect into one class (lots of duplicate code now)
 class NWMixNodes(bpy.types.Operator):
