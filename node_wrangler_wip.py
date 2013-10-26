@@ -30,9 +30,12 @@ bl_info = {
     }
 
 import bpy
+import blf
+import bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty
 from mathutils import Vector
+from math import cos, sin, pi, sqrt
 
 #################
 # rl_outputs:
@@ -184,6 +187,25 @@ non_input_attrs = ['image',
                    'squash',
                    'squash_frequency']
 
+draw_color_sets = {"red_white": [[1.0, 1.0, 1.0, 0.7],
+                                 [1.0, 0.0, 0.0, 0.7],
+                                 [0.8, 0.2, 0.2, 1.0]],
+                   "green": [[0.0, 0.0, 0.0, 1.0],
+                             [0.38, 0.77, 0.38, 1.0],
+                             [0.38, 0.77, 0.38, 1.0]],
+                   "yellow": [[0.0, 0.0, 0.0, 1.0],
+                              [0.77, 0.77, 0.16, 1.0],
+                              [0.77, 0.77, 0.16, 1.0]],
+                   "purple": [[0.0, 0.0, 0.0, 1.0],
+                             [0.38, 0.38, 0.77, 1.0],
+                             [0.38, 0.38, 0.77, 1.0]],
+                   "grey": [[0.0, 0.0, 0.0, 1.0],
+                             [0.63, 0.63, 0.63, 1.0],
+                             [0.63, 0.63, 0.63, 1.0]],
+                   "black": [[1.0, 1.0, 1.0, 0.7],
+                             [0.0, 0.0, 0.0, 0.7],
+                             [0.2, 0.2, 0.2, 1.0]]}
+
 
 def hack_force_update(nodes):
     for node in nodes:
@@ -301,6 +323,15 @@ def overlaps(node1, node2):
     return boolboth
 
 
+def nodeMidPt(node, axis):
+    if axis == 'x':
+        d = node.location.x+(node.dimensions.x/2)
+    elif axis == 'y':
+        d = node.location.y-(node.dimensions.y/2)
+    else: d = 0
+    return d
+
+
 def treeMidPt(nodes):
     minx = (sorted(nodes, key=lambda k: k.location.x))[0].location.x
     miny = (sorted(nodes, key=lambda k: k.location.y))[0].location.y
@@ -313,11 +344,329 @@ def treeMidPt(nodes):
     return midx, midy
 
 
+def nodeSpaceMousePos(nodes):
+    # An ugly hack
+    # Since we don't have access to this specifically,
+    # we have to make it ourselves by adding a dummy node,
+    # storing it's location, and then deleting it.
+    # This stored location is also the mouse loction
+
+    original_selection = [n for n in nodes if n.select==True] #store selection
+
+    dummytype = ""
+    treetype = bpy.context.space_data.node_tree.type
+    if treetype == 'SHADER':
+        dummytype = "ShaderNodeMath"
+    elif treetype == 'COMPOSITING':
+        dummytype = "CompositorNodeMath"
+    elif treetype == 'TEXTURE':
+        dummytype = "TextureNodeMath"
+
+    if not dummytype:
+        return 0, 0
+
+    n = nodes.active
+    bpy.ops.node.add_node(use_transform=True, type=dummytype)
+    tempnode = nodes.active
+    mx = tempnode.location.x
+    my = tempnode.location.y
+    nodes.remove(tempnode)
+    nodes.active = n
+
+    for node in nodes: # restore selection
+        if node in original_selection:
+            node.select = True
+
+    return mx, my
+
+
+def nodeAtPos(nodes):
+    nodes_under_mouse = []
+
+    x, y = nodeSpaceMousePos(nodes)
+
+    nodes_under_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
+
+    # for node in nodes:
+        # if between(node.location.x, x, node.location.x+node.dimensions.x) and \
+        #    between(node.location.y-node.dimensions.y, y, node.location.y):
+        #     nodes_under_mouse.append(node)
+    return nodes_under_mouse
+
+
 class NodeToolBase:
     @classmethod
     def poll(cls, context):
         space = context.space_data
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
+
+
+def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+    bgl.glLineWidth(size)
+
+    bgl.glBegin(bgl.GL_LINE_STRIP)
+    #bgl.glBegin(bgl.GL_LINES)
+    try:
+        bgl.glVertex2f(x1, y1)
+        bgl.glVertex2f(x2, y2)
+    except:
+        pass
+    bgl.glEnd()
+
+def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+    radius = radius
+    sides = 32
+    #bgl.glVertex2f(m1x, m1y)
+    for i in range(sides+1):
+        cosine= radius * cos(i*2*pi/sides) + mx
+        sine  = radius * sin(i*2*pi/sides) + my
+        bgl.glVertex2f(cosine,sine)
+    bgl.glEnd()
+
+
+def draw_callback_mixnodes(self, context, mode="MIX"):
+    #bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
+    if self.mouse_path:
+        colors = []
+        if mode == 'MIX':
+            colors = draw_color_sets['red_white']
+        elif mode == 'RGBA':
+            colors = draw_color_sets['yellow']
+        elif mode == 'VECTOR':
+            colors = draw_color_sets['purple']
+        elif mode == 'VALUE':
+            colors = draw_color_sets['grey']
+        elif mode == 'SHADER':
+            colors = draw_color_sets['green']
+        else:
+            colors = draw_color_sets['black']
+
+        m1x = self.mouse_path[0][0]
+        m1y = self.mouse_path[0][1]
+        m2x = self.mouse_path[-1][0]
+        m2y = self.mouse_path[-1][1]
+
+        # circle outline
+        drawCircle(m1x, m1y, 6, colors[0])
+        drawCircle(m2x, m2y, 6, colors[0])
+
+        drawLine(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
+        drawLine(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
+
+        # circle inner
+        drawCircle(m1x, m1y, 5, colors[2])
+        drawCircle(m2x, m2y, 5, colors[2])
+
+        # restore opengl defaults
+        bgl.glLineWidth(1)
+        bgl.glDisable(bgl.GL_BLEND)
+        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+
+# TODO - merge NWMixNodes and NWLazyConnect into one class (lots of duplicate code now)
+class NWMixNodes(bpy.types.Operator):
+    """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
+    bl_idname = "nw.mix_nodes"
+    bl_label = "Mix Nodes"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mode = bpy.props.StringProperty(default='MIX')
+    merge_type = bpy.props.StringProperty(default='AUTO')
+
+    def modal(self, context, event):
+        context.area.tag_redraw()
+        nodes, links = get_nodes_links(context)
+        cont = True
+
+        start_pos = [event.mouse_region_x, event.mouse_region_y]
+
+        node1=None
+        if not context.scene.NWBusyDrawing:
+            nodelist = nodeAtPos(nodes)
+            if nodelist:
+                #if len(nodelist) == 1:
+                node1 = nodelist[0]
+                context.scene.NWBusyDrawing = node1.name
+                # else:
+                #     self.report({'ERROR'}, "More than one node under first clicked node")
+                #     context.scene.NWBusyDrawing = "STOP"
+                #     cont = False
+            else:
+                cont = False
+        else:
+            if context.scene.NWBusyDrawing != 'STOP':
+                node1 = nodes[context.scene.NWBusyDrawing]
+
+        if event.type == 'MOUSEMOVE':
+            self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
+
+        elif event.type == 'RIGHTMOUSE':
+            end_pos = [event.mouse_region_x, event.mouse_region_y]
+            bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
+
+            node2=None
+            nodelist = nodeAtPos(nodes)
+            if nodelist:
+                #if len(nodelist) == 1:
+                node2 = nodelist[0]
+                # else:
+                #     self.report({'ERROR'}, "More than one node under mouse")
+                #     cont = False
+            else:
+                cont = False
+
+            if node1 == node2:
+                cont = False
+
+            if cont:
+                if node1 and node2:
+                    for node in nodes:
+                        node.select = False
+                    node1.select = True
+                    node2.select = True
+
+                    bpy.ops.node.merge_nodes(mode=self.mode, merge_type=self.merge_type)
+
+
+            context.scene.NWBusyDrawing = ""
+            return {'FINISHED'}
+
+        elif event.type == 'ESC':
+            print ('cancelled')
+            bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
+            return {'CANCELLED'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        if context.area.type == 'NODE_EDITOR':
+            # the arguments we pass the the callback
+            args = (self, context, 'MIX')
+            # Add the region OpenGL drawing callback
+            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
+
+            self.mouse_path = []
+
+            context.window_manager.modal_handler_add(self)
+            return {'RUNNING_MODAL'}
+        else:
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
+            return {'CANCELLED'}
+
+
+class NWLazyConnect(bpy.types.Operator):
+    """Connect two nodes without clicking a specific socket (automatically determined"""
+    bl_idname = "nw.lazy_connect"
+    bl_label = "Lazy Connect"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    mode = bpy.props.StringProperty(default='MIX')
+    merge_type = bpy.props.StringProperty(default='AUTO')
+
+    def modal(self, context, event):
+        context.area.tag_redraw()
+        nodes, links = get_nodes_links(context)
+        cont = True
+
+        start_pos = [event.mouse_region_x, event.mouse_region_y]
+
+        node1=None
+        if not context.scene.NWBusyDrawing:
+            nodelist = nodeAtPos(nodes)
+            if nodelist:
+                #if len(nodelist) == 1:
+                node1 = nodelist[0]
+                context.scene.NWBusyDrawing = node1.name
+                # else:
+                #     self.report({'ERROR'}, "More than one node under first clicked node")
+                #     context.scene.NWBusyDrawing = "STOP"
+                #     cont = False
+            else:
+                cont = False
+        else:
+            if context.scene.NWBusyDrawing != 'STOP':
+                node1 = nodes[context.scene.NWBusyDrawing]
+
+        if event.type == 'MOUSEMOVE':
+            self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
+
+        elif event.type == 'LEFTMOUSE':
+            end_pos = [event.mouse_region_x, event.mouse_region_y]
+            bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
+
+            node2=None
+            nodelist = nodeAtPos(nodes)
+            if nodelist:
+                #if len(nodelist) == 1:
+                node2 = nodelist[0]
+                # else:
+                #     self.report({'ERROR'}, "More than one node under mouse")
+                #     cont = False
+            else:
+                cont = False
+
+            if node1 == node2:
+                cont = False
+
+            if cont:
+                if node1 and node2:
+                    original_sel = []
+                    original_unsel = []
+                    for node in nodes:
+                        if node.select == True:
+                            node.select = False
+                            original_sel.append(node)
+                        else:
+                            original_unsel.append(node)
+                    node1.select = True
+                    node2.select = True
+
+                    bpy.ops.node.link_make(replace=True)
+
+                    for node in original_sel:
+                        node.select = True
+                    for node in original_unsel:
+                        node.select = False
+
+
+            context.scene.NWBusyDrawing = ""
+            return {'FINISHED'}
+
+        elif event.type == 'ESC':
+            bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
+            return {'CANCELLED'}
+
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        if context.area.type == 'NODE_EDITOR':
+            nodes, links = get_nodes_links(context)
+            nodelist = nodeAtPos(nodes)
+            if nodelist:
+                node = nodelist[0]
+                if node.outputs:
+                    context.scene.NWDrawColType = node.outputs[0].type
+            else:
+                context.scene.NWDrawColType = 'x'
+
+            # the arguments we pass the the callback
+            args = (self, context, context.scene.NWDrawColType)
+            # Add the region OpenGL drawing callback
+            # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
+
+            self.mouse_path = []
+
+            context.window_manager.modal_handler_add(self)
+            return {'RUNNING_MODAL'}
+        else:
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
+            return {'CANCELLED'}
 
 
 class NWArrangeNodes(bpy.types.Operator):
@@ -1313,17 +1662,17 @@ class NodesModifyLabels(Operator, NodeToolBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     prepend = StringProperty(
-    	name = "Add to Beginning"
-    	)
+        name = "Add to Beginning"
+        )
     append = StringProperty(
-    	name = "Add to End"
-    	)
+        name = "Add to End"
+        )
     replace_from = StringProperty(
-    	name = "Text to Replace"
-    	)
+        name = "Text to Replace"
+        )
     replace_to = StringProperty(
-    	name = "Replace with"
-    	)
+        name = "Replace with"
+        )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1338,7 +1687,6 @@ class NodesModifyLabels(Operator, NodeToolBase):
         self.append = ""
         self.remove = ""
         return context.window_manager.invoke_props_dialog(self)
-
 
 
 class NodesAddTextureSetup(Operator):
@@ -2434,6 +2782,10 @@ kmi_defs = (
     ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None),
     # Reload Images
     ('nw.reload_images', 'R', False, False, True, None),
+    # Interactive Mix
+    ('nw.mix_nodes', 'RIGHTMOUSE', False, False, True, None),
+    # Lazy Connect
+    ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),)),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
@@ -2469,6 +2821,14 @@ def register():
         items=(("ignore", "Ignore", "Do nothing about Frame nodes (can be messy)"), ("delete", "Delete", "Delete Frame nodes")),
         default='ignore',
         description="How to handle Frame nodes")
+    bpy.types.Scene.NWBusyDrawing = bpy.props.StringProperty(
+        name="Busy Drawing!",
+        default="",
+        description="An internal property used to store only the first mouse position")
+    bpy.types.Scene.NWDrawColType = bpy.props.StringProperty(
+        name="Color Type!",
+        default="x",
+        description="An internal property used to store the line color")
 
     bpy.utils.register_module(__name__)
 
@@ -2495,6 +2855,8 @@ def unregister():
     del bpy.types.Scene.NWSpacing
     del bpy.types.Scene.NWDelReroutes
     del bpy.types.Scene.NWFrameHandling
+    del bpy.types.Scene.NWBusyDrawing
+    del bpy.types.Scene.NWDrawColType
 
     bpy.utils.unregister_module(__name__)
 
