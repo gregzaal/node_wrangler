@@ -206,6 +206,166 @@ draw_color_sets = {"red_white": [[1.0, 1.0, 1.0, 0.7],
                              [0.0, 0.0, 0.0, 0.7],
                              [0.2, 0.2, 0.2, 1.0]]}
 
+def niceHotkeyName(punc):
+    # convert the ugly string name into the actual character    
+    if punc == 'LEFTMOUSE':
+        return "LMB"
+    elif punc == 'MIDDLEMOUSE':
+        return "MMB"
+    elif punc == 'RIGHTMOUSE':
+        return "RMB"
+    elif punc == 'SELECTMOUSE':
+        return "Select"
+    elif punc == 'WHEELUPMOUSE':
+        return "Wheel Up"
+    elif punc == 'WHEELDOWNMOUSE':
+        return "Wheel Down"
+    elif punc == 'WHEELINMOUSE':
+        return "Wheel In"
+    elif punc == 'WHEELOUTMOUSE':
+        return "Wheel Out"
+    elif punc == 'ZERO':
+        return "0"
+    elif punc == 'ONE':
+        return "1"
+    elif punc == 'TWO':
+        return "2"
+    elif punc == 'THREE':
+        return "3"
+    elif punc == 'FOUR':
+        return "4"
+    elif punc == 'FIVE':
+        return "5"
+    elif punc == 'SIX':
+        return "6"
+    elif punc == 'SEVEN':
+        return "7"
+    elif punc == 'EIGHT':
+        return "8"
+    elif punc == 'NINE':
+        return "9"
+    elif punc == 'OSKEY':
+        return "Super"
+    elif punc == 'RET':
+        return "Enter"
+    elif punc == 'LINE_FEED':
+        return "Enter"
+    elif punc == 'SEMI_COLON':
+        return ";"
+    elif punc == 'PERIOD':
+        return "."
+    elif punc == 'COMMA':
+        return ","
+    elif punc == 'QUOTE':
+        return '"'
+    elif punc == 'MINUS':
+        return "-"
+    elif punc == 'SLASH':
+        return "/"
+    elif punc == 'BACK_SLASH':
+        return "\\"
+    elif punc == 'EQUAL':
+        return "="
+    elif punc == 'NUMPAD_1':
+        return "Numpad 1"
+    elif punc == 'NUMPAD_2':
+        return "Numpad 2"
+    elif punc == 'NUMPAD_3':
+        return "Numpad 3"
+    elif punc == 'NUMPAD_4':
+        return "Numpad 4"
+    elif punc == 'NUMPAD_5':
+        return "Numpad 5"
+    elif punc == 'NUMPAD_6':
+        return "Numpad 6"
+    elif punc == 'NUMPAD_7':
+        return "Numpad 7"
+    elif punc == 'NUMPAD_8':
+        return "Numpad 8"
+    elif punc == 'NUMPAD_9':
+        return "Numpad 9"
+    elif punc == 'NUMPAD_0':
+        return "Numpad 0"
+    elif punc == 'NUMPAD_PERIOD':
+        return "Numpad ."
+    elif punc == 'NUMPAD_SLASH':
+        return "Numpad /"
+    elif punc == 'NUMPAD_ASTERIX':
+        return "Numpad *"
+    elif punc == 'NUMPAD_MINUS':
+        return "Numpad -"
+    elif punc == 'NUMPAD_ENTER':
+        return "Numpad Enter"
+    elif punc == 'NUMPAD_PLUS':
+        return "Numpad +"
+    else:
+        return punc.replace("_", " ").title()
+
+# Addon prefs
+class NodeWrangler(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    merge_hide = bpy.props.BoolProperty(
+        name="Hide Mix Nodes on Creation",
+        default=True,
+        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded"
+    )
+    merge_position = bpy.props.EnumProperty(
+        name="Mix Node Position (placeholder, still todo)",
+        items=(("center", "Center", "Place the Mix node between the two nodes"),
+               ("bottom", "Bottom", "Place the Mix node at the same height as the lowest node")),
+        default='center',
+        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy the position of the new nodes")
+    bgl_antialiasing = bpy.props.BoolProperty(
+        name="Line Antialiasing",
+        default=False,
+        description="Remove aliasing artifacts on lines drawn in interactive modes such as Lazy Connect (Alt+LMB) and Lazy Merge (Alt+RMB) - this may cause issues on some systems"
+    )
+
+    show_hotkey_list = bpy.props.BoolProperty(
+        name="Show Hotkey List",
+        default=False,
+        description="Expand this box into a list of all the hotkeys for functions in this addon"
+    )
+    hotkey_list_filter = bpy.props.StringProperty(
+        name="        Filter by Name",
+        default="",
+        description="Show only hotkeys that have this text in their name"
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.prop(self, "merge_position")
+        col.prop(self, "merge_hide")
+        col.prop(self, "bgl_antialiasing")
+
+        box = col.box()
+        col = box.column(align=True)
+
+        hotkey_button_name = "Show Hotkey List"
+        if self.show_hotkey_list:
+            hotkey_button_name = "Hide Hotkey List"
+        col.prop(self, "show_hotkey_list", text=hotkey_button_name, toggle=True)
+        if self.show_hotkey_list:
+            col.prop(self, "hotkey_list_filter", icon="VIEWZOOM")
+            col.separator()
+            for hotkey in kmi_defs:
+                if hotkey[6]:
+                    hotkey_name = hotkey[6]
+
+                    if self.hotkey_list_filter.lower() in hotkey_name.lower():
+                        row = col.row(align=True)
+                        row.label(hotkey_name)
+                        keystr = niceHotkeyName(hotkey[1])
+                        if hotkey[3]:
+                            keystr = "Shift " + keystr
+                        if hotkey[4]:
+                            keystr = "Alt " + keystr
+                        if hotkey[2]:
+                            keystr = "Ctrl " + keystr
+                        row.label(keystr)
+
 
 def hack_force_update(nodes):
     for node in nodes:
@@ -244,6 +404,7 @@ def get_nodes_links(context):
 # with the Auto-Arrange function and couldn't easily solve it
 # by using one function (other things break when it works for 
 # Auto-Arrange) - however since I plan to rewrite that whole
+# function, which is the only thing that uses this second
 # function, there's not much point in fixing it now.
 def get_nodes_links_withsel(context):
     space = context.space_data
@@ -442,9 +603,12 @@ def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
 
 
 def draw_callback_mixnodes(self, context, mode="MIX"):
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     if self.mouse_path:
+        settings = context.user_preferences.addons[__name__].preferences
+        if settings.bgl_antialiasing:
+            bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
         colors = []
         if mode == 'MIX':
             colors = draw_color_sets['red_white']
@@ -479,7 +643,9 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
-        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+
+        if settings.bgl_antialiasing:
+            bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 # TODO - merge NWMixNodes and NWLazyConnect into one class (lots of duplicate code now)
 class NWMixNodes(bpy.types.Operator):
@@ -1276,6 +1442,9 @@ class MergeNodes(Operator, NodeToolBase):
             )
 
     def execute(self, context):
+        settings = context.user_preferences.addons[__name__].preferences
+        do_hide = settings.merge_hide
+
         tree_type = context.space_data.node_tree.type
         if tree_type == 'COMPOSITING':
             node_type = 'CompositorNode'
@@ -1336,10 +1505,8 @@ class MergeNodes(Operator, NodeToolBase):
                 if nodes_list == selected_shader:
                     offset_y = 150.0
                 the_range = len(nodes_list) - 1
-                do_hide = True
                 if len(nodes_list) == 1:
                     the_range = 1
-                    do_hide = False
                 for i in range(the_range):
                     if nodes_list == selected_mix:
                         add_type = node_type + 'MixRGB'
@@ -1696,35 +1863,48 @@ class NodesAddTextureSetup(Operator):
         valid = False
         if active:
             if active.select:
-                if active.type in {
-                        'BSDF_ANISOTROPIC',
-                        'BSDF_DIFFUSE',
-                        'BSDF_GLOSSY',
-                        'BSDF_GLASS',
-                        'BSDF_REFRACTION',
-                        'BSDF_TRANSLUCENT',
-                        'BSDF_TRANSPARENT',
-                        'BSDF_VELVET',
-                        'EMISSION',
-                        'AMBIENT_OCCLUSION',
-                        }:
+                if active.type in shader_types or active.type in texture_types:
                     if not active.inputs[0].is_linked:
                         valid = True
         if valid:
             locx = active.location.x
             locy = active.location.y
-            tex = nodes.new('ShaderNodeTexImage')
-            tex.location = [locx - 200.0, locy + 28.0]
+            
+            xoffset = [500.0, 700.0]
+            isshader=True
+            if active.type not in shader_types:
+                xoffset=[290.0, 500.0]
+                isshader=False
+                
+            coordout=2
+            image_type='ShaderNodeTexImage'
+            
+            if (active.type in texture_types and active.type != 'TEX_IMAGE') or (active.type == 'BACKGROUND'):
+                coordout=0 # image texture uses UVs, procedural textures and Background shader use Generated
+                if active.type == 'BACKGROUND':
+                    image_type='ShaderNodeTexEnvironment'
+                    
+            if isshader:
+                tex = nodes.new (image_type)
+                tex.location = [locx - 200.0, locy + 28.0]
+                
             map = nodes.new('ShaderNodeMapping')
-            map.location = [locx - 490.0, locy + 80.0]
-            coord = nodes.new('ShaderNodeTexCoord')
-            coord.location = [locx - 700, locy + 40.0]
-            active.select = False
-            nodes.active = tex
-
-            links.new(tex.outputs[0], active.inputs[0])
-            links.new(map.outputs[0], tex.inputs[0])
-            links.new(coord.outputs[2], map.inputs[0])
+            map.location = [locx - xoffset[0], locy + 80.0]
+            map.width=240
+            coord = nodes.new('ShaderNodeTexCoord')            
+            coord.location = [locx - xoffset[1], locy+40.0]
+            active.select=False
+            
+            if isshader:
+                nodes.active = tex
+                links.new(tex.outputs[0], active.inputs[0])
+                links.new(map.outputs[0], tex.inputs[0])
+                links.new(coord.outputs[coordout], map.inputs[0])
+                
+            else:
+                nodes.active = map
+                links.new(map.outputs[0], active.inputs[0])
+                links.new(coord.outputs[coordout], map.inputs[0])
 
         return {'FINISHED'}
 
@@ -2609,177 +2789,178 @@ def showimage_menu_func(self, context):
 #############################################################
 
 addon_keymaps = []
-# kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props)
+# kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props, nice name)
 # props entry: (property name, property value)
 kmi_defs = (
     # MERGE NODES
     # MergeNodes with Ctrl (AUTO).
     (MergeNodes.bl_idname, 'NUMPAD_0', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+        (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
     (MergeNodes.bl_idname, 'ZERO', True, False, False,
-        (('mode', 'MIX'), ('merge_type', 'AUTO'),)),
+        (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
     (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, False,
-        (('mode', 'ADD'), ('merge_type', 'AUTO'),)),
+        (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
     (MergeNodes.bl_idname, 'EQUAL', True, False, False,
-        (('mode', 'ADD'), ('merge_type', 'AUTO'),)),
+        (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
     (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
     (MergeNodes.bl_idname, 'EIGHT', True, False, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
     (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
     (MergeNodes.bl_idname, 'MINUS', True, False, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
     (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
     (MergeNodes.bl_idname, 'SLASH', True, False, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
     (MergeNodes.bl_idname, 'COMMA', True, False, False,
-        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Less than)"),
     (MergeNodes.bl_idname, 'PERIOD', True, False, False,
-        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
+        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Greater than)"),
     # MergeNodes with Ctrl Alt (MIX)
     (MergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'MIX'),)),
+        (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
     (MergeNodes.bl_idname, 'ZERO', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'MIX'),)),
+        (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
     (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,
-        (('mode', 'ADD'), ('merge_type', 'MIX'),)),
+        (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
     (MergeNodes.bl_idname, 'EQUAL', True, False, True,
-        (('mode', 'ADD'), ('merge_type', 'MIX'),)),
+        (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
     (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, True,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
     (MergeNodes.bl_idname, 'EIGHT', True, False, True,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
     (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, True,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
     (MergeNodes.bl_idname, 'MINUS', True, False, True,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
     (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, True,
-        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
     (MergeNodes.bl_idname, 'SLASH', True, False, True,
-        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
     # MergeNodes with Ctrl Shift (MATH)
     (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, True, False,
-        (('mode', 'ADD'), ('merge_type', 'MATH'),)),
+        (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
     (MergeNodes.bl_idname, 'EQUAL', True, True, False,
-        (('mode', 'ADD'), ('merge_type', 'MATH'),)),
+        (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
     (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, True, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
     (MergeNodes.bl_idname, 'EIGHT', True, True, False,
-        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),)),
+        (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
     (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, True, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
     (MergeNodes.bl_idname, 'MINUS', True, True, False,
-        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),)),
+        (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
     (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, True, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
     (MergeNodes.bl_idname, 'SLASH', True, True, False,
-        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),)),
+        (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
     (MergeNodes.bl_idname, 'COMMA', True, True, False,
-        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),)),
+        (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Less than)"),
     (MergeNodes.bl_idname, 'PERIOD', True, True, False,
-        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),)),
+        (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Greater than)"),
     # BATCH CHANGE NODES
     # BatchChangeNodes with Alt
     (BatchChangeNodes.bl_idname, 'NUMPAD_0', False, False, True,
-        (('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+        (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
     (BatchChangeNodes.bl_idname, 'ZERO', False, False, True,
-        (('blend_type', 'MIX'), ('operation', 'CURRENT'),)),
+        (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
     (BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', False, False, True,
-        (('blend_type', 'ADD'), ('operation', 'ADD'),)),
+        (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
     (BatchChangeNodes.bl_idname, 'EQUAL', False, False, True,
-        (('blend_type', 'ADD'), ('operation', 'ADD'),)),
+        (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
     (BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', False, False, True,
-        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
     (BatchChangeNodes.bl_idname, 'EIGHT', False, False, True,
-        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),)),
+        (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
     (BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', False, False, True,
-        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
     (BatchChangeNodes.bl_idname, 'MINUS', False, False, True,
-        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),)),
+        (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
     (BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', False, False, True,
-        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
     (BatchChangeNodes.bl_idname, 'SLASH', False, False, True,
-        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),)),
+        (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
     (BatchChangeNodes.bl_idname, 'COMMA', False, False, True,
-        (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),)),
+        (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),), "Batch change blend type (Current)"),
     (BatchChangeNodes.bl_idname, 'PERIOD', False, False, True,
-        (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),)),
+        (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),), "Batch change blend type (Current)"),
     (BatchChangeNodes.bl_idname, 'DOWN_ARROW', False, False, True,
-        (('blend_type', 'NEXT'), ('operation', 'NEXT'),)),
+        (('blend_type', 'NEXT'), ('operation', 'NEXT'),), "Batch change blend type (Next)"),
     (BatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,
-        (('blend_type', 'PREV'), ('operation', 'PREV'),)),
+        (('blend_type', 'PREV'), ('operation', 'PREV'),), "Batch change blend type (Previous)"),
     # LINK ACTIVE TO SELECTED
     # Don't use names, don't replace links (K)
     (NodesLinkActiveToSelected.bl_idname, 'K', False, False, False,
-        (('replace', False), ('use_node_name', False), ('use_outputs_names', False),)),
+        (('replace', False), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Don't replace links)"),
     # Don't use names, replace links (Shift K)
     (NodesLinkActiveToSelected.bl_idname, 'K', False, True, False,
-        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),)),
+        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Replace links)"),
     # Use node name, don't replace links (')
     (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
-        (('replace', False), ('use_node_name', True), ('use_outputs_names', False),)),
-    # Don't use names, replace links (')
+        (('replace', False), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Don't replace links, node names)"),
+    # Use node name, replace links (Shift ')
     (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
-        (('replace', True), ('use_node_name', True), ('use_outputs_names', False),)),
+        (('replace', True), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Replace links, node names)"),
+    # Don't use names, don't replace links (;)
     (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
-        (('replace', False), ('use_node_name', False), ('use_outputs_names', True),)),
+        (('replace', False), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Don't replace links, output names)"),
     # Don't use names, replace links (')
     (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
-        (('replace', True), ('use_node_name', False), ('use_outputs_names', True),)),
+        (('replace', True), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Replace links, output names)"),
     # CHANGE MIX FACTOR
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),)),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),)),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),)),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),)),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),)),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),)),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),)),
-    (ChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),)),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),)),
-    (ChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),)),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
+    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (ChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (ChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
+    (ChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
     # CLEAR LABEL (Alt L)
-    (NodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),)),
+    (NodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
     # MODIFY LABEL (Alt Shift L)
-    (NodesModifyLabels.bl_idname, 'L', False, True, True, None),
+    (NodesModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
+    # Copy Label from active to selected
+    (NodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
     # DETACH OUTPUTS (Alt Shift D)
-    (DetachOutputs.bl_idname, 'D', False, True, True, None),
+    (DetachOutputs.bl_idname, 'D', False, True, True, None, "Detach outputs"),
     # LINK TO OUTPUT NODE (O)
-    (LinkToOutputNode.bl_idname, 'O', False, False, False, None),
+    (LinkToOutputNode.bl_idname, 'O', False, False, False, None, "Link to output node"),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),)),
+    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),), "Select children"),
     # Select Parent
-    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),)),
+    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
-    (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None),
-    # Copy Label from active to selected
-    (NodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),)),
+    (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
     # Reset backdrop
-    ('nw.bg_reset', 'Z', False, False, False, None),
+    ('nw.bg_reset', 'Z', False, False, False, None, "Reset backdrop image zoom"),
     # Auto-Arrange
-    ('nw.layout', 'Q', False, False, False, None),
+    ('nw.layout', 'Q', False, False, False, None, "Arrange nodes"),
     # Delete unused
-    ('nw.del_unused', 'X', False, False, True, None),
+    ('nw.del_unused', 'X', False, False, True, None, "Delete unused nodes"),
     # Frame Seleted
-    ('nw.frame_selected', 'P', False, True, False, None),
+    ('nw.frame_selected', 'P', False, True, False, None, "Frame selected nodes"),
     # Emission Viewer
-    ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None),
+    ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
-    ('nw.reload_images', 'R', False, False, True, None),
+    ('nw.reload_images', 'R', False, False, True, None, "Reload images"),
     # Interactive Mix
-    ('nw.mix_nodes', 'RIGHTMOUSE', False, False, True, None),
+    ('nw.mix_nodes', 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
-    ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None),
+    ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
     # MENUS
-    ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),)),
-    ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
-    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
-    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),)),
-    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),)),
-    ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),)),
-    ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),)),
+    ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),), "Node Wranger menu"),
+    ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),), "Node alignment menu"),
+    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
+    ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
+    ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),), "Swap node menu"),
     )
 
 
@@ -2820,7 +3001,7 @@ def register():
 
     # keymaps
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
-    for (identifier, key, CTRL, SHIFT, ALT, props) in kmi_defs:
+    for (identifier, key, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
         kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl=CTRL, shift=SHIFT, alt=ALT)
         if props:
             for prop, value in props:
