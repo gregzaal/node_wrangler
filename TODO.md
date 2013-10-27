@@ -23,6 +23,7 @@ Short term:
 * Improve panel layout
 * In interactive mix and lazy connect, highlight the two nodes in real time (poke lukas_t about python access to node-space mouse coords and region-space node coords)
 * When calculating nearest node, use nearest border, not nearest center
+* Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
 
 Long Term:
 ----------

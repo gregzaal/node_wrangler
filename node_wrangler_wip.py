@@ -381,17 +381,30 @@ def nodeSpaceMousePos(nodes):
 
 
 def nodeAtPos(nodes):
+    nodes_near_mouse = []
     nodes_under_mouse = []
+    target_node = None
 
     x, y = nodeSpaceMousePos(nodes)
 
-    nodes_under_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
+    # nearest node
+    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
 
-    # for node in nodes:
-        # if between(node.location.x, x, node.location.x+node.dimensions.x) and \
-        #    between(node.location.y-node.dimensions.y, y, node.location.y):
-        #     nodes_under_mouse.append(node)
-    return nodes_under_mouse
+    for node in nodes:
+        if between(node.location.x, x, node.location.x+node.dimensions.x) and \
+           between(node.location.y-node.dimensions.y, y, node.location.y):
+            nodes_under_mouse.append(node)
+
+    if len(nodes_under_mouse) == 1:
+        if nodes_under_mouse[0] != nodes_near_mouse[0]:
+            target_node = nodes_under_mouse[0] # use the node under the mouse if there is one and only one
+        else:
+            target_node = nodes_near_mouse[0] # else use the nearest node
+    else:
+        target_node = nodes_near_mouse[0]
+
+
+    return target_node
 
 
 class NodeToolBase:
@@ -487,17 +500,9 @@ class NWMixNodes(bpy.types.Operator):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            nodelist = nodeAtPos(nodes)
-            if nodelist:
-                #if len(nodelist) == 1:
-                node1 = nodelist[0]
+            node1 = nodeAtPos(nodes)
+            if node1:
                 context.scene.NWBusyDrawing = node1.name
-                # else:
-                #     self.report({'ERROR'}, "More than one node under first clicked node")
-                #     context.scene.NWBusyDrawing = "STOP"
-                #     cont = False
-            else:
-                cont = False
         else:
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
@@ -510,15 +515,9 @@ class NWMixNodes(bpy.types.Operator):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            nodelist = nodeAtPos(nodes)
-            if nodelist:
-                #if len(nodelist) == 1:
-                node2 = nodelist[0]
-                # else:
-                #     self.report({'ERROR'}, "More than one node under mouse")
-                #     cont = False
-            else:
-                cont = False
+            node2 = nodeAtPos(nodes)
+            if node2:
+                context.scene.NWBusyDrawing = node2.name
 
             if node1 == node2:
                 cont = False
@@ -578,17 +577,9 @@ class NWLazyConnect(bpy.types.Operator):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            nodelist = nodeAtPos(nodes)
-            if nodelist:
-                #if len(nodelist) == 1:
-                node1 = nodelist[0]
+            node1 = nodeAtPos(nodes)
+            if node1:
                 context.scene.NWBusyDrawing = node1.name
-                # else:
-                #     self.report({'ERROR'}, "More than one node under first clicked node")
-                #     context.scene.NWBusyDrawing = "STOP"
-                #     cont = False
-            else:
-                cont = False
         else:
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
@@ -601,15 +592,9 @@ class NWLazyConnect(bpy.types.Operator):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            nodelist = nodeAtPos(nodes)
-            if nodelist:
-                #if len(nodelist) == 1:
-                node2 = nodelist[0]
-                # else:
-                #     self.report({'ERROR'}, "More than one node under mouse")
-                #     cont = False
-            else:
-                cont = False
+            node2 = nodeAtPos(nodes)
+            if node2:
+                context.scene.NWBusyDrawing = node2.name
 
             if node1 == node2:
                 cont = False
@@ -647,9 +632,9 @@ class NWLazyConnect(bpy.types.Operator):
     def invoke(self, context, event):
         if context.area.type == 'NODE_EDITOR':
             nodes, links = get_nodes_links(context)
-            nodelist = nodeAtPos(nodes)
-            if nodelist:
-                node = nodelist[0]
+            node = nodeAtPos(nodes)
+            if node:
+                context.scene.NWBusyDrawing = node.name
                 if node.outputs:
                     context.scene.NWDrawColType = node.outputs[0].type
             else:
