@@ -11,8 +11,6 @@ Short term:
 * When viewing the image/mask/clip of a node, add button to header to jump back to node editor
 * Add Vertex colors menu (same as UV Layers)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
-* Add user preferences for stuff
-    - Merge nodes position (lowest or middle)
 * Improve panel layout
 * In interactive mix and lazy connect, highlight the two nodes in real time (poke lukas_t about python access to node-space mouse coords and region-space node coords)
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)

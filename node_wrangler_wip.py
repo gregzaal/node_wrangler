@@ -305,13 +305,20 @@ def niceHotkeyName(punc):
 class NodeWrangler(bpy.types.AddonPreferences):
     bl_idname = __name__
 
-    merge_hide = bpy.props.BoolProperty(
-        name="Hide Mix Nodes on Creation",
-        default=True,
-        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded"
-    )
+    # merge_hide = bpy.props.BoolProperty(
+    #     name="Hide Mix Nodes on Creation",
+    #     default=True,
+    #     description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded"
+    # )
+    merge_hide = bpy.props.EnumProperty(
+        name="Hide Mix nodes",
+        items=(("always", "Always", "Always collapse the new merge nodes"),
+               ("non_shader", "Non-Shader", "Collapse in all cases except for shaders"),
+               ("never", "Never", "Never collapse the new merge nodes")),
+        default='non_shader',
+        description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded")
     merge_position = bpy.props.EnumProperty(
-        name="Mix Node Position (placeholder, still todo)",
+        name="Mix Node Position",
         items=(("center", "Center", "Place the Mix node between the two nodes"),
                ("bottom", "Bottom", "Place the Mix node at the same height as the lowest node")),
         default='center',
@@ -1443,7 +1450,17 @@ class MergeNodes(Operator, NodeToolBase):
 
     def execute(self, context):
         settings = context.user_preferences.addons[__name__].preferences
-        do_hide = settings.merge_hide
+        merge_hide = settings.merge_hide
+        merge_position = settings.merge_position # 'center' or 'bottom'
+
+        do_hide = False
+        do_hide_shader = False
+        if merge_hide == 'always':
+            do_hide = True
+            do_hide_shader = True
+        elif merge_hide == 'non_shader':
+            do_hide = True
+
 
         tree_type = context.space_data.node_tree.type
         if tree_type == 'COMPOSITING':
@@ -1498,11 +1515,16 @@ class MergeNodes(Operator, NodeToolBase):
                 # sort list by loc_x - reversed
                 nodes_list.sort(key=lambda k: k[1], reverse=True)
                 # get maximum loc_x
-                loc_x = nodes_list[0][1] + 350.0
+                loc_x = nodes_list[0][1] + 250.0
                 nodes_list.sort(key=lambda k: k[2], reverse=True)
-                loc_y = nodes_list[len(nodes_list) - 1][2]
-                offset_y = 40.0
-                if nodes_list == selected_shader:
+                if merge_position == 'center':
+                    loc_y = ((nodes_list[len(nodes_list) - 1][2])+(nodes_list[len(nodes_list) - 2][2]))/2  # average yloc of last two nodes (lowest two)
+                else:
+                    loc_y = nodes_list[len(nodes_list) - 1][2]
+                offset_y = 100
+                if not do_hide:
+                    offset_y = 200
+                if nodes_list == selected_shader and not do_hide_shader:
                     offset_y = 150.0
                 the_range = len(nodes_list) - 1
                 if len(nodes_list) == 1:
@@ -1514,6 +1536,8 @@ class MergeNodes(Operator, NodeToolBase):
                         add.blend_type = mode
                         add.show_preview = False
                         add.hide = do_hide
+                        if do_hide:
+                            loc_y = loc_y -50
                         first = 1
                         second = 2
                         add.width_hidden = 100.0
@@ -1522,6 +1546,8 @@ class MergeNodes(Operator, NodeToolBase):
                         add = nodes.new(add_type)
                         add.operation = mode
                         add.hide = do_hide
+                        if do_hide:
+                            loc_y = loc_y -50
                         first = 0
                         second = 1
                         add.width_hidden = 100.0
@@ -1529,12 +1555,18 @@ class MergeNodes(Operator, NodeToolBase):
                         if mode == 'MIX':
                             add_type = node_type + 'MixShader'
                             add = nodes.new(add_type)
+                            add.hide = do_hide_shader
+                            if do_hide_shader:
+                                loc_y = loc_y -50
                             first = 1
                             second = 2
                             add.width_hidden = 100.0
                         elif mode == 'ADD':
                             add_type = node_type + 'AddShader'
                             add = nodes.new(add_type)
+                            add.hide = do_hide_shader
+                            if do_hide_shader:
+                                loc_y = loc_y -50
                             first = 0
                             second = 1
                             add.width_hidden = 100.0
