@@ -512,48 +512,24 @@ def treeMidPt(nodes):
     return midx, midy
 
 
-def nodeSpaceMousePos(nodes):
-    # An ugly hack
-    # Since we don't have access to this specifically,
-    # we have to make it ourselves by adding a dummy node,
-    # storing it's location, and then deleting it.
-    # This stored location is also the mouse loction
-
-    original_selection = [n for n in nodes if n.select==True] #store selection
-
-    dummytype = ""
-    treetype = bpy.context.space_data.node_tree.type
-    if treetype == 'SHADER':
-        dummytype = "ShaderNodeMath"
-    elif treetype == 'COMPOSITING':
-        dummytype = "CompositorNodeMath"
-    elif treetype == 'TEXTURE':
-        dummytype = "TextureNodeMath"
-
-    if not dummytype:
-        return 0, 0
-
-    n = nodes.active
-    bpy.ops.node.add_node(use_transform=True, type=dummytype)
-    tempnode = nodes.active
-    mx = tempnode.location.x
-    my = tempnode.location.y
-    nodes.remove(tempnode)
-    nodes.active = n
-
-    for node in nodes: # restore selection
-        if node in original_selection:
-            node.select = True
-
-    return mx, my
+def autolink (node1, node2, links):
+    link_made = False
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if not inp.is_linked and inp.type == outp.type:
+                link_made = True
+                links.new(outp, inp)
+                return True
+    return link_made
 
 
-def nodeAtPos(nodes):
+def nodeAtPos(nodes, context, event):
     nodes_near_mouse = []
     nodes_under_mouse = []
     target_node = None
 
-    x, y = nodeSpaceMousePos(nodes)
+    store_mouse_cursor(context, event)
+    x, y = context.space_data.cursor_location
 
     # nearest node
     nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
@@ -573,6 +549,18 @@ def nodeAtPos(nodes):
 
 
     return target_node
+
+
+def store_mouse_cursor(context, event):
+        space = context.space_data
+        v2d = context.region.view2d
+        tree = space.edit_tree
+
+        # convert mouse position to the View2D for later node placement
+        if context.region.type == 'WINDOW':
+            space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
+        else:
+            space.cursor_location = tree.view_center
 
 
 class NodeToolBase:
@@ -654,7 +642,7 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         if settings.bgl_antialiasing:
             bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
-# TODO - merge NWMixNodes and NWLazyConnect into one class (lots of duplicate code now)
+
 class NWMixNodes(bpy.types.Operator):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "nw.mix_nodes"
@@ -673,7 +661,7 @@ class NWMixNodes(bpy.types.Operator):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            node1 = nodeAtPos(nodes)
+            node1 = nodeAtPos(nodes, context, event)
             if node1:
                 context.scene.NWBusyDrawing = node1.name
         else:
@@ -688,7 +676,7 @@ class NWMixNodes(bpy.types.Operator):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            node2 = nodeAtPos(nodes)
+            node2 = nodeAtPos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
 
@@ -750,7 +738,7 @@ class NWLazyConnect(bpy.types.Operator):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            node1 = nodeAtPos(nodes)
+            node1 = nodeAtPos(nodes, context, event)
             if node1:
                 context.scene.NWBusyDrawing = node1.name
         else:
@@ -765,7 +753,7 @@ class NWLazyConnect(bpy.types.Operator):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            node2 = nodeAtPos(nodes)
+            node2 = nodeAtPos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
 
@@ -785,7 +773,7 @@ class NWLazyConnect(bpy.types.Operator):
                     node1.select = True
                     node2.select = True
 
-                    bpy.ops.node.link_make(replace=True)
+                    autolink(node1, node2, links) # TODO replace with own function
 
                     for node in original_sel:
                         node.select = True
@@ -805,7 +793,7 @@ class NWLazyConnect(bpy.types.Operator):
     def invoke(self, context, event):
         if context.area.type == 'NODE_EDITOR':
             nodes, links = get_nodes_links(context)
-            node = nodeAtPos(nodes)
+            node = nodeAtPos(nodes, context, event)
             if node:
                 context.scene.NWBusyDrawing = node.name
                 if node.outputs:
@@ -2977,6 +2965,8 @@ kmi_defs = (
     ('nw.del_unused', 'X', False, False, True, None, "Delete unused nodes"),
     # Frame Seleted
     ('nw.frame_selected', 'P', False, True, False, None, "Frame selected nodes"),
+    # Swap Outputs
+    ('nw.swap_outputs', 'S', False, False, True, None, "Swap Outputs"),
     # Emission Viewer
     ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
