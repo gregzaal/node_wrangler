@@ -552,15 +552,15 @@ def nodeAtPos(nodes, context, event):
 
 
 def store_mouse_cursor(context, event):
-        space = context.space_data
-        v2d = context.region.view2d
-        tree = space.edit_tree
+    space = context.space_data
+    v2d = context.region.view2d
+    tree = space.edit_tree
 
-        # convert mouse position to the View2D for later node placement
-        if context.region.type == 'WINDOW':
-            space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
-        else:
-            space.cursor_location = tree.view_center
+    # convert mouse position to the View2D for later node placement
+    if context.region.type == 'WINDOW':
+        space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
+    else:
+        space.cursor_location = tree.view_center
 
 
 class NodeToolBase:
@@ -1412,6 +1412,144 @@ class NWViewImage(bpy.types.Operator):
             context.space_data.mode = 'VIEW'
             
         return {'FINISHED'}
+
+
+class NWSwapType(bpy.types.Operator):
+
+    "Swap the selected nodes to another type"
+    bl_idname = 'nw.swap'
+    bl_label = 'Swap Type'
+    newtype = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        selected_nodes = context.selected_nodes
+        new_nodes = []
+        for node in selected_nodes:
+            # connections list: to/from socket object, swapped node's socket name, swapped node's socket type
+            input_connections = []
+            output_connections = []
+            input_defaults = {}
+            newnode = nodes.new(self.newtype)
+            newnode.location.x = node.location.x
+            newnode.location.y = node.location.y
+
+            for inpt in node.inputs:
+                if hasattr(inpt, 'default_value'):
+                    input_defaults[inpt.name] = inpt.default_value
+                for link in inpt.links:
+                    input_connections.append((link.from_socket, link.to_socket.name, link.to_socket.type))
+            for c in input_connections:
+                connection_made = False
+                for inpt in newnode.inputs:
+                    if inpt.name == c[1] and not connection_made:
+                        links.new(c[0], inpt)
+                        connection_made = True
+                if not connection_made: # if there is no socket name match, try to match by type
+                    for inpt in newnode.inputs:
+                        if inpt.type == c[2] and not connection_made:
+                            links.new(c[0], inpt)
+                            connection_made = True
+            for inpt in newnode.inputs: # set default_values
+                if inpt.name in input_defaults:
+                    inpt.default_value = input_defaults[inpt.name]
+
+            for attr in non_input_attrs:
+                if hasattr(node, attr) and hasattr(newnode, attr):
+                    if getattr(node, attr):
+                        try:
+                            setattr(newnode, attr, getattr(node, attr))
+                        except:
+                            print ("Failed to set \'"+attr+"\'' on \'"+newnode.name+"\'")
+
+            for outpt in node.outputs:
+                for link in outpt.links:
+                    output_connections.append((link.to_socket, link.from_socket.name, link.from_socket.type))
+            for c in output_connections:
+                connection_made = False
+                for outpt in newnode.outputs:
+                    if outpt.name == c[1] and not connection_made:
+                        links.new(c[0], outpt)
+                        connection_made = True
+                if not connection_made:
+                    for outpt in newnode.outputs:
+                        if outpt.type == c[2] and not connection_made:
+                            links.new(c[0], outpt)
+                            connection_made = True
+
+            newnode.select = False
+            new_nodes.append(newnode)
+
+        bpy.ops.node.delete() # remove old nodes
+
+        for n in new_nodes:
+            n.select = True
+
+        return {'FINISHED'}
+
+
+class NWSwapMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_type_swap_menu"
+    bl_label = "Swap the type of selected nodes"
+
+    @classmethod
+    def poll(cls, context):
+        valid = False
+        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB']
+        if context.space_data.node_tree:
+            tree = context.space_data.node_tree
+            if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
+                if len(list(x for x in tree.nodes if x.select == True)) > 0: # if any nodes are selected
+                    checknode = None
+                    if tree.nodes.active in context.selected_nodes:
+                        checknode = tree.nodes.active
+                    else:
+                        checknode = context.selected_nodes[0]
+
+                    if checknode.type in shader_types or \
+                       checknode.type in texture_types or \
+                       checknode.type in misc_good_types:
+                        valid = True
+        return valid
+            
+    def draw(self, context):
+        l = self.layout
+        nodes, links = get_nodes_links(context)
+        tree = context.space_data.node_tree
+
+        checknode = None
+        if nodes.active in context.selected_nodes:
+            checknode = nodes.active
+        else:
+            checknode = context.selected_nodes[0]
+
+        index=0
+        if checknode.type in shader_types:
+            for node_type in shader_names:
+                l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
+                index+=1
+        elif checknode.type in texture_types:
+            for node_type in texture_names:
+                l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
+                index+=1
+        elif checknode.type == 'MIX_SHADER':
+            l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
+        elif checknode.type == 'ADD_SHADER':
+            l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
+        elif checknode.type == 'MATH':
+            if tree.type == 'SHADER':
+                l.operator("nw.swap", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
+        elif checknode.type == 'MIX_RGB':
+            if tree.type == 'SHADER':
+                l.operator("nw.swap", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
+        # TODO switches, reroutes, alpha-over
+
 
 
 class MergeNodes(Operator, NodeToolBase):
@@ -2983,6 +3121,7 @@ kmi_defs = (
     ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
     ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),), "Swap node menu"),
+    ('wm.call_menu', 'S', False, True, True, (('name', 'NODE_MT_type_swap_menu'),), "Swap Nodes (Temp)"),
     )
 
 

@@ -3,7 +3,6 @@ Todo
 
 Short term:
 -----------
-* Improve NET Merge nodes (preference not to Hide node; place in center with dimensions)
 * Merge NET type swapping
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
@@ -12,8 +11,9 @@ Short term:
 * Add Vertex colors menu (same as UV Layers)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
 * Improve panel layout
-* In interactive mix and lazy connect, highlight the two nodes in real time (poke lukas_t about python access to node-space mouse coords and region-space node coords)
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
+* Ctrl+Shift+Click to cut lines and add clamps (not sure if this is possible with current api)
+* Alt+Shift+Click to cut lines and add mix nodes
 
 Long Term:
 ----------
