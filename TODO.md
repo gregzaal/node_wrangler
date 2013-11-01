@@ -20,3 +20,4 @@ Long Term:
 * Tools for object/material index (both shading and compositing noodles, and for assigning)
 * Node templates (store selection, new menu in Shift+A menu, new panel in toolbar) [something like this exists already? where?]
 * Better auto-arrange that uses the starting position of nodes and centers them nicely rather than a long row at the top and ugly vertical 'columns'
+* Set Camera clipping automatically (fire rays into scene progressively, show user real-time the min/max, have 'stop' button to cancel early and use those values, or stop after a certain number of rays). Also allow user to click the model in camera view to set closest/furthest. Include bgl visualisation of the progressive points, and bgl camera view borders (shown in non-camera persp)
