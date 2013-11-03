@@ -2640,7 +2640,7 @@ class NodeWranglerPanel(Panel, NodeToolBase):
     bl_idname = "NODE_PT_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Node Wrangler (Ctrl-SPACE)"
+    bl_label = "Node Wrangler"
     
     prepend = StringProperty(
         name = 'prepend',
@@ -2649,6 +2649,7 @@ class NodeWranglerPanel(Panel, NodeToolBase):
     remove = StringProperty()
 
     def draw(self, context):
+        self.layout.label(text = "(Quick access: Ctrl+Space)")
         drawlayout(context, self.layout, mode='panel')
 
 
@@ -2666,7 +2667,7 @@ class NodeWranglerMenu(Menu, NodeToolBase):
         drawlayout(context, self.layout)
 
 
-class NWSwapMenu(Menu):
+class NWSwapMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_type_swap_menu"
     bl_label = "Swap the type of selected nodes"
 
@@ -2677,7 +2678,7 @@ class NWSwapMenu(Menu):
         if context.space_data.node_tree:
             tree = context.space_data.node_tree
             if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
-                if len(list(x for x in tree.nodes if x.select == True)) > 0: # if any nodes are selected
+                if context.selected_nodes:
                     checknode = None
                     if tree.nodes.active in context.selected_nodes:
                         checknode = tree.nodes.active
@@ -2695,47 +2696,52 @@ class NWSwapMenu(Menu):
         nodes, links = get_nodes_links(context)
         tree = context.space_data.node_tree
 
-        checknode = None
-        if nodes.active in context.selected_nodes:
-            checknode = nodes.active
-        else:
-            checknode = context.selected_nodes[0]
+        if context.selected_nodes:
+            print ("cool")
 
-        index=0
-        if checknode.type in shader_types:
-            for node_type in shader_names:
-                l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
-                index+=1
-        elif checknode.type in texture_types:
-            for node_type in texture_names:
-                l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
-                index+=1
-        elif checknode.type == 'MIX_SHADER':
-            l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
-        elif checknode.type == 'ADD_SHADER':
-            l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
-        elif checknode.type == 'MATH':
-            if tree.type == 'SHADER':
-                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
-        elif checknode.type == 'MIX_RGB':
-            if tree.type == 'SHADER':
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
-        elif checknode.type == 'ALPHAOVER':
-            l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
-        elif checknode.type == 'REROUTE':
-            if tree.type == 'SHADER':
+            checknode = None
+            if nodes.active in context.selected_nodes:
+                checknode = nodes.active
+            else:
+                checknode = context.selected_nodes[0]
+
+            index=0
+            if checknode.type in shader_types:
+                for node_type in shader_names:
+                    l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
+                    index+=1
+            elif checknode.type in texture_types:
+                for node_type in texture_names:
+                    l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
+                    index+=1
+            elif checknode.type == 'MIX_SHADER':
+                l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
+            elif checknode.type == 'ADD_SHADER':
+                l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
+            elif checknode.type == 'MATH':
+                if tree.type == 'SHADER':
+                    l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
+                elif tree.type == 'COMPOSITING':
+                    l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
+            elif checknode.type == 'MIX_RGB':
+                if tree.type == 'SHADER':
+                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
+                elif tree.type == 'COMPOSITING':
+                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
+                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
+            elif checknode.type == 'ALPHAOVER':
+                l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+            elif checknode.type == 'REROUTE':
+                if tree.type == 'SHADER':
+                    l.label("Active node is not swappable!")
+                elif tree.type == 'COMPOSITING':
+                    l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
+            elif checknode.type == 'SWITCH':
+                l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
+            else:
                 l.label("Active node is not swappable!")
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
-        elif checknode.type == 'SWITCH':
-            l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
         else:
-            l.label("Active node is not swappable!")
+            l.label("No Nodes Selected")
 
 
 class NWMergeNodesMenu(Menu, NodeToolBase):
