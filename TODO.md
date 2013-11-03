@@ -13,6 +13,13 @@ Short term:
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
 * Ctrl+Shift+Click to cut lines and add clamps (not sure if this is possible with current api)
 * Alt+Shift+Click to cut lines and add mix nodes
+* Comment node
+ - Multiline
+ - Automatic wordwrap
+ - No character limit
+ - Heading
+ - Text colour
+ - Use frame node and parent text to this
 
 Long Term:
 ----------

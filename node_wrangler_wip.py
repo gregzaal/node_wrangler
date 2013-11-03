@@ -643,9 +643,9 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
             bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
-class NWMixNodes(Operator, NodeToolBase):
+class NWLazyMix(Operator, NodeToolBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
-    bl_idname = "nw.mix_nodes"
+    bl_idname = "nw.lazy_mix"
     bl_label = "Mix Nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -943,7 +943,7 @@ class NWArrangeNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWDeleteUnusedNodes(Operator, NodeToolBase):
+class NWDeleteUnused(Operator, NodeToolBase):
 
     'Delete all nodes whose output is not used'
     bl_idname = 'nw.del_unused'
@@ -1091,7 +1091,7 @@ class NWAddUVNode(Operator, NodeToolBase):
         nodes.active.attribute_name = self.uv_name
         return {'FINISHED'}
 
-
+# TODO, add to toolbar panel
 class NWUVMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_node_uvs_menu"
     bl_label = "UV Maps"
@@ -1932,7 +1932,7 @@ class NWChangeMixFactor(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWNodesCopySettings(Operator, NodeToolBase):
+class NWCopySettings(Operator, NodeToolBase):
     bl_idname = "nw.copy_settings"
     bl_label = "Copy Settings"
     bl_description = "Copy Settings of Active Node to Selected Nodes"
@@ -2010,7 +2010,7 @@ class NWNodesCopySettings(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWNodesCopyLabel(Operator, NodeToolBase):
+class NWCopyLabel(Operator, NodeToolBase):
     bl_idname = "nw.copy_label"
     bl_label = "Copy Label"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2054,7 +2054,7 @@ class NWNodesCopyLabel(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWNodesClearLabel(Operator, NodeToolBase):
+class NWClearLabel(Operator, NodeToolBase):
     bl_idname = "nw.clear_label"
     bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2075,7 +2075,7 @@ class NWNodesClearLabel(Operator, NodeToolBase):
             return context.window_manager.invoke_confirm(self, event)
 
 
-class NWNodesModifyLabels(Operator, NodeToolBase):
+class NWModifyLabels(Operator, NodeToolBase):
     """Modify Labels of all selected nodes."""
     bl_idname = "nw.modify_labels"
     bl_label = "Modify Labels"
@@ -2109,7 +2109,7 @@ class NWNodesModifyLabels(Operator, NodeToolBase):
         return context.window_manager.invoke_props_dialog(self)
 
 
-class NWNodesAddTextureSetup(Operator, NodeToolBase):
+class NWAddTextureSetup(Operator, NodeToolBase):
     bl_idname = "nw.add_texture"
     bl_label = "Texture Setup"
     bl_description = "Add Texture Node Setup to Selected Shaders"
@@ -2176,7 +2176,7 @@ class NWNodesAddTextureSetup(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWNodesAddReroutes(Operator, NodeToolBase):
+class NWAddReroutes(Operator, NodeToolBase):
     bl_idname = "nw.add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
@@ -2275,7 +2275,7 @@ class NWNodesAddReroutes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWNodesLinkActiveToSelected(Operator, NodeToolBase):
+class NWLinkActiveToSelected(Operator, NodeToolBase):
     bl_idname = "nw.link_active_to_selected"
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2574,15 +2574,73 @@ class NWLinkToOutputNode(Operator, NodeToolBase):
 
 
 #############################################################
-#  P A N E L S
+#  P A N E L
 #############################################################
 
-# TODO, make nice panel layout, with new stuff
+def drawlayout(context, layout, mode = 'non-panel'):
+    tree_type = context.space_data.tree_type
+
+    col = layout.column(align=True)
+    col.menu(NWMergeNodesMenu.bl_idname)
+    col.separator()
+
+    col = layout.column(align=True)
+    col.menu(NWSwapMenu.bl_idname, text = "Swap Type/Node")
+    col.separator()
+
+    if tree_type == 'ShaderNodeTree':
+        col = layout.column(align=True)
+        col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon = 'NODE_SEL')
+        col.separator()
+
+    col = layout.column(align=True)
+    col.operator(NWDetachOutputs.bl_idname, icon = 'UNLINKED')
+    col.operator(NWSwapOutputs.bl_idname)
+    col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon = 'LAYER_USED')
+    col.separator()
+
+    col = layout.column(align=True)
+    col.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected", icon = 'LINKED')
+    col.operator(NWLinkToOutputNode.bl_idname, icon = 'DRIVER')
+    col.separator()
+
+    col = layout.column(align=True)
+    if mode == 'panel':
+        row = col.row(align=True)
+        row.operator(NWClearLabel.bl_idname).option = True
+        row.operator(NWModifyLabels.bl_idname)
+    else:
+        col.operator(NWClearLabel.bl_idname).option = True
+        col.operator(NWModifyLabels.bl_idname)
+    col.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
+    col.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
+    col.separator()
+
+    col = layout.column(align=True)
+    if tree_type == 'CompositorNodeTree':
+        col.operator(NWResetBG.bl_idname, icon = 'ZOOM_PREVIOUS')
+    col.operator(NWReloadImages.bl_idname, icon = 'FILE_REFRESH')
+    col.separator()
+
+    col = layout.column(align=True)
+    col.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes", icon = 'UV_ISLANDSEL')
+    col.operator(NWArrangeNodes.bl_idname, text="Arrange Nodes", icon = 'IMGDISPLAY')
+    col.separator()
+
+    col = layout.column(align=True)
+    col.operator(NWFrameSelected.bl_idname, icon = 'STICKY_UVS_LOC')
+    col.separator()
+
+    col = layout.column(align=True)
+    col.operator(NWDeleteUnused.bl_idname, icon = 'CANCEL')
+    col.separator()
+
+
 class NodeWranglerPanel(Panel, NodeToolBase):
-    bl_idname = "NODE_PT_efficiency_tools"
+    bl_idname = "NODE_PT_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Efficiency Tools (Ctrl-SPACE)"
+    bl_label = "Node Wrangler (Ctrl-SPACE)"
     
     prepend = StringProperty(
         name = 'prepend',
@@ -2591,47 +2649,21 @@ class NodeWranglerPanel(Panel, NodeToolBase):
     remove = StringProperty()
 
     def draw(self, context):
-        type = context.space_data.tree_type
-        layout = self.layout
+        drawlayout(context, self.layout, mode='panel')
 
-        box = layout.box()
-        box.menu(NWMergeNodesMenu.bl_idname)
-        if type == 'ShaderNodeTree':
-            box.operator(NWNodesAddTextureSetup.bl_idname, text="Add Image Texture (Ctrl T)")
-        box.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change...")
-        box.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes (Shift =)")
-        box.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected (Shift-C)")
-        box.operator(NWNodesClearLabel.bl_idname).option = True
-        box.operator(NWNodesModifyLabels.bl_idname)
-        box.operator(NWDetachOutputs.bl_idname)
-        box.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes ( / )")
-        box.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected ( \\ )")
-        box.operator(NWLinkToOutputNode.bl_idname)
 
 
 #############################################################
 #  M E N U S
 #############################################################
 
-# TODO, add new stuff
+
 class NodeWranglerMenu(Menu, NodeToolBase):
-    bl_idname = "NODE_MT_node_tools_menu"
-    bl_label = "Efficiency Tools"
+    bl_idname = "NODE_MT_node_wrangler_menu"
+    bl_label = "Node Wrangler"
 
     def draw(self, context):
-        type = context.space_data.tree_type
-        layout = self.layout
-        layout.menu(NWMergeNodesMenu.bl_idname, text="Merge Selected Nodes")
-        if type == 'ShaderNodeTree':
-            layout.operator(NWNodesAddTextureSetup.bl_idname, text="Add Image Texture with coordinates")
-        layout.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
-        layout.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes")
-        layout.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
-        layout.operator(NWNodesClearLabel.bl_idname).option = True
-        layout.operator(NWDetachOutputs.bl_idname)
-        layout.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes")
-        layout.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected")
-        layout.operator(NWLinkToOutputNode.bl_idname)
+        drawlayout(context, self.layout)
 
 
 class NWSwapMenu(Menu):
@@ -2795,7 +2827,7 @@ class NWCopyToSelectedMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NWNodesCopySettings.bl_idname, text="Settings from Active")
+        layout.operator(NWCopySettings.bl_idname, text="Settings from Active")
         layout.menu(NWCopyLabelMenu.bl_idname)
 
 
@@ -2805,9 +2837,9 @@ class NWCopyLabelMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NWNodesCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
-        layout.operator(NWNodesCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
-        layout.operator(NWNodesCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
+        layout.operator(NWCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
+        layout.operator(NWCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
+        layout.operator(NWCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
 
 
 class NWAddReroutesMenu(Menu, NodeToolBase):
@@ -2817,9 +2849,9 @@ class NWAddReroutesMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NWNodesAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
-        layout.operator(NWNodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
-        layout.operator(NWNodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
+        layout.operator(NWAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
+        layout.operator(NWAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
+        layout.operator(NWAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
 
 
 class NWLinkActiveToSelectedMenu(Menu, NodeToolBase):
@@ -2839,11 +2871,11 @@ class NWLinkStandardMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = False
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = False
         props.use_outputs_names = False
@@ -2855,11 +2887,11 @@ class NWLinkUseNodeNameMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = True
         props.use_outputs_names = False
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = True
         props.use_outputs_names = False
@@ -2871,11 +2903,11 @@ class NWLinkUseOutputsNamesMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = True
-        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = False
         props.use_outputs_names = True
@@ -3039,22 +3071,22 @@ kmi_defs = (
         (('blend_type', 'PREV'), ('operation', 'PREV'),), "Batch change blend type (Previous)"),
     # LINK ACTIVE TO SELECTED
     # Don't use names, don't replace links (K)
-    (NWNodesLinkActiveToSelected.bl_idname, 'K', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'K', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Don't replace links)"),
     # Don't use names, replace links (Shift K)
-    (NWNodesLinkActiveToSelected.bl_idname, 'K', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'K', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Replace links)"),
     # Use node name, don't replace links (')
-    (NWNodesLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
         (('replace', False), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Don't replace links, node names)"),
     # Use node name, replace links (Shift ')
-    (NWNodesLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
         (('replace', True), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Replace links, node names)"),
     # Don't use names, don't replace links (;)
-    (NWNodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Don't replace links, output names)"),
     # Don't use names, replace links (')
-    (NWNodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Replace links, output names)"),
     # CHANGE MIX FACTOR
     (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
@@ -3068,11 +3100,11 @@ kmi_defs = (
     (NWChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
     (NWChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
     # CLEAR LABEL (Alt L)
-    (NWNodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
+    (NWClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
     # MODIFY LABEL (Alt Shift L)
-    (NWNodesModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
+    (NWModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
     # Copy Label from active to selected
-    (NWNodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
+    (NWCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
     # DETACH OUTPUTS (Alt Shift D)
     (NWDetachOutputs.bl_idname, 'D', False, True, True, None, "Detach outputs"),
     # LINK TO OUTPUT NODE (O)
@@ -3083,7 +3115,7 @@ kmi_defs = (
     # Select Parent
     (NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
-    (NWNodesAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
+    (NWAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
     # Reset backdrop
     ('nw.bg_reset', 'Z', False, False, False, None, "Reset backdrop image zoom"),
     # Auto-Arrange
@@ -3098,8 +3130,8 @@ kmi_defs = (
     ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
     ('nw.reload_images', 'R', False, False, True, None, "Reload images"),
-    # Interactive Mix
-    ('nw.mix_nodes', 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
+    # Lazy Mix
+    ('nw.lazy_mix', 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
     ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
     # MENUS
@@ -3111,7 +3143,7 @@ kmi_defs = (
     ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
     ('wm.call_menu', 'S', False, True, False, (('name', NWSwapMenu.bl_idname),), "Swap node menu"),
     )
-
+# TODO, make new function keymaps use class.bl_idname and not op.name directly
 
 def register():
     # props
