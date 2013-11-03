@@ -117,7 +117,7 @@ operations = [
     ('LESS_THAN', 'Less Than', 'Less Thann Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
     ]
-# in BatchChangeNodes additional types/operations in a form that can be used as 'items' for EnumProperty.
+# in NWBatchChangeNodes additional types/operations in a form that can be used as 'items' for EnumProperty.
 navs = [
     ('CURRENT', 'Current', 'Leave at current state'),
     ('NEXT', 'Next', 'Next blend type/operation'),
@@ -643,7 +643,7 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
             bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
-class NWMixNodes(bpy.types.Operator):
+class NWMixNodes(Operator, NodeToolBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "nw.mix_nodes"
     bl_label = "Mix Nodes"
@@ -690,7 +690,7 @@ class NWMixNodes(bpy.types.Operator):
                     node1.select = True
                     node2.select = True
 
-                    bpy.ops.node.merge_nodes(mode=self.mode, merge_type=self.merge_type)
+                    bpy.ops.nw.merge_nodes(mode=self.mode, merge_type=self.merge_type)
 
 
             context.scene.NWBusyDrawing = ""
@@ -720,7 +720,7 @@ class NWMixNodes(bpy.types.Operator):
             return {'CANCELLED'}
 
 # TODO - won't connect if the only available sockets are already connected, so force it in this case to the first possible one
-class NWLazyConnect(bpy.types.Operator):
+class NWLazyConnect(Operator, NodeToolBase):
     """Connect two nodes without clicking a specific socket (automatically determined"""
     bl_idname = "nw.lazy_connect"
     bl_label = "Lazy Connect"
@@ -816,7 +816,7 @@ class NWLazyConnect(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class NWArrangeNodes(bpy.types.Operator):
+class NWArrangeNodes(Operator, NodeToolBase):
 
     'Automatically layout the selected nodes in a linear and non-overlapping fashion.'
     bl_idname = 'nw.layout'
@@ -943,7 +943,7 @@ class NWArrangeNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWDeleteUnusedNodes(bpy.types.Operator):
+class NWDeleteUnusedNodes(Operator, NodeToolBase):
 
     'Delete all nodes whose output is not used'
     bl_idname = 'nw.del_unused'
@@ -1005,7 +1005,7 @@ class NWDeleteUnusedNodes(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapOutputs(bpy.types.Operator):
+class NWSwapOutputs(Operator, NodeToolBase):
 
     "Swap the output connections of the two selected nodes"
     bl_idname = 'nw.swap_outputs'
@@ -1058,7 +1058,7 @@ class NWSwapOutputs(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWResetBG(bpy.types.Operator):
+class NWResetBG(Operator, NodeToolBase):
 
     'Reset the zoom and position of the background image'
     bl_idname = 'nw.bg_reset'
@@ -1077,7 +1077,7 @@ class NWResetBG(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWAddUVNode(bpy.types.Operator):
+class NWAddUVNode(Operator, NodeToolBase):
 
     "Add an Attribute node for this UV layer"
     bl_idname = 'nw.add_uv_node'
@@ -1130,7 +1130,7 @@ class NWUVMenu(bpy.types.Menu):
             l.label("No UV layers on objects with this material")
 
 
-class NWEmissionViewer(bpy.types.Operator):
+class NWEmissionViewer(Operator, NodeToolBase):
     bl_idname = "nw.emission_viewer"
     bl_label = "Emission Viewer"
     bl_description = "Connect active node to Emission Shader for shadeless previews"
@@ -1262,7 +1262,7 @@ class NWEmissionViewer(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class NWFrameSelected(bpy.types.Operator):
+class NWFrameSelected(Operator, NodeToolBase):
     bl_idname = "nw.frame_selected"
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
@@ -1299,7 +1299,7 @@ class NWFrameSelected(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWReloadImages(bpy.types.Operator):
+class NWReloadImages(Operator, NodeToolBase):
     bl_idname = "nw.reload_images"
     bl_label = "Reload Images"
     bl_description = "Update all the image nodes to match their files on disk"
@@ -1342,7 +1342,7 @@ class NWReloadImages(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class NWViewImage(bpy.types.Operator):
+class NWViewImage(Operator, NodeToolBase):
     bl_idname = "nw.view_image"
     bl_label = "View Image"
     bl_description = "Switch this window to an image editor and show the image for this node"
@@ -1416,7 +1416,7 @@ class NWViewImage(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapSwitchReroute(bpy.types.Operator):
+class NWSwapSwitchReroute(Operator, NodeToolBase):
 
     "Swap the selected nodes"
     bl_idname = 'nw.swap_switchreroute'
@@ -1458,7 +1458,7 @@ class NWSwapSwitchReroute(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapMixMathAlpha(bpy.types.Operator):
+class NWSwapMixMathAlpha(Operator, NodeToolBase):
 
     "Swap the selected nodes"
     bl_idname = 'nw.swap_mixmathalpha'
@@ -1581,7 +1581,7 @@ class NWSwapMixMathAlpha(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapType(bpy.types.Operator):
+class NWSwapType(Operator, NodeToolBase):
 
     "Swap the selected nodes to another type"
     bl_idname = 'nw.swap'
@@ -1660,81 +1660,9 @@ class NWSwapType(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class NWSwapMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_type_swap_menu"
-    bl_label = "Swap the type of selected nodes"
 
-    @classmethod
-    def poll(cls, context):
-        valid = False
-        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH']
-        if context.space_data.node_tree:
-            tree = context.space_data.node_tree
-            if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
-                if len(list(x for x in tree.nodes if x.select == True)) > 0: # if any nodes are selected
-                    checknode = None
-                    if tree.nodes.active in context.selected_nodes:
-                        checknode = tree.nodes.active
-                    else:
-                        checknode = context.selected_nodes[0]
-
-                    if checknode.type in shader_types or \
-                       checknode.type in texture_types or \
-                       checknode.type in misc_good_types:
-                        valid = True
-        return valid
-            
-    def draw(self, context):
-        l = self.layout
-        nodes, links = get_nodes_links(context)
-        tree = context.space_data.node_tree
-
-        checknode = None
-        if nodes.active in context.selected_nodes:
-            checknode = nodes.active
-        else:
-            checknode = context.selected_nodes[0]
-
-        index=0
-        if checknode.type in shader_types:
-            for node_type in shader_names:
-                l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
-                index+=1
-        elif checknode.type in texture_types:
-            for node_type in texture_names:
-                l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
-                index+=1
-        elif checknode.type == 'MIX_SHADER':
-            l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
-        elif checknode.type == 'ADD_SHADER':
-            l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
-        elif checknode.type == 'MATH':
-            if tree.type == 'SHADER':
-                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
-        elif checknode.type == 'MIX_RGB':
-            if tree.type == 'SHADER':
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
-                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
-        elif checknode.type == 'ALPHAOVER':
-            l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
-        elif checknode.type == 'REROUTE':
-            if tree.type == 'SHADER':
-                l.label("Active node is not swappable!")
-            elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
-        elif checknode.type == 'SWITCH':
-            l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
-        else:
-            l.label("Active node is not swappable!")
-
-
-
-class MergeNodes(Operator, NodeToolBase):
-    bl_idname = "node.merge_nodes"
+class NWMergeNodes(Operator, NodeToolBase):
+    bl_idname = "nw.merge_nodes"
     bl_label = "Merge Nodes"
     bl_description = "Merge Selected Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1911,8 +1839,8 @@ class MergeNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class BatchChangeNodes(Operator, NodeToolBase):
-    bl_idname = "node.batch_change"
+class NWBatchChangeNodes(Operator, NodeToolBase):
+    bl_idname = "nw.batch_change"
     bl_label = "Batch Change"
     bl_description = "Batch Change Blend Type and Math Operation"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1973,8 +1901,8 @@ class BatchChangeNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class ChangeMixFactor(Operator, NodeToolBase):
-    bl_idname = "node.factor"
+class NWChangeMixFactor(Operator, NodeToolBase):
+    bl_idname = "nw.factor"
     bl_label = "Change Factor"
     bl_description = "Change Factors of Mix Nodes and Mix Shader Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2004,8 +1932,8 @@ class ChangeMixFactor(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NodesCopySettings(Operator):
-    bl_idname = "node.copy_settings"
+class NWNodesCopySettings(Operator, NodeToolBase):
+    bl_idname = "nw.copy_settings"
     bl_label = "Copy Settings"
     bl_description = "Copy Settings of Active Node to Selected Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2082,8 +2010,8 @@ class NodesCopySettings(Operator):
         return {'FINISHED'}
 
 
-class NodesCopyLabel(Operator, NodeToolBase):
-    bl_idname = "node.copy_label"
+class NWNodesCopyLabel(Operator, NodeToolBase):
+    bl_idname = "nw.copy_label"
     bl_label = "Copy Label"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2126,8 +2054,8 @@ class NodesCopyLabel(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NodesClearLabel(Operator, NodeToolBase):
-    bl_idname = "node.clear_label"
+class NWNodesClearLabel(Operator, NodeToolBase):
+    bl_idname = "nw.clear_label"
     bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2147,9 +2075,9 @@ class NodesClearLabel(Operator, NodeToolBase):
             return context.window_manager.invoke_confirm(self, event)
 
 
-class NodesModifyLabels(Operator, NodeToolBase):
+class NWNodesModifyLabels(Operator, NodeToolBase):
     """Modify Labels of all selected nodes."""
-    bl_idname = "node.modify_labels"
+    bl_idname = "nw.modify_labels"
     bl_label = "Modify Labels"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2181,8 +2109,8 @@ class NodesModifyLabels(Operator, NodeToolBase):
         return context.window_manager.invoke_props_dialog(self)
 
 
-class NodesAddTextureSetup(Operator):
-    bl_idname = "node.add_texture"
+class NWNodesAddTextureSetup(Operator, NodeToolBase):
+    bl_idname = "nw.add_texture"
     bl_label = "Texture Setup"
     bl_description = "Add Texture Node Setup to Selected Shaders"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2248,8 +2176,8 @@ class NodesAddTextureSetup(Operator):
         return {'FINISHED'}
 
 
-class NodesAddReroutes(Operator, NodeToolBase):
-    bl_idname = "node.add_reroutes"
+class NWNodesAddReroutes(Operator, NodeToolBase):
+    bl_idname = "nw.add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2347,8 +2275,8 @@ class NodesAddReroutes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NodesLinkActiveToSelected(Operator):
-    bl_idname = "node.link_active_to_selected"
+class NWNodesLinkActiveToSelected(Operator, NodeToolBase):
+    bl_idname = "nw.link_active_to_selected"
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2428,8 +2356,8 @@ class NodesLinkActiveToSelected(Operator):
         return {'FINISHED'}
 
 
-class AlignNodes(Operator, NodeToolBase):
-    bl_idname = "node.align_nodes"
+class NWAlignNodes(Operator, NodeToolBase):
+    bl_idname = "nw.align_nodes"
     bl_label = "Align nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2548,8 +2476,8 @@ class AlignNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class SelectParentChildren(Operator, NodeToolBase):
-    bl_idname = "node.select_parent_child"
+class NWSelectParentChildren(Operator, NodeToolBase):
+    bl_idname = "nw.select_parent_child"
     bl_label = "Select Parent or Children"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2579,8 +2507,8 @@ class SelectParentChildren(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class DetachOutputs(Operator, NodeToolBase):
-    bl_idname = "node.detach_outputs"
+class NWDetachOutputs(Operator, NodeToolBase):
+    bl_idname = "nw.detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -2600,7 +2528,7 @@ class DetachOutputs(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class LinkToOutputNode(Operator, NodeToolBase):
+class NWLinkToOutputNode(Operator, NodeToolBase):
     bl_idname = "nw.link_out"
     bl_label = "Connect to Output"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2650,7 +2578,7 @@ class LinkToOutputNode(Operator, NodeToolBase):
 #############################################################
 
 # TODO, make nice panel layout, with new stuff
-class EfficiencyToolsPanel(Panel, NodeToolBase):
+class NodeWranglerPanel(Panel, NodeToolBase):
     bl_idname = "NODE_PT_efficiency_tools"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -2667,45 +2595,118 @@ class EfficiencyToolsPanel(Panel, NodeToolBase):
         layout = self.layout
 
         box = layout.box()
-        box.menu(MergeNodesMenu.bl_idname)
+        box.menu(NWMergeNodesMenu.bl_idname)
         if type == 'ShaderNodeTree':
-            box.operator(NodesAddTextureSetup.bl_idname, text="Add Image Texture (Ctrl T)")
-        box.menu(BatchChangeNodesMenu.bl_idname, text="Batch Change...")
-        box.menu(NodeAlignMenu.bl_idname, text="Align Nodes (Shift =)")
-        box.menu(CopyToSelectedMenu.bl_idname, text="Copy to Selected (Shift-C)")
-        box.operator(NodesClearLabel.bl_idname).option = True
-        box.operator(NodesModifyLabels.bl_idname)
-        box.operator(DetachOutputs.bl_idname)
-        box.menu(AddReroutesMenu.bl_idname, text="Add Reroutes ( / )")
-        box.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected ( \\ )")
-        box.operator(LinkToOutputNode.bl_idname)
+            box.operator(NWNodesAddTextureSetup.bl_idname, text="Add Image Texture (Ctrl T)")
+        box.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change...")
+        box.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes (Shift =)")
+        box.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected (Shift-C)")
+        box.operator(NWNodesClearLabel.bl_idname).option = True
+        box.operator(NWNodesModifyLabels.bl_idname)
+        box.operator(NWDetachOutputs.bl_idname)
+        box.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes ( / )")
+        box.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected ( \\ )")
+        box.operator(NWLinkToOutputNode.bl_idname)
 
 
 #############################################################
 #  M E N U S
 #############################################################
 
-class EfficiencyToolsMenu(Menu, NodeToolBase):
+# TODO, add new stuff
+class NodeWranglerMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_node_tools_menu"
     bl_label = "Efficiency Tools"
 
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
-        layout.menu(MergeNodesMenu.bl_idname, text="Merge Selected Nodes")
+        layout.menu(NWMergeNodesMenu.bl_idname, text="Merge Selected Nodes")
         if type == 'ShaderNodeTree':
-            layout.operator(NodesAddTextureSetup.bl_idname, text="Add Image Texture with coordinates")
-        layout.menu(BatchChangeNodesMenu.bl_idname, text="Batch Change")
-        layout.menu(NodeAlignMenu.bl_idname, text="Align Nodes")
-        layout.menu(CopyToSelectedMenu.bl_idname, text="Copy to Selected")
-        layout.operator(NodesClearLabel.bl_idname).option = True
-        layout.operator(DetachOutputs.bl_idname)
-        layout.menu(AddReroutesMenu.bl_idname, text="Add Reroutes")
-        layout.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected")
-        layout.operator(LinkToOutputNode.bl_idname)
+            layout.operator(NWNodesAddTextureSetup.bl_idname, text="Add Image Texture with coordinates")
+        layout.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
+        layout.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes")
+        layout.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
+        layout.operator(NWNodesClearLabel.bl_idname).option = True
+        layout.operator(NWDetachOutputs.bl_idname)
+        layout.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes")
+        layout.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected")
+        layout.operator(NWLinkToOutputNode.bl_idname)
 
 
-class MergeNodesMenu(Menu, NodeToolBase):
+class NWSwapMenu(Menu):
+    bl_idname = "NODE_MT_type_swap_menu"
+    bl_label = "Swap the type of selected nodes"
+
+    @classmethod
+    def poll(cls, context):
+        valid = False
+        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH']
+        if context.space_data.node_tree:
+            tree = context.space_data.node_tree
+            if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
+                if len(list(x for x in tree.nodes if x.select == True)) > 0: # if any nodes are selected
+                    checknode = None
+                    if tree.nodes.active in context.selected_nodes:
+                        checknode = tree.nodes.active
+                    else:
+                        checknode = context.selected_nodes[0]
+
+                    if checknode.type in shader_types or \
+                       checknode.type in texture_types or \
+                       checknode.type in misc_good_types:
+                        valid = True
+        return valid
+            
+    def draw(self, context):
+        l = self.layout
+        nodes, links = get_nodes_links(context)
+        tree = context.space_data.node_tree
+
+        checknode = None
+        if nodes.active in context.selected_nodes:
+            checknode = nodes.active
+        else:
+            checknode = context.selected_nodes[0]
+
+        index=0
+        if checknode.type in shader_types:
+            for node_type in shader_names:
+                l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
+                index+=1
+        elif checknode.type in texture_types:
+            for node_type in texture_names:
+                l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
+                index+=1
+        elif checknode.type == 'MIX_SHADER':
+            l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
+        elif checknode.type == 'ADD_SHADER':
+            l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
+        elif checknode.type == 'MATH':
+            if tree.type == 'SHADER':
+                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
+        elif checknode.type == 'MIX_RGB':
+            if tree.type == 'SHADER':
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
+        elif checknode.type == 'ALPHAOVER':
+            l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+        elif checknode.type == 'REROUTE':
+            if tree.type == 'SHADER':
+                l.label("Active node is not swappable!")
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
+        elif checknode.type == 'SWITCH':
+            l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
+        else:
+            l.label("Active node is not swappable!")
+
+
+class NWMergeNodesMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_nodes_menu"
     bl_label = "Merge Selected Nodes"
 
@@ -2713,181 +2714,181 @@ class MergeNodesMenu(Menu, NodeToolBase):
         type = context.space_data.tree_type
         layout = self.layout
         if type == 'ShaderNodeTree':
-            layout.menu(MergeShadersMenu.bl_idname, text="Use Shaders")
-        layout.menu(MergeMixMenu.bl_idname, text="Use Mix Nodes")
-        layout.menu(MergeMathMenu.bl_idname, text="Use Math Nodes")
+            layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
+        layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
+        layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
 
 
-class MergeShadersMenu(Menu, NodeToolBase):
+class NWMergeShadersMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_shaders_menu"
     bl_label = "Merge Selected Nodes using Shaders"
 
     def draw(self, context):
         layout = self.layout
         for type in merge_shaders_types:
-            props = layout.operator(MergeNodes.bl_idname, text=type)
+            props = layout.operator(NWMergeNodes.bl_idname, text=type)
             props.mode = type
             props.merge_type = 'SHADER'
 
 
-class MergeMixMenu(Menu, NodeToolBase):
+class NWMergeMixMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_mix_menu"
     bl_label = "Merge Selected Nodes using Mix"
 
     def draw(self, context):
         layout = self.layout
         for type, name, description in blend_types:
-            props = layout.operator(MergeNodes.bl_idname, text=name)
+            props = layout.operator(NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'MIX'
 
 
-class MergeMathMenu(Menu, NodeToolBase):
+class NWMergeMathMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_merge_math_menu"
     bl_label = "Merge Selected Nodes using Math"
 
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(MergeNodes.bl_idname, text=name)
+            props = layout.operator(NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'MATH'
 
 
-class BatchChangeNodesMenu(Menu, NodeToolBase):
+class NWBatchChangeNodesMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_nodes_menu"
     bl_label = "Batch Change Selected Nodes"
 
     def draw(self, context):
         layout = self.layout
-        layout.menu(BatchChangeBlendTypeMenu.bl_idname)
-        layout.menu(BatchChangeOperationMenu.bl_idname)
+        layout.menu(NWBatchChangeBlendTypeMenu.bl_idname)
+        layout.menu(NWBatchChangeOperationMenu.bl_idname)
 
 
-class BatchChangeBlendTypeMenu(Menu, NodeToolBase):
+class NWBatchChangeBlendTypeMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_blend_type_menu"
     bl_label = "Batch Change Blend Type"
 
     def draw(self, context):
         layout = self.layout
         for type, name, description in blend_types:
-            props = layout.operator(BatchChangeNodes.bl_idname, text=name)
+            props = layout.operator(NWBatchChangeNodes.bl_idname, text=name)
             props.blend_type = type
             props.operation = 'CURRENT'
 
 
-class BatchChangeOperationMenu(Menu, NodeToolBase):
+class NWBatchChangeOperationMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_batch_change_operation_menu"
     bl_label = "Batch Change Math Operation"
 
     def draw(self, context):
         layout = self.layout
         for type, name, description in operations:
-            props = layout.operator(BatchChangeNodes.bl_idname, text=name)
+            props = layout.operator(NWBatchChangeNodes.bl_idname, text=name)
             props.blend_type = 'CURRENT'
             props.operation = type
 
 
-class CopyToSelectedMenu(Menu, NodeToolBase):
+class NWCopyToSelectedMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_copy_node_properties_menu"
     bl_label = "Copy to Selected"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesCopySettings.bl_idname, text="Settings from Active")
-        layout.menu(CopyLabelMenu.bl_idname)
+        layout.operator(NWNodesCopySettings.bl_idname, text="Settings from Active")
+        layout.menu(NWCopyLabelMenu.bl_idname)
 
 
-class CopyLabelMenu(Menu, NodeToolBase):
+class NWCopyLabelMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_copy_label_menu"
     bl_label = "Copy Label"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
-        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
-        layout.operator(NodesCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
+        layout.operator(NWNodesCopyLabel.bl_idname, text="from Active Node's Label").option = 'FROM_ACTIVE'
+        layout.operator(NWNodesCopyLabel.bl_idname, text="from Linked Node's Label").option = 'FROM_NODE'
+        layout.operator(NWNodesCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
 
 
-class AddReroutesMenu(Menu, NodeToolBase):
+class NWAddReroutesMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_add_reroutes_menu"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroute Nodes to Selected Nodes' Outputs"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(NodesAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
-        layout.operator(NodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
-        layout.operator(NodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
+        layout.operator(NWNodesAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
+        layout.operator(NWNodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
+        layout.operator(NWNodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
 
 
-class LinkActiveToSelectedMenu(Menu, NodeToolBase):
+class NWLinkActiveToSelectedMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_active_to_selected_menu"
     bl_label = "Link Active to Selected"
 
     def draw(self, context):
         layout = self.layout
-        layout.menu(LinkStandardMenu.bl_idname)
-        layout.menu(LinkUseNodeNameMenu.bl_idname)
-        layout.menu(LinkUseOutputsNamesMenu.bl_idname)
+        layout.menu(NWLinkStandardMenu.bl_idname)
+        layout.menu(NWLinkUseNodeNameMenu.bl_idname)
+        layout.menu(NWLinkUseOutputsNamesMenu.bl_idname)
 
 
-class LinkStandardMenu(Menu, NodeToolBase):
+class NWLinkStandardMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_standard_menu"
     bl_label = "To All Selected"
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = False
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = False
         props.use_outputs_names = False
 
 
-class LinkUseNodeNameMenu(Menu, NodeToolBase):
+class NWLinkUseNodeNameMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_use_node_name_menu"
     bl_label = "Use Node Name/Label"
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = True
         props.use_outputs_names = False
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = True
         props.use_outputs_names = False
 
 
-class LinkUseOutputsNamesMenu(Menu, NodeToolBase):
+class NWLinkUseOutputsNamesMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_link_use_outputs_names_menu"
     bl_label = "Use Outputs Names"
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = True
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props = layout.operator(NWNodesLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = False
         props.use_outputs_names = True
 
 
-class NodeAlignMenu(Menu, NodeToolBase):
+class NWNodeAlignMenu(Menu, NodeToolBase):
     bl_idname = "NODE_MT_node_align_menu"
     bl_label = "Align Nodes"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(AlignNodes.bl_idname, text="Horizontally").option = 'AXIS_X'
-        layout.operator(AlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
+        layout.operator(NWAlignNodes.bl_idname, text="Horizontally").option = 'AXIS_X'
+        layout.operator(NWAlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
 
 
 #############################################################
@@ -2896,8 +2897,8 @@ class NodeAlignMenu(Menu, NodeToolBase):
 
 def select_parent_children_buttons(self, context):
     layout = self.layout
-    layout.operator(SelectParentChildren.bl_idname, text="Select frame's members (children)").option = 'CHILD'
-    layout.operator(SelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
+    layout.operator(NWSelectParentChildren.bl_idname, text="Select frame's members (children)").option = 'CHILD'
+    layout.operator(NWSelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
 
 
 #############################################################
@@ -2939,150 +2940,150 @@ addon_keymaps = []
 # props entry: (property name, property value)
 kmi_defs = (
     # MERGE NODES
-    # MergeNodes with Ctrl (AUTO).
-    (MergeNodes.bl_idname, 'NUMPAD_0', True, False, False,
+    # NWMergeNodes with Ctrl (AUTO).
+    (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
-    (MergeNodes.bl_idname, 'ZERO', True, False, False,
+    (NWMergeNodes.bl_idname, 'ZERO', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, False,
         (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
-    (MergeNodes.bl_idname, 'EQUAL', True, False, False,
+    (NWMergeNodes.bl_idname, 'EQUAL', True, False, False,
         (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
-    (MergeNodes.bl_idname, 'EIGHT', True, False, False,
+    (NWMergeNodes.bl_idname, 'EIGHT', True, False, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
-    (MergeNodes.bl_idname, 'MINUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'MINUS', True, False, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, False,
         (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
-    (MergeNodes.bl_idname, 'SLASH', True, False, False,
+    (NWMergeNodes.bl_idname, 'SLASH', True, False, False,
         (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
-    (MergeNodes.bl_idname, 'COMMA', True, False, False,
+    (NWMergeNodes.bl_idname, 'COMMA', True, False, False,
         (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Less than)"),
-    (MergeNodes.bl_idname, 'PERIOD', True, False, False,
+    (NWMergeNodes.bl_idname, 'PERIOD', True, False, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Greater than)"),
-    # MergeNodes with Ctrl Alt (MIX)
-    (MergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
+    # NWMergeNodes with Ctrl Alt (MIX)
+    (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
-    (MergeNodes.bl_idname, 'ZERO', True, False, True,
+    (NWMergeNodes.bl_idname, 'ZERO', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,
         (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
-    (MergeNodes.bl_idname, 'EQUAL', True, False, True,
+    (NWMergeNodes.bl_idname, 'EQUAL', True, False, True,
         (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, True,
         (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
-    (MergeNodes.bl_idname, 'EIGHT', True, False, True,
+    (NWMergeNodes.bl_idname, 'EIGHT', True, False, True,
         (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, True,
         (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
-    (MergeNodes.bl_idname, 'MINUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'MINUS', True, False, True,
         (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, True,
         (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
-    (MergeNodes.bl_idname, 'SLASH', True, False, True,
+    (NWMergeNodes.bl_idname, 'SLASH', True, False, True,
         (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
-    # MergeNodes with Ctrl Shift (MATH)
-    (MergeNodes.bl_idname, 'NUMPAD_PLUS', True, True, False,
+    # NWMergeNodes with Ctrl Shift (MATH)
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, True, False,
         (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
-    (MergeNodes.bl_idname, 'EQUAL', True, True, False,
+    (NWMergeNodes.bl_idname, 'EQUAL', True, True, False,
         (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
-    (MergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, True, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
-    (MergeNodes.bl_idname, 'EIGHT', True, True, False,
+    (NWMergeNodes.bl_idname, 'EIGHT', True, True, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
-    (MergeNodes.bl_idname, 'NUMPAD_MINUS', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, True, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
-    (MergeNodes.bl_idname, 'MINUS', True, True, False,
+    (NWMergeNodes.bl_idname, 'MINUS', True, True, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
-    (MergeNodes.bl_idname, 'NUMPAD_SLASH', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, True, False,
         (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
-    (MergeNodes.bl_idname, 'SLASH', True, True, False,
+    (NWMergeNodes.bl_idname, 'SLASH', True, True, False,
         (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
-    (MergeNodes.bl_idname, 'COMMA', True, True, False,
+    (NWMergeNodes.bl_idname, 'COMMA', True, True, False,
         (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Less than)"),
-    (MergeNodes.bl_idname, 'PERIOD', True, True, False,
+    (NWMergeNodes.bl_idname, 'PERIOD', True, True, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Greater than)"),
     # BATCH CHANGE NODES
-    # BatchChangeNodes with Alt
-    (BatchChangeNodes.bl_idname, 'NUMPAD_0', False, False, True,
+    # NWBatchChangeNodes with Alt
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_0', False, False, True,
         (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
-    (BatchChangeNodes.bl_idname, 'ZERO', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'ZERO', False, False, True,
         (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_PLUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_PLUS', False, False, True,
         (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
-    (BatchChangeNodes.bl_idname, 'EQUAL', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'EQUAL', False, False, True,
         (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', False, False, True,
         (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
-    (BatchChangeNodes.bl_idname, 'EIGHT', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'EIGHT', False, False, True,
         (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_MINUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_MINUS', False, False, True,
         (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
-    (BatchChangeNodes.bl_idname, 'MINUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'MINUS', False, False, True,
         (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
-    (BatchChangeNodes.bl_idname, 'NUMPAD_SLASH', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_SLASH', False, False, True,
         (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
-    (BatchChangeNodes.bl_idname, 'SLASH', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'SLASH', False, False, True,
         (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
-    (BatchChangeNodes.bl_idname, 'COMMA', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'COMMA', False, False, True,
         (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),), "Batch change blend type (Current)"),
-    (BatchChangeNodes.bl_idname, 'PERIOD', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'PERIOD', False, False, True,
         (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),), "Batch change blend type (Current)"),
-    (BatchChangeNodes.bl_idname, 'DOWN_ARROW', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'DOWN_ARROW', False, False, True,
         (('blend_type', 'NEXT'), ('operation', 'NEXT'),), "Batch change blend type (Next)"),
-    (BatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,
         (('blend_type', 'PREV'), ('operation', 'PREV'),), "Batch change blend type (Previous)"),
     # LINK ACTIVE TO SELECTED
     # Don't use names, don't replace links (K)
-    (NodesLinkActiveToSelected.bl_idname, 'K', False, False, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'K', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Don't replace links)"),
     # Don't use names, replace links (Shift K)
-    (NodesLinkActiveToSelected.bl_idname, 'K', False, True, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'K', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Replace links)"),
     # Use node name, don't replace links (')
-    (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
         (('replace', False), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Don't replace links, node names)"),
     # Use node name, replace links (Shift ')
-    (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
         (('replace', True), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Replace links, node names)"),
     # Don't use names, don't replace links (;)
-    (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Don't replace links, output names)"),
     # Don't use names, replace links (')
-    (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
+    (NWNodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Replace links, output names)"),
     # CHANGE MIX FACTOR
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
-    (ChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (ChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (ChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
-    (ChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
     # CLEAR LABEL (Alt L)
-    (NodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
+    (NWNodesClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
     # MODIFY LABEL (Alt Shift L)
-    (NodesModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
+    (NWNodesModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
     # Copy Label from active to selected
-    (NodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
+    (NWNodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
     # DETACH OUTPUTS (Alt Shift D)
-    (DetachOutputs.bl_idname, 'D', False, True, True, None, "Detach outputs"),
+    (NWDetachOutputs.bl_idname, 'D', False, True, True, None, "Detach outputs"),
     # LINK TO OUTPUT NODE (O)
-    (LinkToOutputNode.bl_idname, 'O', False, False, False, None, "Link to output node"),
+    (NWLinkToOutputNode.bl_idname, 'O', False, False, False, None, "Link to output node"),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),), "Select children"),
+    (NWSelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),), "Select children"),
     # Select Parent
-    (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),), "Select Parent"),
+    (NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
-    (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
+    (NWNodesAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
     # Reset backdrop
     ('nw.bg_reset', 'Z', False, False, False, None, "Reset backdrop image zoom"),
     # Auto-Arrange
@@ -3102,12 +3103,12 @@ kmi_defs = (
     # Lazy Connect
     ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
     # MENUS
-    ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),), "Node Wranger menu"),
-    ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),), "Node alignment menu"),
-    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
-    ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
+    ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
+    ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NWNodeAlignMenu.bl_idname),), "Node alignment menu"),
+    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
+    ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
     ('wm.call_menu', 'S', False, True, False, (('name', NWSwapMenu.bl_idname),), "Swap node menu"),
     )
 
