@@ -719,7 +719,7 @@ class NWMixNodes(bpy.types.Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
-
+# TODO - won't connect if the only available sockets are already connected, so force it in this case to the first possible one
 class NWLazyConnect(bpy.types.Operator):
     """Connect two nodes without clicking a specific socket (automatically determined"""
     bl_idname = "nw.lazy_connect"
@@ -1010,13 +1010,15 @@ class NWSwapOutputs(bpy.types.Operator):
     "Swap the output connections of the two selected nodes"
     bl_idname = 'nw.swap_outputs'
     bl_label = 'Swap Outputs'
-    newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
         snode = context.space_data
-        return len(context.selected_nodes) == 2
+        if context.selected_nodes:
+            return len(context.selected_nodes) == 2
+        else:
+            return False
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1414,6 +1416,171 @@ class NWViewImage(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class NWSwapSwitchReroute(bpy.types.Operator):
+
+    "Swap the selected nodes"
+    bl_idname = 'nw.swap_switchreroute'
+    bl_label = 'Swap Switch/Reroute'
+    newtype = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        selected_nodes = context.selected_nodes
+        new_nodes = []
+        old_nodes = []
+        for node in selected_nodes:
+            if node.type in ["REROUTE", "SWITCH"]:
+                old_nodes.append(node)
+                newnode = nodes.new(self.newtype)
+                newnode.location.x = node.location.x
+                newnode.location.y = node.location.y
+
+                for link in node.inputs[0].links:
+                    links.new(link.from_socket, newnode.inputs[0])
+                for link in node.outputs[0].links:
+                    links.new(link.to_socket, newnode.outputs[0])
+
+                newnode.label = node.label
+
+                if nodes.active == node:
+                    nodes.active = newnode
+
+                newnode.select = False
+                newnode.hide = True
+                new_nodes.append(newnode)
+                nodes.remove(node)
+
+        for n in new_nodes:
+            n.select = True
+
+        return {'FINISHED'}
+
+
+class NWSwapMixMathAlpha(bpy.types.Operator):
+
+    "Swap the selected nodes"
+    bl_idname = 'nw.swap_mixmathalpha'
+    bl_label = 'Swap Type'
+    newtype = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        selected_nodes = context.selected_nodes
+        new_nodes = []
+        old_nodes = []
+        for node in selected_nodes:
+            if node.type in ["MIX_RGB", "MATH", "ALPHAOVER"]:
+                old_nodes.append(node)
+                newnode = nodes.new(self.newtype)
+                newnode.location.x = node.location.x
+                newnode.location.y = node.location.y
+
+                if node.type == "MIX_RGB" and (self.newtype == "ShaderNodeMath" or self.newtype == "CompositorNodeMath"):
+                    io1 = node.inputs[1]
+                    io2 = node.inputs[2]
+                    in1 = newnode.inputs[0]
+                    in2 = newnode.inputs[1]
+                    for link in io1.links:
+                        links.new(link.from_socket, in1)
+                    for link in io2.links:
+                        links.new(link.from_socket, in2)
+                    for link in node.outputs[0].links:
+                        links.new(link.to_socket, newnode.outputs[0])
+                    in1.default_value = max([io1.default_value[0], io1.default_value[1], io1.default_value[2]])
+                    in2.default_value = max([io2.default_value[0], io2.default_value[1], io2.default_value[2]])
+                    try:
+                        newnode.operation = node.blend_type
+                    except:
+                        self.report({'WARNING'}, 'Warning: Cannot make matching Blend Type/Operation for "'
+                                                  +node.name+'" ('+(node.blend_type).title()+')')
+
+                if node.type == "MATH" and (self.newtype == "ShaderNodeMixRGB" or self.newtype == "CompositorNodeMixRGB"):
+                    io1 = node.inputs[0]
+                    io2 = node.inputs[1]
+                    in1 = newnode.inputs[1]
+                    in2 = newnode.inputs[2]
+                    for link in io1.links:
+                        links.new(link.from_socket, in1)
+                    for link in io2.links:
+                        links.new(link.from_socket, in2)
+                    for link in node.outputs[0].links:
+                        links.new(link.to_socket, newnode.outputs[0])
+                    in1.default_value[0] = io1.default_value
+                    in1.default_value[1] = io1.default_value
+                    in1.default_value[2] = io1.default_value
+                    in2.default_value[0] = io2.default_value
+                    in2.default_value[1] = io2.default_value
+                    in2.default_value[2] = io2.default_value
+                    try:
+                        newnode.blend_type = node.operation
+                    except:
+                        self.report({'WARNING'}, 'Warning: Cannot make matching Blend Type/Operation for "'
+                                                  +node.name+'" ('+(node.operation).title()+')')
+
+                if node.type == "ALPHAOVER" and self.newtype == "CompositorNodeMixRGB":
+                    io1 = node.inputs[1]
+                    io2 = node.inputs[2]
+                    in1 = newnode.inputs[1]
+                    in2 = newnode.inputs[2]
+                    for link in io1.links:
+                        links.new(link.from_socket, in1)
+                    for link in io2.links:
+                        links.new(link.from_socket, in2)
+                    for link in node.outputs[0].links:
+                        links.new(link.to_socket, newnode.outputs[0])
+                    if node.inputs[2].links:
+                        alphalinks = list(n for n in node.inputs[2].links[0].from_node.outputs if n.name == "Alpha")
+                        if (alphalinks):
+                            for al in alphalinks:
+                                links.new(al, newnode.inputs[0])
+                    in1.default_value[0] = io1.default_value[0]
+                    in1.default_value[1] = io1.default_value[1]
+                    in1.default_value[2] = io1.default_value[2]
+                    in2.default_value[0] = io2.default_value[0]
+                    in2.default_value[1] = io2.default_value[1]
+                    in2.default_value[2] = io2.default_value[2]
+
+                if node.type == "MIX_RGB" and self.newtype == "CompositorNodeAlphaOver":
+                    io1 = node.inputs[1]
+                    io2 = node.inputs[2]
+                    in1 = newnode.inputs[1]
+                    in2 = newnode.inputs[2]
+                    for link in io1.links:
+                        links.new(link.from_socket, in1)
+                    for link in io2.links:
+                        links.new(link.from_socket, in2)
+                    for link in node.outputs[0].links:
+                        links.new(link.to_socket, newnode.outputs[0])
+                    in1.default_value[0] = io1.default_value[0]
+                    in1.default_value[1] = io1.default_value[1]
+                    in1.default_value[2] = io1.default_value[2]
+                    in2.default_value[0] = io2.default_value[0]
+                    in2.default_value[1] = io2.default_value[1]
+                    in2.default_value[2] = io2.default_value[2]
+
+                if nodes.active == node:
+                    nodes.active = newnode
+
+                if hasattr(newnode, 'show_preview'):
+                    newnode.show_preview = False
+                if hasattr(newnode, 'use_clamp') and hasattr(node, 'use_clamp'):
+                    newnode.use_clamp = node.use_clamp
+                newnode.label = node.label
+
+                newnode.select = False
+                new_nodes.append(newnode)
+                nodes.remove(node)
+
+        for n in new_nodes:
+            n.select = True
+
+        return {'FINISHED'}
+
+
 class NWSwapType(bpy.types.Operator):
 
     "Swap the selected nodes to another type"
@@ -1479,6 +1646,9 @@ class NWSwapType(bpy.types.Operator):
                             links.new(c[0], outpt)
                             connection_made = True
 
+            if nodes.active == node:
+                nodes.active = newnode
+
             newnode.select = False
             new_nodes.append(newnode)
 
@@ -1497,7 +1667,7 @@ class NWSwapMenu(bpy.types.Menu):
     @classmethod
     def poll(cls, context):
         valid = False
-        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB']
+        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH']
         if context.space_data.node_tree:
             tree = context.space_data.node_tree
             if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
@@ -1540,15 +1710,26 @@ class NWSwapMenu(bpy.types.Menu):
             l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
         elif checknode.type == 'MATH':
             if tree.type == 'SHADER':
-                l.operator("nw.swap", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
+                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
             elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
+                l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
         elif checknode.type == 'MIX_RGB':
             if tree.type == 'SHADER':
-                l.operator("nw.swap", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
             elif tree.type == 'COMPOSITING':
-                l.operator("nw.swap", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
-        # TODO switches, reroutes, alpha-over
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
+                l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
+        elif checknode.type == 'ALPHAOVER':
+            l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+        elif checknode.type == 'REROUTE':
+            if tree.type == 'SHADER':
+                l.label("Active node is not swappable!")
+            elif tree.type == 'COMPOSITING':
+                l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
+        elif checknode.type == 'SWITCH':
+            l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
+        else:
+            l.label("Active node is not swappable!")
 
 
 
@@ -3120,8 +3301,7 @@ kmi_defs = (
     ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),), "Node alignment menu"),
     ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),), "Swap node menu"),
-    ('wm.call_menu', 'S', False, True, True, (('name', 'NODE_MT_type_swap_menu'),), "Swap Nodes (Temp)"),
+    ('wm.call_menu', 'S', False, True, False, (('name', NWSwapMenu.bl_idname),), "Swap node menu"),
     )
 
 
