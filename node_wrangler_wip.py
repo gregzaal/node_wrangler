@@ -1462,7 +1462,7 @@ class NWSwapMixMathAlpha(bpy.types.Operator):
 
     "Swap the selected nodes"
     bl_idname = 'nw.swap_mixmathalpha'
-    bl_label = 'Swap Type'
+    bl_label = 'Swap Mix/Math/Alpha Over'
     newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2347,160 +2347,6 @@ class NodesAddReroutes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NodesSwap(Operator, NodeToolBase):
-    bl_idname = "node.swap_nodes"
-    bl_label = "Swap Nodes"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    option = EnumProperty(
-            items=[
-                ('CompositorNodeSwitch', 'Switch', 'Switch'),
-                ('NodeReroute', 'Reroute', 'Reroute'),
-                ('NodeMixRGB', 'Mix Node', 'Mix Node'),
-                ('NodeMath', 'Math Node', 'Math Node'),
-                ('CompositorNodeAlphaOver', 'Alpha Over', 'Alpha Over'),
-                ('ShaderNodeMixShader', 'Mix Shader', 'Mix Shader'),
-                ('ShaderNodeAddShader', 'Add Shader', 'Add Shader'),
-                ('ShaderNodeBsdfDiffuse', 'Diffuse BSDF', 'Diffuse BSDF'),
-                ('ShaderNodeBsdfGlossy', 'Glossy BSDF', 'Glossy BSDF'),
-                ('ShaderNodeBsdfTransparent', 'Transparent BSDF', 'Transparent BSDF'),
-                ('ShaderNodeBsdfRefraction', 'Refraction BSDF', 'Refraction BSDF'),
-                ('ShaderNodeBsdfGlass', 'Glass BSDF', 'Glass BSDF'),
-                ('ShaderNodeBsdfTranslucent', 'Translucent BSDF', 'Translucent BSDF'),
-                ('ShaderNodeBsdfAnisotropic', 'Anisotropic BSDF', 'Anisotropic BSDF'),
-                ('ShaderNodeBsdfVelvet', 'Velvet BSDF', 'Velvet BSDF'),
-                ('ShaderNodeBsdfToon', 'Toon BSDF', 'Toon BSDF'),
-                ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
-                ('ShaderNodeEmission', 'Emission', 'Emission'),
-                ('ShaderNodeBackground', 'Background', 'Background'),
-                ('ShaderNodeAmbientOcclusion', 'Ambient Occlusion', 'Ambient Occlusion'),
-                ('ShaderNodeHoldout', 'Holdout', 'Holdout'),
-                ]
-            )
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-        tree_type = context.space_data.tree_type
-        if tree_type == 'CompositorNodeTree':
-            prefix = 'Compositor'
-        elif tree_type == 'ShaderNodeTree':
-            prefix = 'Shader'
-        option = self.option
-        selected = [n for n in nodes if n.select]
-        reselect = []
-        mode = None  # will be used to set proper operation or blend type in new Math or Mix nodes.
-        # regular_shaders - global list. Entry: (identifier, type, name for humans)
-        # example: ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF')
-        swap_shaders = option in (s[0] for s in regular_shaders)
-        swap_merge_shaders = option in (s[0] for s in merge_shaders)
-        if swap_shaders or swap_merge_shaders:
-            # replace_types - list of node types that can be replaced using selected option
-            shaders = regular_shaders + merge_shaders
-            replace_types = [type[1] for type in shaders]
-            new_type = option
-        elif option == 'CompositorNodeSwitch':
-            replace_types = ('REROUTE', 'MIX_RGB', 'MATH', 'ALPHAOVER')
-            new_type = option
-        elif option == 'NodeReroute':
-            replace_types = ('SWITCH')
-            new_type = option
-        elif option == 'NodeMixRGB':
-            replace_types = ('REROUTE', 'SWITCH', 'MATH', 'ALPHAOVER')
-            new_type = prefix + option
-        elif option == 'NodeMath':
-            replace_types = ('REROUTE', 'SWITCH', 'MIX_RGB', 'ALPHAOVER')
-            new_type = prefix + option
-        elif option == 'CompositorNodeAlphaOver':
-            replace_types = ('REROUTE', 'SWITCH', 'MATH', 'MIX_RGB')
-            new_type = option
-        for node in selected:
-            if node.type in replace_types:
-                hide = node.hide
-                if node.type == 'REROUTE':
-                    hide = True
-                new_node = nodes.new(new_type)
-                # if swap Mix to Math of vice-verca - try to set blend type or operation accordingly
-                if new_node.type in {'MIX_RGB', 'ALPHAOVER'}:
-                    new_node.inputs[0].default_value = 1.0
-                    if node.type == 'MATH':
-                        if node.operation in [entry[0] for entry in blend_types]:
-                            if hasattr(new_node, 'blend_type'):
-                                new_node.blend_type = node.operation
-                        for i in range(2):
-                            new_node.inputs[i+1].default_value = [node.inputs[i].default_value] * 3 + [1.0]
-                    elif node.type in {'MIX_RGB', 'ALPHAOVER'}:
-                        for i in range(3):
-                            new_node.inputs[i].default_value = node.inputs[i].default_value
-                elif new_node.type == 'MATH':
-                    if node.type in {'MIX_RGB', 'ALPHAOVER'}:
-                        if hasattr(node, 'blend_type'):
-                            if node.blend_type in [entry[0] for entry in operations]:
-                                new_node.operation = node.blend_type
-                        for i in range(2):
-                            channels = []
-                            for c in range(3):
-                                channels.append(node.inputs[i+1].default_value[c])
-                            new_node.inputs[i].default_value = max(channels)
-                old_inputs_count = len(node.inputs)
-                new_inputs_count = len(new_node.inputs)
-                replace = []  # entries - pairs: old input index, new input index.
-                if swap_shaders:
-                    for old_i, old_input in enumerate(node.inputs):
-                        for new_i, new_input in enumerate(new_node.inputs):
-                            if old_input.name == new_input.name:
-                                replace.append((old_i, new_i))
-                                new_input.default_value = old_input.default_value
-                                break
-                elif option == 'ShaderNodeAddShader':
-                    if node.type == 'ADD_SHADER':
-                        replace = ((0, 0), (1, 1))
-                    elif node.type == 'MIX_SHADER':
-                        replace = ((1, 0), (2, 1))
-                elif option == 'ShaderNodeMixShader':
-                    if node.type == 'ADD_SHADER':
-                        replace = ((0, 1), (1, 2))
-                    elif node.type == 'MIX_SHADER':
-                        replace = ((1, 1), (2, 2))
-                elif new_inputs_count == 1:
-                    replace = ((0, 0), )
-                elif new_inputs_count == 2:
-                    if old_inputs_count == 1:
-                        replace = ((0, 0), )
-                    elif old_inputs_count == 2:
-                        replace = ((0, 0), (1, 1))
-                    elif old_inputs_count == 3:
-                        replace = ((1, 0), (2, 1))
-                elif new_inputs_count == 3:
-                    if old_inputs_count == 1:
-                        replace = ((0, 1), )
-                    elif old_inputs_count == 2:
-                        replace = ((0, 1), (1, 2))
-                    elif old_inputs_count == 3:
-                        replace = ((0, 0), (1, 1), (2, 2))
-                if replace:
-                    for old_i, new_i in replace:
-                        if node.inputs[old_i].links:
-                            in_link = node.inputs[old_i].links[0]
-                            links.new(in_link.from_socket, new_node.inputs[new_i])
-                for out_link in node.outputs[0].links:
-                    links.new(new_node.outputs[0], out_link.to_socket)
-                for attr in {'location', 'label', 'mute', 'show_preview', 'width_hidden', 'use_clamp'}:
-                    if hasattr(node, attr) and hasattr(new_node, attr):
-                        setattr(new_node, attr, getattr(node, attr))
-                new_node.hide = hide
-                nodes.active = new_node
-                reselect.append(new_node)
-                bpy.ops.node.select_all(action="DESELECT")
-                node.select = True
-                bpy.ops.node.delete()
-            else:
-                reselect.append(node)
-        for node in reselect:
-            node.select = True
-
-        return {'FINISHED'}
-
-
 class NodesLinkActiveToSelected(Operator):
     bl_idname = "node.link_active_to_selected"
     bl_label = "Link Active Node to Selected"
@@ -2803,6 +2649,7 @@ class LinkToOutputNode(Operator, NodeToolBase):
 #  P A N E L S
 #############################################################
 
+# TODO, make nice panel layout, with new stuff
 class EfficiencyToolsPanel(Panel, NodeToolBase):
     bl_idname = "NODE_PT_efficiency_tools"
     bl_space_type = 'NODE_EDITOR'
@@ -2830,7 +2677,6 @@ class EfficiencyToolsPanel(Panel, NodeToolBase):
         box.operator(NodesModifyLabels.bl_idname)
         box.operator(DetachOutputs.bl_idname)
         box.menu(AddReroutesMenu.bl_idname, text="Add Reroutes ( / )")
-        box.menu(NodesSwapMenu.bl_idname, text="Swap Nodes (Shift-S)")
         box.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected ( \\ )")
         box.operator(LinkToOutputNode.bl_idname)
 
@@ -2855,7 +2701,6 @@ class EfficiencyToolsMenu(Menu, NodeToolBase):
         layout.operator(NodesClearLabel.bl_idname).option = True
         layout.operator(DetachOutputs.bl_idname)
         layout.menu(AddReroutesMenu.bl_idname, text="Add Reroutes")
-        layout.menu(NodesSwapMenu.bl_idname, text="Swap Nodes")
         layout.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected")
         layout.operator(LinkToOutputNode.bl_idname)
 
@@ -2974,44 +2819,6 @@ class AddReroutesMenu(Menu, NodeToolBase):
         layout.operator(NodesAddReroutes.bl_idname, text="to All Outputs").option = 'ALL'
         layout.operator(NodesAddReroutes.bl_idname, text="to Loose Outputs").option = 'LOOSE'
         layout.operator(NodesAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
-
-
-class NodesSwapMenu(Menu, NodeToolBase):
-    bl_idname = "NODE_MT_swap_menu"
-    bl_label = "Swap Nodes"
-
-    def draw(self, context):
-        type = context.space_data.tree_type
-        layout = self.layout
-        if type == 'ShaderNodeTree':
-            layout.menu(ShadersSwapMenu.bl_idname, text="Swap Shaders")
-        layout.operator(NodesSwap.bl_idname, text="Change to Mix Nodes").option = 'NodeMixRGB'
-        layout.operator(NodesSwap.bl_idname, text="Change to Math Nodes").option = 'NodeMath'
-        if type == 'CompositorNodeTree':
-            layout.operator(NodesSwap.bl_idname, text="Change to Alpha Over").option = 'CompositorNodeAlphaOver'
-        if type == 'CompositorNodeTree':
-            layout.operator(NodesSwap.bl_idname, text="Change to Switches").option = 'CompositorNodeSwitch'
-            layout.operator(NodesSwap.bl_idname, text="Change to Reroutes").option = 'NodeReroute'
-
-
-class ShadersSwapMenu(Menu):
-    bl_idname = "NODE_MT_shaders_swap_menu"
-    bl_label = "Swap Shaders"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None:
-                valid = True
-        return valid
-
-    def draw(self, context):
-        layout = self.layout
-        shaders = merge_shaders + regular_shaders
-        for opt, type, txt in shaders:
-            layout.operator(NodesSwap.bl_idname, text=txt).option = opt
 
 
 class LinkActiveToSelectedMenu(Menu, NodeToolBase):
