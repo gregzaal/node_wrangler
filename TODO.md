@@ -3,7 +3,6 @@ Todo
 
 Short term:
 -----------
-* Merge NET type swapping
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
