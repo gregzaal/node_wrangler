@@ -3,10 +3,10 @@ Todo
 
 Short term:
 -----------
+* BUG: Arrange Nodes does not use selection?
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
-* When viewing the image/mask/clip of a node, add button to header to jump back to node editor
 * Add Vertex colors menu (same as UV Layers)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
@@ -19,6 +19,9 @@ Short term:
  - Heading
  - Text colour
  - Use frame node and parent text to this
+* Add "Are you sure" dialog for Delete Unused Nodes
+* Hotkey for 'View Image' function
+* When viewing the image/mask/clip of a node, add button to header to jump back to node editor
 
 Long Term:
 ----------
