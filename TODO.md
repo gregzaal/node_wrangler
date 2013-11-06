@@ -27,6 +27,7 @@ Short term:
 * Auto set frame range of image sequence
 * Make sure everything works inside groups.
 * Make Lazy Connect replace other links when theres no free one available.
+* Add hack_force_update call to lazy mix and output swap
 
 Long Term:
 ----------
