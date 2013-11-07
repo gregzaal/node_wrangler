@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': "Node Wrangler aka Nodes Efficiency Tools",
+    'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Greg Zaal, Bartek Skorupa",
     'version': (2, 37),
     'blender': (2, 6, 9),
@@ -2774,7 +2774,7 @@ def showimage_menu_func(self, context):
                 txt = 'INVALID'
         
         if txt != 'INVALID':
-            self.layout.operator("node.nw_view_image", icon="UI", text=txt)
+            self.layout.operator(NWViewImage.bl_idname, icon="UI", text=txt)
 
 
 #############################################################
