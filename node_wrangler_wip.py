@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler",
     'author': "Greg Zaal, Bartek Skorupa",
-    'version': (2, 36),
+    'version': (2, 37),
     'blender': (2, 6, 9),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -440,6 +440,7 @@ def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     except:
         pass
     bgl.glEnd()
+
 
 def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
@@ -1434,7 +1435,6 @@ class NWSwapType(Operator, NWBase):
             n.select = True
 
         return {'FINISHED'}
-
 
 
 class NWMergeNodes(Operator, NWBase):
@@ -2479,49 +2479,39 @@ class NWSwapMenu(Menu, NWBase):
         texture_names = [x[2] for x in texture_list]
 
         if context.selected_nodes:
-            print ("cool")
-
-            checknode = None
-            if nodes.active in context.selected_nodes:
-                checknode = nodes.active
-            else:
-                checknode = context.selected_nodes[0]
-
-            index=0
-            if checknode.type in shader_types:
+            row = l.row()
+            if tree.type == 'SHADER':
+                index=0
+                sub = row.column()
+                sub.label("    Shaders")
                 for node_type in shader_names:
-                    l.operator("node.nw_swap", text = node_type).newtype = shader_idents[index]
+                    sub.operator(NWSwapType.bl_idname, text = node_type).newtype = shader_idents[index]
                     index+=1
-            elif checknode.type in texture_types:
+                index=0
+                sub = row.column()
+                sub.label("    Textures")
                 for node_type in texture_names:
-                    l.operator(NWSwapOutputs.bl_idname, text = node_type).newtype = texture_idents[index]
+                    sub.operator(NWSwapType.bl_idname, text = node_type).newtype = texture_idents[index]
                     index+=1
-            elif checknode.type == 'MIX_SHADER':
-                l.operator(NWSwapOutputs.bl_idname, text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
-            elif checknode.type == 'ADD_SHADER':
-                l.operator(NWSwapOutputs.bl_idname, text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
-            elif checknode.type == 'MATH':
-                if tree.type == 'SHADER':
-                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
-                elif tree.type == 'COMPOSITING':
-                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
-            elif checknode.type == 'MIX_RGB':
-                if tree.type == 'SHADER':
-                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
-                elif tree.type == 'COMPOSITING':
-                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
-                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
-            elif checknode.type == 'ALPHAOVER':
-                l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
-            elif checknode.type == 'REROUTE':
-                if tree.type == 'SHADER':
-                    l.label("Active node is not swappable!")
-                elif tree.type == 'COMPOSITING':
-                    l.operator(NWSwapSwitchReroute.bl_idname, text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
-            elif checknode.type == 'SWITCH':
-                l.operator(NWSwapSwitchReroute.bl_idname, text = "Swap Switch to Reroute").newtype = 'NodeReroute'
-            else:
-                l.label("Active node is not swappable!")
+                sub = row.column()
+                sub.label("    Other")
+                sub.operator(NWSwapType.bl_idname, text = "Swap to Add Shader").newtype = 'ShaderNodeAddShader'
+                sub.operator(NWSwapType.bl_idname, text = "Swap to Mix Shader").newtype = 'ShaderNodeMixShader'
+                sub.separator()
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to MixRGB").newtype = 'ShaderNodeMixRGB'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'ShaderNodeMath'
+            elif tree.type == 'COMPOSITING':
+                sub = row.column()
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to MixRGB").newtype = 'CompositorNodeMixRGB'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'CompositorNodeMath'
+                sub.separator()
+                # Shader nodes have no Alpha Over or Switch:
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Alpha Over").newtype = 'CompositorNodeAlphaOver'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+                sub.separator()
+                sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Switch").newtype = 'CompositorNodeSwitch'
+                sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Reroute").newtype = 'NodeReroute'
+                # TODO, make all these modes work for all nodes in the selection (where relevant - e.g: when swapping shader type only change the selected shader nodes)
         else:
             l.label("No Nodes Selected")
 
@@ -2751,18 +2741,15 @@ class NWUVMenu(bpy.types.Menu):
 
 
 #############################################################
-#  MENU ITEMS
+#  APPENDAGES TO EXISTING UI
 #############################################################
+
 
 def select_parent_children_buttons(self, context):
     layout = self.layout
     layout.operator(NWSelectParentChildren.bl_idname, text="Select frame's members (children)").option = 'CHILD'
     layout.operator(NWSelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
 
-
-#############################################################
-#  APPENDAGES TO EXISTING UI
-#############################################################
 
 def uvs_menu_func(self, context):
     self.layout.menu("NODE_MT_node_uvs_menu")
@@ -3034,7 +3021,6 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
     # keymaps
-    bpy.types.NODE_MT_select.remove(select_parent_children_buttons)
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
