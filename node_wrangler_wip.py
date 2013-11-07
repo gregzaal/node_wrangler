@@ -17,14 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': "Node Wrangler",
+    'name': "Node Wrangler aka Nodes Efficiency Tools",
     'author': "Greg Zaal, Bartek Skorupa",
     'version': (2, 37),
     'blender': (2, 6, 9),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Various tools to enhance and speed up node-based workflow",
     'warning': "",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools", # which to use? Efficiency or Wrangler?
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
     'tracker_url': "http://projects.blender.org/tracker/index.php?func=detail&aid=33543&group_id=153&atid=469",
     'category': "Node",
     }
