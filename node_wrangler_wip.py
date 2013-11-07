@@ -2498,16 +2498,16 @@ class NWSwapMenu(Menu, NWBase):
                 sub.operator(NWSwapType.bl_idname, text = "Swap to Add Shader").newtype = 'ShaderNodeAddShader'
                 sub.operator(NWSwapType.bl_idname, text = "Swap to Mix Shader").newtype = 'ShaderNodeMixShader'
                 sub.separator()
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to MixRGB").newtype = 'ShaderNodeMixRGB'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Mix").newtype = 'ShaderNodeMixRGB'
                 sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'ShaderNodeMath'
             elif tree.type == 'COMPOSITING':
                 sub = row.column()
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to MixRGB").newtype = 'CompositorNodeMixRGB'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Mix").newtype = 'CompositorNodeMixRGB'
                 sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'CompositorNodeMath'
                 sub.separator()
                 # Shader nodes have no Alpha Over or Switch:
                 sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Alpha Over").newtype = 'CompositorNodeAlphaOver'
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to Mix").newtype = 'CompositorNodeMixRGB'
                 sub.separator()
                 sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Switch").newtype = 'CompositorNodeSwitch'
                 sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Reroute").newtype = 'NodeReroute'
