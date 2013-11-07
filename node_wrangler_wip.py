@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler",
     'author': "Greg Zaal, Bartek Skorupa",
-    'version': (2, 35),
+    'version': (2, 36),
     'blender': (2, 6, 9),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -76,6 +76,7 @@ rl_outputs = (
     ('use_pass_vector', 'Speed', 'Vector', True, True),
     ('use_pass_z', 'Z', 'Depth', True, True),
     )
+
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
 blend_types = [
     ('MIX', 'Mix', 'Mix Mode'),
@@ -97,6 +98,7 @@ blend_types = [
     ('SOFT_LIGHT', 'Soft Light', 'Soft Light Mode'),
     ('LINEAR_LIGHT', 'Linear Light', 'Linear Light Mode'),
     ]
+
 # list of operations of "Math" nodes in a form that can be used as 'items' for EnumProperty.
 operations = [
     ('ADD', 'Add', 'Add Mode'),
@@ -117,14 +119,17 @@ operations = [
     ('LESS_THAN', 'Less Than', 'Less Thann Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
     ]
+
 # in NWBatchChangeNodes additional types/operations in a form that can be used as 'items' for EnumProperty.
 navs = [
     ('CURRENT', 'Current', 'Leave at current state'),
     ('NEXT', 'Next', 'Next blend type/operation'),
     ('PREV', 'Prev', 'Previous blend type/operation'),
     ]
+
 # list of mixing shaders
 merge_shaders_types = ('MIX', 'ADD')
+
 # list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
 # Keeping mixed case to avoid having to translate entries when adding new nodes in SwapNodes.
 regular_shaders = (
@@ -143,163 +148,356 @@ regular_shaders = (
     ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
-shader_idents = list(x[0] for x in regular_shaders)
-shader_types = list(x[1] for x in regular_shaders)
-shader_names = list(x[2] for x in regular_shaders)
 
 merge_shaders = (
     ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
     ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
     )
-mix_shader_types = list(x[1] for x in merge_shaders)
 
-texture_list = [['ShaderNodeTexImage', 'TEX_IMAGE', 'Image'],
-                ['ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'],
-                ['ShaderNodeTexSky', 'TEX_SKY', 'Sky'],
-                ['ShaderNodeTexNoise', 'TEX_NOISE', 'Noise'],
-                ['ShaderNodeTexWave', 'TEX_WAVE', 'Wave'],
-                ['ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'],
-                ['ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'],
-                ['ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'],
-                ['ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'],
-                ['ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'],
-                ['ShaderNodeTexBrick', 'TEX_BRICK', 'Brick']]
-texture_idents = list(x[0] for x in texture_list)
-texture_types = list(x[1] for x in texture_list)
-texture_names = list(x[2] for x in texture_list)
+texture_list = (
+    ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
+    ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
+    ('ShaderNodeTexSky', 'TEX_SKY', 'Sky'),
+    ('ShaderNodeTexNoise', 'TEX_NOISE', 'Noise'),
+    ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave'),
+    ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'),
+    ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'),
+    ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'),
+    ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
+    ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
+    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
+    )
 
 output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
 
-non_input_attrs = ['image',
-                   'color_space',
-                   'projection',
-                   'distribution',
-                   'component',
-                   'falloff',
-                   'sundirection',
-                   'wave_type',
-                   'coloring',
-                   'musgrave_type',
-                   'gradient_type',
-                   'turbulence_depth',
-                   'offset',
-                   'offset_frequency',
-                   'squash',
-                   'squash_frequency']
+non_input_attrs = (
+    'image',
+    'color_space',
+    'projection',
+    'distribution',
+    'component',
+    'falloff',
+    'sundirection',
+    'wave_type',
+    'coloring',
+    'musgrave_type',
+    'gradient_type',
+    'turbulence_depth',
+    'offset',
+    'offset_frequency',
+    'squash',
+    'squash_frequency'
+    )
 
-draw_color_sets = {"red_white": [[1.0, 1.0, 1.0, 0.7],
-                                 [1.0, 0.0, 0.0, 0.7],
-                                 [0.8, 0.2, 0.2, 1.0]],
-                   "green": [[0.0, 0.0, 0.0, 1.0],
-                             [0.38, 0.77, 0.38, 1.0],
-                             [0.38, 0.77, 0.38, 1.0]],
-                   "yellow": [[0.0, 0.0, 0.0, 1.0],
-                              [0.77, 0.77, 0.16, 1.0],
-                              [0.77, 0.77, 0.16, 1.0]],
-                   "purple": [[0.0, 0.0, 0.0, 1.0],
-                             [0.38, 0.38, 0.77, 1.0],
-                             [0.38, 0.38, 0.77, 1.0]],
-                   "grey": [[0.0, 0.0, 0.0, 1.0],
-                             [0.63, 0.63, 0.63, 1.0],
-                             [0.63, 0.63, 0.63, 1.0]],
-                   "black": [[1.0, 1.0, 1.0, 0.7],
-                             [0.0, 0.0, 0.0, 0.7],
-                             [0.2, 0.2, 0.2, 1.0]]}
+draw_color_sets = {
+    "red_white": (
+        (1.0, 1.0, 1.0, 0.7),
+        (1.0, 0.0, 0.0, 0.7),
+        (0.8, 0.2, 0.2, 1.0)
+        ),
+    "green": (
+        (0.0, 0.0, 0.0, 1.0),
+        (0.38, 0.77, 0.38, 1.0),
+        (0.38, 0.77, 0.38, 1.0)
+        ),
+    "yellow": (
+        (0.0, 0.0, 0.0, 1.0),
+        (0.77, 0.77, 0.16, 1.0),
+        (0.77, 0.77, 0.16, 1.0)
+        ),
+    "purple": (
+        (0.0, 0.0, 0.0, 1.0),
+        (0.38, 0.38, 0.77, 1.0),
+        (0.38, 0.38, 0.77, 1.0)
+        ),
+    "grey": (
+        (0.0, 0.0, 0.0, 1.0),
+        (0.63, 0.63, 0.63, 1.0),
+        (0.63, 0.63, 0.63, 1.0)
+        ),
+    "black": (
+        (1.0, 1.0, 1.0, 0.7),
+        (0.0, 0.0, 0.0, 0.7),
+        (0.2, 0.2, 0.2, 1.0)
+        )
+    }
 
-def niceHotkeyName(punc):
+
+def nice_hotkey_name(punc):
     # convert the ugly string name into the actual character    
-    if punc == 'LEFTMOUSE':
-        return "LMB"
-    elif punc == 'MIDDLEMOUSE':
-        return "MMB"
-    elif punc == 'RIGHTMOUSE':
-        return "RMB"
-    elif punc == 'SELECTMOUSE':
-        return "Select"
-    elif punc == 'WHEELUPMOUSE':
-        return "Wheel Up"
-    elif punc == 'WHEELDOWNMOUSE':
-        return "Wheel Down"
-    elif punc == 'WHEELINMOUSE':
-        return "Wheel In"
-    elif punc == 'WHEELOUTMOUSE':
-        return "Wheel Out"
-    elif punc == 'ZERO':
-        return "0"
-    elif punc == 'ONE':
-        return "1"
-    elif punc == 'TWO':
-        return "2"
-    elif punc == 'THREE':
-        return "3"
-    elif punc == 'FOUR':
-        return "4"
-    elif punc == 'FIVE':
-        return "5"
-    elif punc == 'SIX':
-        return "6"
-    elif punc == 'SEVEN':
-        return "7"
-    elif punc == 'EIGHT':
-        return "8"
-    elif punc == 'NINE':
-        return "9"
-    elif punc == 'OSKEY':
-        return "Super"
-    elif punc == 'RET':
-        return "Enter"
-    elif punc == 'LINE_FEED':
-        return "Enter"
-    elif punc == 'SEMI_COLON':
-        return ";"
-    elif punc == 'PERIOD':
-        return "."
-    elif punc == 'COMMA':
-        return ","
-    elif punc == 'QUOTE':
-        return '"'
-    elif punc == 'MINUS':
-        return "-"
-    elif punc == 'SLASH':
-        return "/"
-    elif punc == 'BACK_SLASH':
-        return "\\"
-    elif punc == 'EQUAL':
-        return "="
-    elif punc == 'NUMPAD_1':
-        return "Numpad 1"
-    elif punc == 'NUMPAD_2':
-        return "Numpad 2"
-    elif punc == 'NUMPAD_3':
-        return "Numpad 3"
-    elif punc == 'NUMPAD_4':
-        return "Numpad 4"
-    elif punc == 'NUMPAD_5':
-        return "Numpad 5"
-    elif punc == 'NUMPAD_6':
-        return "Numpad 6"
-    elif punc == 'NUMPAD_7':
-        return "Numpad 7"
-    elif punc == 'NUMPAD_8':
-        return "Numpad 8"
-    elif punc == 'NUMPAD_9':
-        return "Numpad 9"
-    elif punc == 'NUMPAD_0':
-        return "Numpad 0"
-    elif punc == 'NUMPAD_PERIOD':
-        return "Numpad ."
-    elif punc == 'NUMPAD_SLASH':
-        return "Numpad /"
-    elif punc == 'NUMPAD_ASTERIX':
-        return "Numpad *"
-    elif punc == 'NUMPAD_MINUS':
-        return "Numpad -"
-    elif punc == 'NUMPAD_ENTER':
-        return "Numpad Enter"
-    elif punc == 'NUMPAD_PLUS':
-        return "Numpad +"
+    pairs = (
+        ('LEFTMOUSE', "LMB"),
+        ('MIDDLEMOUSE', "MMB"),
+        ('RIGHTMOUSE', "RMB"),
+        ('SELECTMOUSE', "Select"),
+        ('WHEELUPMOUSE', "Wheel Up"),
+        ('WHEELDOWNMOUSE', "Wheel Down"),
+        ('WHEELINMOUSE', "Wheel In"),
+        ('WHEELOUTMOUSE', "Wheel Out"),
+        ('ZERO', "0"),
+        ('ONE', "1"),
+        ('TWO', "2"),
+        ('THREE', "3"),
+        ('FOUR', "4"),
+        ('FIVE', "5"),
+        ('SIX', "6"),
+        ('SEVEN', "7"),
+        ('EIGHT', "8"),
+        ('NINE', "9"),
+        ('OSKEY', "Super"),
+        ('RET', "Enter"),
+        ('LINE_FEED', "Enter"),
+        ('SEMI_COLON', ";"),
+        ('PERIOD', "."),
+        ('COMMA', ","),
+        ('QUOTE', '"'),
+        ('MINUS', "-"),
+        ('SLASH', "/"),
+        ('BACK_SLASH', "\\"),
+        ('EQUAL', "="),
+        ('NUMPAD_1', "Numpad 1"),
+        ('NUMPAD_2', "Numpad 2"),
+        ('NUMPAD_3', "Numpad 3"),
+        ('NUMPAD_4', "Numpad 4"),
+        ('NUMPAD_5', "Numpad 5"),
+        ('NUMPAD_6', "Numpad 6"),
+        ('NUMPAD_7', "Numpad 7"),
+        ('NUMPAD_8', "Numpad 8"),
+        ('NUMPAD_9', "Numpad 9"),
+        ('NUMPAD_0', "Numpad 0"),
+        ('NUMPAD_PERIOD', "Numpad ."),
+        ('NUMPAD_SLASH', "Numpad /"),
+        ('NUMPAD_ASTERIX', "Numpad *"),
+        ('NUMPAD_MINUS', "Numpad -"),
+        ('NUMPAD_ENTER', "Numpad Enter"),
+        ('NUMPAD_PLUS', "Numpad +"),
+        )
+    nice_punc = False
+    for (ugly, nice) in pairs:
+        if punc == ugly:
+            nice_punc = nice
+            break
+    if not nice_punc:
+        nice_punc = punc.replace("_", " ").title()
+    return nice_punc
+
+
+def hack_force_update(nodes):
+    for node in nodes:
+        if node.inputs:
+            for inpt in node.inputs:
+                try:
+                    inpt.default_value = inpt.default_value # set value to itself to force update
+                    return True
+                except:
+                    pass
+    return False
+
+
+def get_nodes_links(context):
+    space = context.space_data
+    tree = space.node_tree
+    nodes = tree.nodes
+    links = tree.links
+    active = nodes.active
+    context_active = context.active_node
+    # check if we are working on regular node tree or node group is currently edited.
+    # if group is edited - active node of space_tree is the group
+    # if context.active_node != space active node - it means that the group is being edited.
+    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
+    # if context.active_node == space.active_node it means that we are not currently editing group
+    is_main_tree = True
+    if active:
+        is_main_tree = context_active == active
+    if not is_main_tree:  # if group is currently edited
+        tree = active.node_tree
+        nodes = tree.nodes
+        links = tree.links
+
+    return nodes, links
+
+
+def isStartNode(node):
+    bool = True
+    if len(node.inputs):
+        for input in node.inputs:
+            if input.links != ():
+                bool = False
+    return bool
+
+
+def isEndNode(node):
+    bool = True
+    if len(node.outputs):
+        for output in node.outputs:
+            if output.links != ():
+                bool = False
+    return bool
+
+
+def between(b1, a, b2):
+    #   b1 MUST be smaller than b2!
+    bool = False
+    if a >= b1 and a <= b2:
+        bool = True
+    return bool
+
+
+def overlaps(node1, node2):
+    dim1x = node1.dimensions.x
+    dim1y = node1.dimensions.y
+    dim2x = node2.dimensions.x
+    dim2y = node2.dimensions.y
+    boolx = False
+    booly = False
+    boolboth = False
+
+    # check for x overlap
+    if between(node2.location.x, node1.location.x, (node2.location.x + dim2x)) or between(node2.location.x, (node1.location.x + dim1x), (node2.location.x + dim2x)):  # if either edges are inside the second node
+        boolx = True
+    if between(node1.location.x, node2.location.x, node1.location.x + dim1x) and between(node1.location.x, (node2.location.x + dim2x), node1.location.x + dim1x):  # if each edge is on either side of the second node
+        boolx = True
+
+    # check for y overlap
+    if between((node2.location.y - dim2y), node1.location.y, node2.location.y) or between((node2.location.y - dim2y), (node1.location.y - dim1y), node2.location.y):
+        booly = True
+    if between((node1.location.y - dim1y), node2.location.y, node1.location.y) and between((node1.location.y - dim1y), (node2.location.y - dim2y), node1.location.y):
+        booly = True
+
+    if boolx == True and booly == True:
+        boolboth = True
+    return boolboth
+
+
+def nodeMidPt(node, axis):
+    if axis == 'x':
+        d = node.location.x+(node.dimensions.x/2)
+    elif axis == 'y':
+        d = node.location.y-(node.dimensions.y/2)
+    else: d = 0
+    return d
+
+
+def autolink (node1, node2, links):
+    link_made = False
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if not inp.is_linked and inp.type == outp.type:
+                link_made = True
+                links.new(outp, inp)
+                return True
+    return link_made
+
+
+def nodeAtPos(nodes, context, event):
+    nodes_near_mouse = []
+    nodes_under_mouse = []
+    target_node = None
+
+    store_mouse_cursor(context, event)
+    x, y = context.space_data.cursor_location
+
+    # nearest node
+    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
+
+    for node in nodes:
+        if between(node.location.x, x, node.location.x+node.dimensions.x) and \
+           between(node.location.y-node.dimensions.y, y, node.location.y):
+            nodes_under_mouse.append(node)
+
+    if len(nodes_under_mouse) == 1:
+        if nodes_under_mouse[0] != nodes_near_mouse[0]:
+            target_node = nodes_under_mouse[0] # use the node under the mouse if there is one and only one
+        else:
+            target_node = nodes_near_mouse[0] # else use the nearest node
     else:
-        return punc.replace("_", " ").title()
+        target_node = nodes_near_mouse[0]
+    return target_node
+
+
+def store_mouse_cursor(context, event):
+    space = context.space_data
+    v2d = context.region.view2d
+    tree = space.edit_tree
+
+    # convert mouse position to the View2D for later node placement
+    if context.region.type == 'WINDOW':
+        space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
+    else:
+        space.cursor_location = tree.view_center
+        
+
+def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+    bgl.glLineWidth(size)
+
+    bgl.glBegin(bgl.GL_LINE_STRIP)
+    #bgl.glBegin(bgl.GL_LINES)
+    try:
+        bgl.glVertex2f(x1, y1)
+        bgl.glVertex2f(x2, y2)
+    except:
+        pass
+    bgl.glEnd()
+
+def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+    radius = radius
+    sides = 32
+    #bgl.glVertex2f(m1x, m1y)
+    for i in range(sides+1):
+        cosine= radius * cos(i*2*pi/sides) + mx
+        sine  = radius * sin(i*2*pi/sides) + my
+        bgl.glVertex2f(cosine,sine)
+    bgl.glEnd()
+
+
+def draw_callback_mixnodes(self, context, mode="MIX"):
+    if self.mouse_path:
+        settings = context.user_preferences.addons[__name__].preferences
+        if settings.bgl_antialiasing:
+            bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
+        colors = []
+        if mode == 'MIX':
+            colors = draw_color_sets['red_white']
+        elif mode == 'RGBA':
+            colors = draw_color_sets['yellow']
+        elif mode == 'VECTOR':
+            colors = draw_color_sets['purple']
+        elif mode == 'VALUE':
+            colors = draw_color_sets['grey']
+        elif mode == 'SHADER':
+            colors = draw_color_sets['green']
+        else:
+            colors = draw_color_sets['black']
+
+        m1x = self.mouse_path[0][0]
+        m1y = self.mouse_path[0][1]
+        m2x = self.mouse_path[-1][0]
+        m2y = self.mouse_path[-1][1]
+
+        # circle outline
+        drawCircle(m1x, m1y, 6, colors[0])
+        drawCircle(m2x, m2y, 6, colors[0])
+
+        drawLine(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
+        drawLine(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
+
+        # circle inner
+        drawCircle(m1x, m1y, 5, colors[2])
+        drawCircle(m2x, m2y, 5, colors[2])
+
+        # restore opengl defaults
+        bgl.glLineWidth(1)
+        bgl.glDisable(bgl.GL_BLEND)
+        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+
+        if settings.bgl_antialiasing:
+            bgl.glDisable(bgl.GL_LINE_SMOOTH)
+
 
 # Addon prefs
 class NodeWrangler(bpy.types.AddonPreferences):
@@ -364,7 +562,7 @@ class NodeWrangler(bpy.types.AddonPreferences):
                     if self.hotkey_list_filter.lower() in hotkey_name.lower():
                         row = col.row(align=True)
                         row.label(hotkey_name)
-                        keystr = niceHotkeyName(hotkey[1])
+                        keystr = nice_hotkey_name(hotkey[1])
                         if hotkey[3]:
                             keystr = "Shift " + keystr
                         if hotkey[4]:
@@ -374,278 +572,17 @@ class NodeWrangler(bpy.types.AddonPreferences):
                         row.label(keystr)
 
 
-def hack_force_update(nodes):
-    for node in nodes:
-        if node.inputs:
-            for inpt in node.inputs:
-                try:
-                    inpt.default_value = inpt.default_value # set value to itself to force update
-                    return True
-                except:
-                    pass
-    return False
-
-def get_nodes_links(context):
-    space = context.space_data
-    tree = space.node_tree
-    nodes = tree.nodes
-    links = tree.links
-    active = nodes.active
-    context_active = context.active_node
-    # check if we are working on regular node tree or node group is currently edited.
-    # if group is edited - active node of space_tree is the group
-    # if context.active_node != space active node - it means that the group is being edited.
-    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
-    # if context.active_node == space.active_node it means that we are not currently editing group
-    is_main_tree = True
-    if active:
-        is_main_tree = context_active == active
-    if not is_main_tree:  # if group is currently edited
-        tree = active.node_tree
-        nodes = tree.nodes
-        links = tree.links
-
-    return nodes, links
-
-# Having two of these functions is not ideal, but I had trouble
-# with the Auto-Arrange function and couldn't easily solve it
-# by using one function (other things break when it works for 
-# Auto-Arrange) - however since I plan to rewrite that whole
-# function, which is the only thing that uses this second
-# function, there's not much point in fixing it now.
-def get_nodes_links_withsel(context):
-    space = context.space_data
-    tree = space.node_tree
-    nodes = tree.nodes
-    links = tree.links
-    active = nodes.active
-    context_active = context.active_node
-    is_main_tree = True
-    if active:
-        is_main_tree = context_active == active
-    if not is_main_tree:  # if group is currently edited
-        tree = active.node_tree
-        nodes = tree.nodes
-        links = tree.links
-    all_nodes = nodes
-    newnodes = []   
-    for node in nodes:
-        if node.select == True:
-            newnodes.append(node)
-    if len(newnodes) == 0:
-        newnodes = all_nodes
-    nodes_sorted = sorted(newnodes, key=lambda x: x.name)        # Sort the nodes list to achieve consistent
-    links_sorted = sorted(links, key=lambda x: x.from_node.name) # results (order was changed based on selection).
-    return nodes_sorted, links_sorted
-
-
-def isStartNode(node):
-    bool = True
-    if len(node.inputs):
-        for input in node.inputs:
-            if input.links != ():
-                bool = False
-    return bool
-
-
-def isEndNode(node):
-    bool = True
-    if len(node.outputs):
-        for output in node.outputs:
-            if output.links != ():
-                bool = False
-    return bool
-
-
-def between(b1, a, b2):
-    #   b1 MUST be smaller than b2!
-    bool = False
-    if a >= b1 and a <= b2:
-        bool = True
-    return bool
-
-
-def overlaps(node1, node2):
-    dim1x = node1.dimensions.x
-    dim1y = node1.dimensions.y
-    dim2x = node2.dimensions.x
-    dim2y = node2.dimensions.y
-    boolx = False
-    booly = False
-    boolboth = False
-
-    # check for x overlap
-    if between(node2.location.x, node1.location.x, (node2.location.x + dim2x)) or between(node2.location.x, (node1.location.x + dim1x), (node2.location.x + dim2x)):  # if either edges are inside the second node
-        boolx = True
-    if between(node1.location.x, node2.location.x, node1.location.x + dim1x) and between(node1.location.x, (node2.location.x + dim2x), node1.location.x + dim1x):  # if each edge is on either side of the second node
-        boolx = True
-
-    # check for y overlap
-    if between((node2.location.y - dim2y), node1.location.y, node2.location.y) or between((node2.location.y - dim2y), (node1.location.y - dim1y), node2.location.y):
-        booly = True
-    if between((node1.location.y - dim1y), node2.location.y, node1.location.y) and between((node1.location.y - dim1y), (node2.location.y - dim2y), node1.location.y):
-        booly = True
-
-    if boolx == True and booly == True:
-        boolboth = True
-    return boolboth
-
-
-def nodeMidPt(node, axis):
-    if axis == 'x':
-        d = node.location.x+(node.dimensions.x/2)
-    elif axis == 'y':
-        d = node.location.y-(node.dimensions.y/2)
-    else: d = 0
-    return d
-
-
-def treeMidPt(nodes):
-    minx = (sorted(nodes, key=lambda k: k.location.x))[0].location.x
-    miny = (sorted(nodes, key=lambda k: k.location.y))[0].location.y
-    maxx = (sorted(nodes, key=lambda k: k.location.x, reverse=True))[0].location.x
-    maxy = (sorted(nodes, key=lambda k: k.location.y, reverse=True))[0].location.y
-
-    midx = minx + ((maxx - minx) / 2)
-    midy = miny + ((maxy - miny) / 2)
-
-    return midx, midy
-
-
-def autolink (node1, node2, links):
-    link_made = False
-    for outp in node1.outputs:
-        for inp in node2.inputs:
-            if not inp.is_linked and inp.type == outp.type:
-                link_made = True
-                links.new(outp, inp)
-                return True
-    return link_made
-
-
-def nodeAtPos(nodes, context, event):
-    nodes_near_mouse = []
-    nodes_under_mouse = []
-    target_node = None
-
-    store_mouse_cursor(context, event)
-    x, y = context.space_data.cursor_location
-
-    # nearest node
-    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
-
-    for node in nodes:
-        if between(node.location.x, x, node.location.x+node.dimensions.x) and \
-           between(node.location.y-node.dimensions.y, y, node.location.y):
-            nodes_under_mouse.append(node)
-
-    if len(nodes_under_mouse) == 1:
-        if nodes_under_mouse[0] != nodes_near_mouse[0]:
-            target_node = nodes_under_mouse[0] # use the node under the mouse if there is one and only one
-        else:
-            target_node = nodes_near_mouse[0] # else use the nearest node
-    else:
-        target_node = nodes_near_mouse[0]
-
-
-    return target_node
-
-
-def store_mouse_cursor(context, event):
-    space = context.space_data
-    v2d = context.region.view2d
-    tree = space.edit_tree
-
-    # convert mouse position to the View2D for later node placement
-    if context.region.type == 'WINDOW':
-        space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
-    else:
-        space.cursor_location = tree.view_center
-
-
-class NodeToolBase:
+class NWBase:
     @classmethod
     def poll(cls, context):
         space = context.space_data
         return space.type == 'NODE_EDITOR' and space.node_tree is not None
 
 
-def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
-    bgl.glLineWidth(size)
-
-    bgl.glBegin(bgl.GL_LINE_STRIP)
-    #bgl.glBegin(bgl.GL_LINES)
-    try:
-        bgl.glVertex2f(x1, y1)
-        bgl.glVertex2f(x2, y2)
-    except:
-        pass
-    bgl.glEnd()
-
-def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
-    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
-    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
-    radius = radius
-    sides = 32
-    #bgl.glVertex2f(m1x, m1y)
-    for i in range(sides+1):
-        cosine= radius * cos(i*2*pi/sides) + mx
-        sine  = radius * sin(i*2*pi/sides) + my
-        bgl.glVertex2f(cosine,sine)
-    bgl.glEnd()
-
-
-def draw_callback_mixnodes(self, context, mode="MIX"):
-
-    if self.mouse_path:
-        settings = context.user_preferences.addons[__name__].preferences
-        if settings.bgl_antialiasing:
-            bgl.glEnable(bgl.GL_LINE_SMOOTH)
-
-        colors = []
-        if mode == 'MIX':
-            colors = draw_color_sets['red_white']
-        elif mode == 'RGBA':
-            colors = draw_color_sets['yellow']
-        elif mode == 'VECTOR':
-            colors = draw_color_sets['purple']
-        elif mode == 'VALUE':
-            colors = draw_color_sets['grey']
-        elif mode == 'SHADER':
-            colors = draw_color_sets['green']
-        else:
-            colors = draw_color_sets['black']
-
-        m1x = self.mouse_path[0][0]
-        m1y = self.mouse_path[0][1]
-        m2x = self.mouse_path[-1][0]
-        m2y = self.mouse_path[-1][1]
-
-        # circle outline
-        drawCircle(m1x, m1y, 6, colors[0])
-        drawCircle(m2x, m2y, 6, colors[0])
-
-        drawLine(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
-        drawLine(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
-
-        # circle inner
-        drawCircle(m1x, m1y, 5, colors[2])
-        drawCircle(m2x, m2y, 5, colors[2])
-
-        # restore opengl defaults
-        bgl.glLineWidth(1)
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
-
-        if settings.bgl_antialiasing:
-            bgl.glDisable(bgl.GL_LINE_SMOOTH)
-
-
-class NWLazyMix(Operator, NodeToolBase):
+# OPERATORS
+class NWLazyMix(Operator, NWBase):
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
-    bl_idname = "nw.lazy_mix"
+    bl_idname = "node.nw_lazy_mix"
     bl_label = "Mix Nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -690,7 +627,7 @@ class NWLazyMix(Operator, NodeToolBase):
                     node1.select = True
                     node2.select = True
 
-                    bpy.ops.nw.merge_nodes(mode=self.mode, merge_type=self.merge_type)
+                    bpy.ops.node.nw_merge_nodes(mode=self.mode, merge_type=self.merge_type)
 
 
             context.scene.NWBusyDrawing = ""
@@ -720,9 +657,9 @@ class NWLazyMix(Operator, NodeToolBase):
             return {'CANCELLED'}
 
 # TODO - won't connect if the only available sockets are already connected, so force it in this case to the first possible one
-class NWLazyConnect(Operator, NodeToolBase):
+class NWLazyConnect(Operator, NWBase):
     """Connect two nodes without clicking a specific socket (automatically determined"""
-    bl_idname = "nw.lazy_connect"
+    bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -816,137 +753,10 @@ class NWLazyConnect(Operator, NodeToolBase):
             return {'CANCELLED'}
 
 
-class NWArrangeNodes(Operator, NodeToolBase):
-
-    'Automatically layout the selected nodes in a linear and non-overlapping fashion.'
-    bl_idname = 'nw.layout'
-    bl_label = 'Arrange Nodes'
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        valid = False
-        if context.space_data:
-            if context.space_data.node_tree:
-                if context.space_data.node_tree.nodes:
-                    valid = True
-        return valid
-
-    def execute(self, context):
-        nodes, links = get_nodes_links_withsel(context)
-        margin = context.scene.NWSpacing
-
-        oldmidx, oldmidy = treeMidPt(nodes)
-
-        if context.scene.NWDelReroutes:
-            # Store selection
-            selection = []
-            for node in nodes:
-                if node.select == True and node.type != "REROUTE":
-                    selection.append(node.name)
-            # Delete Reroutes
-            for node in nodes:
-                node.select = False  # deselect all nodes
-            for node in nodes:
-                if node.type == 'REROUTE':
-                    node.select = True
-                    bpy.ops.node.delete_reconnect()
-            # Restore selection
-            nodes, links = get_nodes_links(context)
-            nodes = list(nodes)
-            for node in nodes:
-                if node.name in selection:
-                    node.select = True
-        else:
-            # Store selection anyway
-            selection = []
-            for node in nodes:
-                if node.select == True:
-                    selection.append(node.name)
-
-        if context.scene.NWFrameHandling == "delete":
-            # Store selection
-            selection = []
-            for node in nodes:
-                if node.select == True and node.type != "FRAME":
-                    selection.append(node.name)
-            # Delete Frames
-            for node in nodes:
-                node.select = False  # deselect all nodes
-            for node in nodes:
-                if node.type == 'FRAME':
-                    node.select = True
-                    bpy.ops.node.delete()
-            # Restore selection
-            nodes, links = get_nodes_links(context)
-            nodes = list(nodes)
-            for node in nodes:
-                if node.name in selection:
-                    node.select = True
-
-        layout_iterations = len(nodes)*2
-        for it in range(0, layout_iterations):
-            for node in nodes:
-                isframe = False
-                if node.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
-                    isframe = True
-                if not isframe:
-                    if isStartNode(node) and context.scene.NWStartAlign:  # line up start nodes
-                        node.location.x = node.dimensions.x / -2
-                        node.location.y = node.dimensions.y / 2
-                    for link in links:
-                        if link.from_node == node and link.to_node in nodes:
-                            link.to_node.location.x = node.location.x + node.dimensions.x + margin
-                            link.to_node.location.y = node.location.y - (node.dimensions.y / 2) + (link.to_node.dimensions.y / 2)
-                else:
-                    node.location.x = 0
-                    node.location.y = 0
-
-        backward_check_iterations = len(nodes)
-        for it in range(0, backward_check_iterations):
-            for link in links:
-                if link.from_node.location.x + link.from_node.dimensions.x >= link.to_node.location.x and link.to_node in nodes:
-                    link.to_node.location.x = link.from_node.location.x + link.from_node.dimensions.x + margin
-
-        # line up end nodes
-        if context.scene.NWEndAlign:
-            for node in nodes:
-                max_loc_x = (sorted(nodes, key=lambda x: x.location.x, reverse=True))[0].location.x
-                if isEndNode(node) and not isStartNode(node):
-                    node.location.x = max_loc_x
-
-        overlap_iterations = len(nodes)
-        for it in range(0, overlap_iterations):
-            for node in nodes:
-                isframe = False
-                if node.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
-                    isframe = True
-                if not isframe:
-                    for nodecheck in nodes:
-                        isframe = False
-                        if nodecheck.type == "FRAME" and context.scene.NWFrameHandling == 'ignore':
-                            isframe = True
-                        if not isframe:
-                            if (node != nodecheck):  # dont look for overlaps with self
-                                if overlaps(node, nodecheck):
-                                    node.location.y = nodecheck.location.y - nodecheck.dimensions.y - 0.5 * margin
-
-        newmidx, newmidy = treeMidPt(nodes)
-        middiffx = newmidx - oldmidx
-        middiffy = newmidy - oldmidy
-
-        # put nodes back to the center of the old center
-        for node in nodes:
-            node.location.x = node.location.x - middiffx
-            node.location.y = node.location.y - middiffy
-
-        return {'FINISHED'}
-
-
-class NWDeleteUnused(Operator, NodeToolBase):
+class NWDeleteUnused(Operator, NWBase):
 
     'Delete all nodes whose output is not used'
-    bl_idname = 'nw.del_unused'
+    bl_idname = 'node.nw_del_unused'
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -973,7 +783,7 @@ class NWDeleteUnused(Operator, NodeToolBase):
         temp_deleted_nodes = []
         del_unused_iterations = len(nodes)
         for it in range(0, del_unused_iterations):
-            temp_deleted_nodes = list(deleted_nodes) # keep record of last iteration
+            temp_deleted_nodes = deleted_nodes # keep record of last iteration
             for node in nodes:
                 node.select = False
             for node in nodes:
@@ -984,8 +794,8 @@ class NWDeleteUnused(Operator, NodeToolBase):
 
             if temp_deleted_nodes == deleted_nodes: # stop iterations when there are no more nodes to be deleted
                 break
-
-        deleted_nodes = list(set(deleted_nodes))  # get unique list of deleted nodes (iterations would count the same node more than once)
+        # get unique list of deleted nodes (iterations would count the same node more than once)
+        deleted_nodes = list(set(deleted_nodes))
         for n in deleted_nodes:
             self.report({'INFO'}, "Node " + n + " deleted")
         num_deleted = len(deleted_nodes)
@@ -1003,12 +813,15 @@ class NWDeleteUnused(Operator, NodeToolBase):
             if node.name in selection:
                 node.select = True
         return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
 
 
-class NWSwapOutputs(Operator, NodeToolBase):
+class NWSwapOutputs(Operator, NWBase):
 
     "Swap the output connections of the two selected nodes"
-    bl_idname = 'nw.swap_outputs'
+    bl_idname = 'node.nw_swap_outputs'
     bl_label = 'Swap Outputs'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1058,10 +871,10 @@ class NWSwapOutputs(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWResetBG(Operator, NodeToolBase):
+class NWResetBG(Operator, NWBase):
 
     'Reset the zoom and position of the background image'
-    bl_idname = 'nw.bg_reset'
+    bl_idname = 'node.nw_bg_reset'
     bl_label = 'Reset Backdrop'
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1077,10 +890,10 @@ class NWResetBG(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWAddUVNode(Operator, NodeToolBase):
+class NWAddUVNode(Operator, NWBase):
 
     "Add an Attribute node for this UV layer"
-    bl_idname = 'nw.add_uv_node'
+    bl_idname = 'node.nw_add_uv_node'
     bl_label = 'Add UV map'
     uv_name = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
@@ -1091,47 +904,9 @@ class NWAddUVNode(Operator, NodeToolBase):
         nodes.active.attribute_name = self.uv_name
         return {'FINISHED'}
 
-# TODO, add to toolbar panel
-class NWUVMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_node_uvs_menu"
-    bl_label = "UV Maps"
 
-    @classmethod
-    def poll(cls, context):
-        if context.area.spaces[0].node_tree:
-            if context.area.spaces[0].node_tree.type == 'SHADER':
-                return True
-            else:
-                return False
-        else:
-            return False
-            
-    def draw(self, context):
-        l = self.layout
-        nodes, links = get_nodes_links(context)
-        mat = context.object.active_material
-
-        objs = []
-        for obj in bpy.data.objects:
-            for slot in obj.material_slots:
-                if slot.material == mat:
-                    objs.append(obj)
-        uvs = []
-        for obj in objs:
-            if obj.data.uv_layers:
-                for uv in obj.data.uv_layers:
-                    uvs.append(uv.name)
-        uvs = list(set(uvs)) # get a unique list
-
-        if uvs:
-            for uv in uvs:
-                l.operator('nw.add_uv_node', text = uv).uv_name = uv
-        else:
-            l.label("No UV layers on objects with this material")
-
-
-class NWEmissionViewer(Operator, NodeToolBase):
-    bl_idname = "nw.emission_viewer"
+class NWEmissionViewer(Operator, NWBase):
+    bl_idname = "node.nw_emission_viewer"
     bl_label = "Emission Viewer"
     bl_description = "Connect active node to Emission Shader for shadeless previews"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1151,7 +926,8 @@ class NWEmissionViewer(Operator, NodeToolBase):
 
         # to select at specific mouse position:
         # bpy.ops.node.select(mouse_x=156, mouse_y=410, extend=False)
-
+        shader_types = [x[1] for x in regular_shaders]
+        mix_shader_types = [x[1] for x in merge_shaders]
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
         select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
@@ -1229,7 +1005,7 @@ class NWEmissionViewer(Operator, NodeToolBase):
                            
                 nodes.active = emission
                 links.new(active.outputs[position], emission.inputs[0])
-                bpy.ops.nw.link_out()
+                bpy.ops.node.nw_link_out()
                     
                 # Restore selection
                 emission.select=False
@@ -1239,10 +1015,10 @@ class NWEmissionViewer(Operator, NodeToolBase):
                         node.select=True 
             else: # if active node is a shader, connect to output
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
-                    bpy.ops.nw.link_out()
+                    bpy.ops.node.nw_link_out()
 
                     # ----Delete Emission Viewer----            
-                    if len(list(x for x in nodes if x.name == 'Emission Viewer')) > 0:
+                    if [x for x in nodes if x.name == 'Emission Viewer']:
                         # Store selection
                         selection=[]
                         for node in nodes:
@@ -1262,8 +1038,8 @@ class NWEmissionViewer(Operator, NodeToolBase):
             return {'CANCELLED'}
 
 
-class NWFrameSelected(Operator, NodeToolBase):
-    bl_idname = "nw.frame_selected"
+class NWFrameSelected(Operator, NWBase):
+    bl_idname = "node.nw_frame_selected"
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1299,8 +1075,8 @@ class NWFrameSelected(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWReloadImages(Operator, NodeToolBase):
-    bl_idname = "nw.reload_images"
+class NWReloadImages(Operator, NWBase):
+    bl_idname = "node.nw_reload_images"
     bl_label = "Reload Images"
     bl_description = "Update all the image nodes to match their files on disk"
 
@@ -1342,8 +1118,8 @@ class NWReloadImages(Operator, NodeToolBase):
             return {'CANCELLED'}
 
 
-class NWViewImage(Operator, NodeToolBase):
-    bl_idname = "nw.view_image"
+class NWViewImage(Operator, NWBase):
+    bl_idname = "node.nw_view_image"
     bl_label = "View Image"
     bl_description = "Switch this window to an image editor and show the image for this node"
 
@@ -1416,10 +1192,10 @@ class NWViewImage(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWSwapSwitchReroute(Operator, NodeToolBase):
+class NWSwapSwitchReroute(Operator, NWBase):
 
     "Swap the selected nodes"
-    bl_idname = 'nw.swap_switchreroute'
+    bl_idname = 'node.nw_swap_switchreroute'
     bl_label = 'Swap Switch/Reroute'
     newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
@@ -1458,10 +1234,10 @@ class NWSwapSwitchReroute(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWSwapMixMathAlpha(Operator, NodeToolBase):
+class NWSwapMixMathAlpha(Operator, NWBase):
 
     "Swap the selected nodes"
-    bl_idname = 'nw.swap_mixmathalpha'
+    bl_idname = 'node.nw_swap_mixmathalpha'
     bl_label = 'Swap Mix/Math/Alpha Over'
     newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
@@ -1533,7 +1309,7 @@ class NWSwapMixMathAlpha(Operator, NodeToolBase):
                     for link in node.outputs[0].links:
                         links.new(link.to_socket, newnode.outputs[0])
                     if node.inputs[2].links:
-                        alphalinks = list(n for n in node.inputs[2].links[0].from_node.outputs if n.name == "Alpha")
+                        alphalinks = [n for n in node.inputs[2].links[0].from_node.outputs if n.name == "Alpha"]
                         if (alphalinks):
                             for al in alphalinks:
                                 links.new(al, newnode.inputs[0])
@@ -1581,10 +1357,10 @@ class NWSwapMixMathAlpha(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWSwapType(Operator, NodeToolBase):
+class NWSwapType(Operator, NWBase):
 
     "Swap the selected nodes to another type"
-    bl_idname = 'nw.swap'
+    bl_idname = 'node.nw_swap'
     bl_label = 'Swap Type'
     newtype = bpy.props.StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
@@ -1661,8 +1437,8 @@ class NWSwapType(Operator, NodeToolBase):
 
 
 
-class NWMergeNodes(Operator, NodeToolBase):
-    bl_idname = "nw.merge_nodes"
+class NWMergeNodes(Operator, NWBase):
+    bl_idname = "node.nw_merge_nodes"
     bl_label = "Merge Nodes"
     bl_description = "Merge Selected Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1839,8 +1615,8 @@ class NWMergeNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWBatchChangeNodes(Operator, NodeToolBase):
-    bl_idname = "nw.batch_change"
+class NWBatchChangeNodes(Operator, NWBase):
+    bl_idname = "node.nw_batch_change"
     bl_label = "Batch Change"
     bl_description = "Batch Change Blend Type and Math Operation"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1901,8 +1677,8 @@ class NWBatchChangeNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWChangeMixFactor(Operator, NodeToolBase):
-    bl_idname = "nw.factor"
+class NWChangeMixFactor(Operator, NWBase):
+    bl_idname = "node.nw_factor"
     bl_label = "Change Factor"
     bl_description = "Change Factors of Mix Nodes and Mix Shader Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -1932,8 +1708,8 @@ class NWChangeMixFactor(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWCopySettings(Operator, NodeToolBase):
-    bl_idname = "nw.copy_settings"
+class NWCopySettings(Operator, NWBase):
+    bl_idname = "node.nw_copy_settings"
     bl_label = "Copy Settings"
     bl_description = "Copy Settings of Active Node to Selected Nodes"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2010,8 +1786,8 @@ class NWCopySettings(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWCopyLabel(Operator, NodeToolBase):
-    bl_idname = "nw.copy_label"
+class NWCopyLabel(Operator, NWBase):
+    bl_idname = "node.nw_copy_label"
     bl_label = "Copy Label"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2054,8 +1830,8 @@ class NWCopyLabel(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWClearLabel(Operator, NodeToolBase):
-    bl_idname = "nw.clear_label"
+class NWClearLabel(Operator, NWBase):
+    bl_idname = "node.nw_clear_label"
     bl_label = "Clear Label"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2075,9 +1851,9 @@ class NWClearLabel(Operator, NodeToolBase):
             return context.window_manager.invoke_confirm(self, event)
 
 
-class NWModifyLabels(Operator, NodeToolBase):
+class NWModifyLabels(Operator, NWBase):
     """Modify Labels of all selected nodes."""
-    bl_idname = "nw.modify_labels"
+    bl_idname = "node.nw_modify_labels"
     bl_label = "Modify Labels"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2109,8 +1885,8 @@ class NWModifyLabels(Operator, NodeToolBase):
         return context.window_manager.invoke_props_dialog(self)
 
 
-class NWAddTextureSetup(Operator, NodeToolBase):
-    bl_idname = "nw.add_texture"
+class NWAddTextureSetup(Operator, NWBase):
+    bl_idname = "node.nw_add_texture"
     bl_label = "Texture Setup"
     bl_description = "Add Texture Node Setup to Selected Shaders"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2127,6 +1903,8 @@ class NWAddTextureSetup(Operator, NodeToolBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active
+        shader_types = [x[1] for x in regular_shaders]
+        texture_types = [x[1] for x in texture_list]
         valid = False
         if active:
             if active.select:
@@ -2176,8 +1954,8 @@ class NWAddTextureSetup(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWAddReroutes(Operator, NodeToolBase):
-    bl_idname = "nw.add_reroutes"
+class NWAddReroutes(Operator, NWBase):
+    bl_idname = "node.nw_add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2275,8 +2053,8 @@ class NWAddReroutes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWLinkActiveToSelected(Operator, NodeToolBase):
-    bl_idname = "nw.link_active_to_selected"
+class NWLinkActiveToSelected(Operator, NWBase):
+    bl_idname = "node.nw_link_active_to_selected"
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2356,8 +2134,8 @@ class NWLinkActiveToSelected(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWAlignNodes(Operator, NodeToolBase):
-    bl_idname = "nw.align_nodes"
+class NWAlignNodes(Operator, NWBase):
+    bl_idname = "node.nw_align_nodes"
     bl_label = "Align nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2476,8 +2254,8 @@ class NWAlignNodes(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWSelectParentChildren(Operator, NodeToolBase):
-    bl_idname = "nw.select_parent_child"
+class NWSelectParentChildren(Operator, NWBase):
+    bl_idname = "node.nw_select_parent_child"
     bl_label = "Select Parent or Children"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -2507,8 +2285,8 @@ class NWSelectParentChildren(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWDetachOutputs(Operator, NodeToolBase):
-    bl_idname = "nw.detach_outputs"
+class NWDetachOutputs(Operator, NWBase):
+    bl_idname = "node.nw_detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -2528,8 +2306,8 @@ class NWDetachOutputs(Operator, NodeToolBase):
         return {'FINISHED'}
 
 
-class NWLinkToOutputNode(Operator, NodeToolBase):
-    bl_idname = "nw.link_out"
+class NWLinkToOutputNode(Operator, NWBase):
+    bl_idname = "node.nw_link_out"
     bl_label = "Connect to Output"
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -2613,6 +2391,7 @@ def drawlayout(context, layout, mode = 'non-panel'):
         col.operator(NWClearLabel.bl_idname).option = True
         col.operator(NWModifyLabels.bl_idname)
     col.menu(NWBatchChangeNodesMenu.bl_idname, text="Batch Change")
+    col.separator()
     col.menu(NWCopyToSelectedMenu.bl_idname, text="Copy to Selected")
     col.separator()
 
@@ -2620,11 +2399,6 @@ def drawlayout(context, layout, mode = 'non-panel'):
     if tree_type == 'CompositorNodeTree':
         col.operator(NWResetBG.bl_idname, icon = 'ZOOM_PREVIOUS')
     col.operator(NWReloadImages.bl_idname, icon = 'FILE_REFRESH')
-    col.separator()
-
-    col = layout.column(align=True)
-    col.menu(NWNodeAlignMenu.bl_idname, text="Align Nodes", icon = 'UV_ISLANDSEL')
-    col.operator(NWArrangeNodes.bl_idname, text="Arrange Nodes", icon = 'IMGDISPLAY')
     col.separator()
 
     col = layout.column(align=True)
@@ -2636,7 +2410,7 @@ def drawlayout(context, layout, mode = 'non-panel'):
     col.separator()
 
 
-class NodeWranglerPanel(Panel, NodeToolBase):
+class NodeWranglerPanel(Panel, NWBase):
     bl_idname = "NODE_PT_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
@@ -2659,7 +2433,7 @@ class NodeWranglerPanel(Panel, NodeToolBase):
 #############################################################
 
 
-class NodeWranglerMenu(Menu, NodeToolBase):
+class NodeWranglerMenu(Menu, NWBase):
     bl_idname = "NODE_MT_node_wrangler_menu"
     bl_label = "Node Wrangler"
 
@@ -2667,14 +2441,16 @@ class NodeWranglerMenu(Menu, NodeToolBase):
         drawlayout(context, self.layout)
 
 
-class NWSwapMenu(Menu, NodeToolBase):
+class NWSwapMenu(Menu, NWBase):
     bl_idname = "NODE_MT_type_swap_menu"
     bl_label = "Swap the type of selected nodes"
 
     @classmethod
     def poll(cls, context):
         valid = False
-        misc_good_types = ['MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH']
+        shader_types = [x[1] for x in regular_shaders]
+        texture_types = [x[1] for x in texture_list]
+        misc_good_types = 'MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH'
         if context.space_data.node_tree:
             tree = context.space_data.node_tree
             if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
@@ -2695,6 +2471,12 @@ class NWSwapMenu(Menu, NodeToolBase):
         l = self.layout
         nodes, links = get_nodes_links(context)
         tree = context.space_data.node_tree
+        shader_idents = [x[0] for x in regular_shaders]
+        shader_types = [x[1] for x in regular_shaders]
+        shader_names = [x[2] for x in regular_shaders]
+        texture_idents = [x[0] for x in texture_list]
+        texture_types = [x[1] for x in texture_list]
+        texture_names = [x[2] for x in texture_list]
 
         if context.selected_nodes:
             print ("cool")
@@ -2708,43 +2490,43 @@ class NWSwapMenu(Menu, NodeToolBase):
             index=0
             if checknode.type in shader_types:
                 for node_type in shader_names:
-                    l.operator("nw.swap", text = node_type).newtype = shader_idents[index]
+                    l.operator("node.nw_swap", text = node_type).newtype = shader_idents[index]
                     index+=1
             elif checknode.type in texture_types:
                 for node_type in texture_names:
-                    l.operator("nw.swap", text = node_type).newtype = texture_idents[index]
+                    l.operator(NWSwapOutputs.bl_idname, text = node_type).newtype = texture_idents[index]
                     index+=1
             elif checknode.type == 'MIX_SHADER':
-                l.operator("nw.swap", text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
+                l.operator(NWSwapOutputs.bl_idname, text = "Swap Mix to Add Shader").newtype = 'ShaderNodeAddShader'
             elif checknode.type == 'ADD_SHADER':
-                l.operator("nw.swap", text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
+                l.operator(NWSwapOutputs.bl_idname, text = "Swap Add to Mix Shader").newtype = 'ShaderNodeMixShader'
             elif checknode.type == 'MATH':
                 if tree.type == 'SHADER':
-                    l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
+                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Math to MixRGB").newtype = 'ShaderNodeMixRGB'
                 elif tree.type == 'COMPOSITING':
-                    l.operator("nw.swap_mixmathalpha", text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
+                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Math to MixRGB").newtype = 'CompositorNodeMixRGB'
             elif checknode.type == 'MIX_RGB':
                 if tree.type == 'SHADER':
-                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
+                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Math").newtype = 'ShaderNodeMath'
                 elif tree.type == 'COMPOSITING':
-                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
-                    l.operator("nw.swap_mixmathalpha", text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
+                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Math").newtype = 'CompositorNodeMath'
+                    l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap MixRGB to Alpha Over").newtype = 'CompositorNodeAlphaOver'
             elif checknode.type == 'ALPHAOVER':
-                l.operator("nw.swap_mixmathalpha", text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
+                l.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to MixRGB").newtype = 'CompositorNodeMixRGB'
             elif checknode.type == 'REROUTE':
                 if tree.type == 'SHADER':
                     l.label("Active node is not swappable!")
                 elif tree.type == 'COMPOSITING':
-                    l.operator("nw.swap_switchreroute", text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
+                    l.operator(NWSwapSwitchReroute.bl_idname, text = "Swap Reroute to Switch").newtype = 'CompositorNodeSwitch'
             elif checknode.type == 'SWITCH':
-                l.operator("nw.swap_switchreroute", text = "Swap Switch to Reroute").newtype = 'NodeReroute'
+                l.operator(NWSwapSwitchReroute.bl_idname, text = "Swap Switch to Reroute").newtype = 'NodeReroute'
             else:
                 l.label("Active node is not swappable!")
         else:
             l.label("No Nodes Selected")
 
 
-class NWMergeNodesMenu(Menu, NodeToolBase):
+class NWMergeNodesMenu(Menu, NWBase):
     bl_idname = "NODE_MT_merge_nodes_menu"
     bl_label = "Merge Selected Nodes"
 
@@ -2757,7 +2539,7 @@ class NWMergeNodesMenu(Menu, NodeToolBase):
         layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
 
 
-class NWMergeShadersMenu(Menu, NodeToolBase):
+class NWMergeShadersMenu(Menu, NWBase):
     bl_idname = "NODE_MT_merge_shaders_menu"
     bl_label = "Merge Selected Nodes using Shaders"
 
@@ -2769,7 +2551,7 @@ class NWMergeShadersMenu(Menu, NodeToolBase):
             props.merge_type = 'SHADER'
 
 
-class NWMergeMixMenu(Menu, NodeToolBase):
+class NWMergeMixMenu(Menu, NWBase):
     bl_idname = "NODE_MT_merge_mix_menu"
     bl_label = "Merge Selected Nodes using Mix"
 
@@ -2781,7 +2563,7 @@ class NWMergeMixMenu(Menu, NodeToolBase):
             props.merge_type = 'MIX'
 
 
-class NWMergeMathMenu(Menu, NodeToolBase):
+class NWMergeMathMenu(Menu, NWBase):
     bl_idname = "NODE_MT_merge_math_menu"
     bl_label = "Merge Selected Nodes using Math"
 
@@ -2793,7 +2575,7 @@ class NWMergeMathMenu(Menu, NodeToolBase):
             props.merge_type = 'MATH'
 
 
-class NWBatchChangeNodesMenu(Menu, NodeToolBase):
+class NWBatchChangeNodesMenu(Menu, NWBase):
     bl_idname = "NODE_MT_batch_change_nodes_menu"
     bl_label = "Batch Change Selected Nodes"
 
@@ -2803,7 +2585,7 @@ class NWBatchChangeNodesMenu(Menu, NodeToolBase):
         layout.menu(NWBatchChangeOperationMenu.bl_idname)
 
 
-class NWBatchChangeBlendTypeMenu(Menu, NodeToolBase):
+class NWBatchChangeBlendTypeMenu(Menu, NWBase):
     bl_idname = "NODE_MT_batch_change_blend_type_menu"
     bl_label = "Batch Change Blend Type"
 
@@ -2815,7 +2597,7 @@ class NWBatchChangeBlendTypeMenu(Menu, NodeToolBase):
             props.operation = 'CURRENT'
 
 
-class NWBatchChangeOperationMenu(Menu, NodeToolBase):
+class NWBatchChangeOperationMenu(Menu, NWBase):
     bl_idname = "NODE_MT_batch_change_operation_menu"
     bl_label = "Batch Change Math Operation"
 
@@ -2827,7 +2609,7 @@ class NWBatchChangeOperationMenu(Menu, NodeToolBase):
             props.operation = type
 
 
-class NWCopyToSelectedMenu(Menu, NodeToolBase):
+class NWCopyToSelectedMenu(Menu, NWBase):
     bl_idname = "NODE_MT_copy_node_properties_menu"
     bl_label = "Copy to Selected"
 
@@ -2837,7 +2619,7 @@ class NWCopyToSelectedMenu(Menu, NodeToolBase):
         layout.menu(NWCopyLabelMenu.bl_idname)
 
 
-class NWCopyLabelMenu(Menu, NodeToolBase):
+class NWCopyLabelMenu(Menu, NWBase):
     bl_idname = "NODE_MT_copy_label_menu"
     bl_label = "Copy Label"
 
@@ -2848,7 +2630,7 @@ class NWCopyLabelMenu(Menu, NodeToolBase):
         layout.operator(NWCopyLabel.bl_idname, text="from Linked Output's Name").option = 'FROM_SOCKET'
 
 
-class NWAddReroutesMenu(Menu, NodeToolBase):
+class NWAddReroutesMenu(Menu, NWBase):
     bl_idname = "NODE_MT_add_reroutes_menu"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroute Nodes to Selected Nodes' Outputs"
@@ -2860,7 +2642,7 @@ class NWAddReroutesMenu(Menu, NodeToolBase):
         layout.operator(NWAddReroutes.bl_idname, text="to Linked Outputs").option = 'LINKED'
 
 
-class NWLinkActiveToSelectedMenu(Menu, NodeToolBase):
+class NWLinkActiveToSelectedMenu(Menu, NWBase):
     bl_idname = "NODE_MT_link_active_to_selected_menu"
     bl_label = "Link Active to Selected"
 
@@ -2871,7 +2653,7 @@ class NWLinkActiveToSelectedMenu(Menu, NodeToolBase):
         layout.menu(NWLinkUseOutputsNamesMenu.bl_idname)
 
 
-class NWLinkStandardMenu(Menu, NodeToolBase):
+class NWLinkStandardMenu(Menu, NWBase):
     bl_idname = "NODE_MT_link_standard_menu"
     bl_label = "To All Selected"
 
@@ -2887,7 +2669,7 @@ class NWLinkStandardMenu(Menu, NodeToolBase):
         props.use_outputs_names = False
 
 
-class NWLinkUseNodeNameMenu(Menu, NodeToolBase):
+class NWLinkUseNodeNameMenu(Menu, NWBase):
     bl_idname = "NODE_MT_link_use_node_name_menu"
     bl_label = "Use Node Name/Label"
 
@@ -2903,7 +2685,7 @@ class NWLinkUseNodeNameMenu(Menu, NodeToolBase):
         props.use_outputs_names = False
 
 
-class NWLinkUseOutputsNamesMenu(Menu, NodeToolBase):
+class NWLinkUseOutputsNamesMenu(Menu, NWBase):
     bl_idname = "NODE_MT_link_use_outputs_names_menu"
     bl_label = "Use Outputs Names"
 
@@ -2919,7 +2701,7 @@ class NWLinkUseOutputsNamesMenu(Menu, NodeToolBase):
         props.use_outputs_names = True
 
 
-class NWNodeAlignMenu(Menu, NodeToolBase):
+class NWNodeAlignMenu(Menu, NWBase):
     bl_idname = "NODE_MT_node_align_menu"
     bl_label = "Align Nodes"
 
@@ -2927,6 +2709,45 @@ class NWNodeAlignMenu(Menu, NodeToolBase):
         layout = self.layout
         layout.operator(NWAlignNodes.bl_idname, text="Horizontally").option = 'AXIS_X'
         layout.operator(NWAlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
+
+
+# TODO, add to toolbar panel
+class NWUVMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_node_uvs_menu"
+    bl_label = "UV Maps"
+
+    @classmethod
+    def poll(cls, context):
+        if context.area.spaces[0].node_tree:
+            if context.area.spaces[0].node_tree.type == 'SHADER':
+                return True
+            else:
+                return False
+        else:
+            return False
+            
+    def draw(self, context):
+        l = self.layout
+        nodes, links = get_nodes_links(context)
+        mat = context.object.active_material
+
+        objs = []
+        for obj in bpy.data.objects:
+            for slot in obj.material_slots:
+                if slot.material == mat:
+                    objs.append(obj)
+        uvs = []
+        for obj in objs:
+            if obj.data.uv_layers:
+                for uv in obj.data.uv_layers:
+                    uvs.append(uv.name)
+        uvs = list(set(uvs)) # get a unique list
+
+        if uvs:
+            for uv in uvs:
+                l.operator(NWAddUVNode.bl_idname, text = uv).uv_name = uv
+        else:
+            l.label("No UV layers on objects with this material")
 
 
 #############################################################
@@ -2948,7 +2769,7 @@ def uvs_menu_func(self, context):
 
 
 def bgreset_menu_func(self, context):
-    self.layout.operator("nw.bg_reset")
+    self.layout.operator(NWResetBG.bl_idname)
 
 
 def showimage_menu_func(self, context):
@@ -2966,7 +2787,7 @@ def showimage_menu_func(self, context):
                 txt = 'INVALID'
         
         if txt != 'INVALID':
-            self.layout.operator("nw.view_image", icon="UI", text=txt)
+            self.layout.operator("node.nw_view_image", icon="UI", text=txt)
 
 
 #############################################################
@@ -3123,23 +2944,21 @@ kmi_defs = (
     # Add Texture Setup
     (NWAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
     # Reset backdrop
-    ('nw.bg_reset', 'Z', False, False, False, None, "Reset backdrop image zoom"),
-    # Auto-Arrange
-    ('nw.layout', 'Q', False, False, False, None, "Arrange nodes"),
+    (NWResetBG.bl_idname, 'Z', False, False, False, None, "Reset backdrop image zoom"),
     # Delete unused
-    ('nw.del_unused', 'X', False, False, True, None, "Delete unused nodes"),
+    (NWDeleteUnused.bl_idname, 'X', False, False, True, None, "Delete unused nodes"),
     # Frame Seleted
-    ('nw.frame_selected', 'P', False, True, False, None, "Frame selected nodes"),
+    (NWFrameSelected.bl_idname, 'P', False, True, False, None, "Frame selected nodes"),
     # Swap Outputs
-    ('nw.swap_outputs', 'S', False, False, True, None, "Swap Outputs"),
+    (NWSwapOutputs.bl_idname, 'S', False, False, True, None, "Swap Outputs"),
     # Emission Viewer
-    ('nw.emission_viewer', 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
+    (NWEmissionViewer.bl_idname, 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
-    ('nw.reload_images', 'R', False, False, True, None, "Reload images"),
+    (NWReloadImages.bl_idname, 'R', False, False, True, None, "Reload images"),
     # Lazy Mix
-    ('nw.lazy_mix', 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
+    (NWLazyMix.bl_idname, 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
-    ('nw.lazy_connect', 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
+    (NWLazyConnect.bl_idname, 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
