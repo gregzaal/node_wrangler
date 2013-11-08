@@ -168,7 +168,7 @@ texture_list = (
     ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
     )
 
-output_types = ['OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE']
+output_types = 'OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE'
 
 non_input_attrs = (
     'image',
@@ -772,7 +772,9 @@ class NWDeleteUnused(Operator, NWBase):
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-        end_types = ['OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', 'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', 'OUTPUT_WORLD', 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT']
+        end_types = 'OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
+        	'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
+        	'OUTPUT_WORLD', 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT'
 
         # Store selection
         selection = []
