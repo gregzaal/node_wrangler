@@ -3,7 +3,6 @@ Todo
 
 Short term:
 -----------
-* BUG: Delete unused nodes only deletes one.
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
@@ -20,9 +19,7 @@ Short term:
  - Text colour
  - Use frame node and parent text to this
 * Hotkey for 'View Image' function
-* Save Image - similar to View Image, but now just for saving
 * When viewing the image/mask/clip of a node, add button to header to jump back to node editor
-* Show current frame number at bottom right of node editor (user preference)
 * Auto set frame range of image sequence
 * Make sure everything works inside groups.
 * Make Lazy Connect replace other links when theres no free one available.
