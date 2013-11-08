@@ -28,6 +28,7 @@ Short term:
 * Make sure everything works inside groups.
 * Make Lazy Connect replace other links when theres no free one available.
 * Add hack_force_update call to lazy mix and output swap
+* Ctrl+Shift+A to add a node connected to the selected node(s) - same menu as Shift+A, but add one node per selected nodes and place it to the right, connecting everything nicely.
 
 Long Term:
 ----------
