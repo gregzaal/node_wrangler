@@ -2155,6 +2155,8 @@ class NWAlignNodes(Operator, NWBase):
         frames_reselect = []  # entry = frame node. will be used to reselect all selected frames
         active = nodes.active
         for i, node in enumerate(nodes):
+            total_w = 0.0  # total width of all nodes. Will be calculated later.
+            total_h = 0.0  # total height of all nodes. Will be calculated later
             if node.select:
                 if node.type == 'FRAME':
                     node.select = False
@@ -2162,43 +2164,19 @@ class NWAlignNodes(Operator, NWBase):
                 else:
                     locx = node.location.x
                     locy = node.location.y
+                    width = node.dimensions[0]
+                    height = node.dimensions[1]
+                    total_w += width  # add nodes[i] width to total width of all nodes
+                    total_h += height  # add nodes[i] height to total height of all nodes
+                    # calculate relative locations
                     parent = node.parent
                     while parent is not None:
                         locx += parent.location.x
                         locy += parent.location.y
                         parent = parent.parent
-                    selected.append([i, locx, locy])
+                    selected.append([i, locx, locy, width, height])
         count = len(selected)
-        # add reroute node then scale all to 0.0 and calculate widths and heights of nodes
         if count > 1:  # aligning makes sense only if at least 2 nodes are selected
-            helper = nodes.new('NodeReroute')
-            helper.select = True
-            bpy.ops.transform.resize(value=(0.0, 0.0, 0.0))
-            # store helper's location for further calculations
-            zero_x = helper.location.x
-            zero_y = helper.location.y
-            nodes.remove(helper)
-            # helper is deleted but its location is stored
-            # helper's width and height are 0.0.
-            # Check loc of other nodes in relation to helper to calculate their dimensions
-            # and append them to entries of "selected"
-            total_w = 0.0  # total width of all nodes. Will be calculated later.
-            total_h = 0.0  # total height of all nodes. Will be calculated later
-            for j, [i, x, y] in enumerate(selected):
-                locx = nodes[i].location.x
-                locy = nodes[i].location.y
-                # take node's parent (frame) into account. Get absolute location
-                parent = nodes[i].parent
-                while parent is not None:
-                        locx += parent.location.x
-                        locy += parent.location.y
-                        parent = parent.parent
-                width = abs((zero_x - locx) * 2.0)
-                height = abs((zero_y - locy) * 2.0)
-                selected[j].append(width)  # complete selected's entry for nodes[i]
-                selected[j].append(height)  # complete selected's entry for nodes[i]
-                total_w += width  # add nodes[i] width to total width of all nodes
-                total_h += height  # add nodes[i] height to total height of all nodes
             selected_sorted_x = sorted(selected, key=lambda k: (k[1], -k[2]))
             selected_sorted_y = sorted(selected, key=lambda k: (-k[2], k[1]))
             min_x = selected_sorted_x[0][1]  # min loc.x
