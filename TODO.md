@@ -19,7 +19,6 @@ Short term:
  - Heading
  - Text colour
  - Use frame node and parent text to this
-* Add "Are you sure" dialog for Delete Unused Nodes
 * Hotkey for 'View Image' function
 * Save Image - similar to View Image, but now just for saving
 * When viewing the image/mask/clip of a node, add button to header to jump back to node editor
