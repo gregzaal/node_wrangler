@@ -784,7 +784,7 @@ class NWDeleteUnused(Operator, NWBase):
         temp_deleted_nodes = []
         del_unused_iterations = len(nodes)
         for it in range(0, del_unused_iterations):
-            temp_deleted_nodes = deleted_nodes # keep record of last iteration
+            temp_deleted_nodes = list(deleted_nodes) # keep record of last iteration
             for node in nodes:
                 node.select = False
             for node in nodes:
