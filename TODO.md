@@ -3,7 +3,7 @@ Todo
 
 Short term:
 -----------
-* BUG: Arrange Nodes does not use selection?
+* BUG: Delete unused nodes only deletes one.
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
 * Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
