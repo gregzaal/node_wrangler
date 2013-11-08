@@ -718,7 +718,7 @@ class NWLazyConnect(Operator, NWBase):
                     for node in original_unsel:
                         node.select = False
 
-
+            hack_force_update(nodes)
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
 
@@ -869,6 +869,7 @@ class NWSwapOutputs(Operator, NWBase):
             except:
                 self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
 
+        hack_force_update(nodes)
         return {'FINISHED'}
 
 
