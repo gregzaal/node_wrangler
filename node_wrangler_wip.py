@@ -317,59 +317,44 @@ def get_nodes_links(context):
     return nodes, links
 
 
-def isStartNode(node):
+def is_start_node(node):
     bool = True
-    if len(node.inputs):
-        for input in node.inputs:
-            if input.links != ():
-                bool = False
+    for input in node.inputs:
+        if input.links:
+            bool = False
+            break
     return bool
 
 
-def isEndNode(node):
+def is_end_node(node):
     bool = True
-    if len(node.outputs):
-        for output in node.outputs:
-            if output.links != ():
-                bool = False
+    for output in node.outputs:
+        if output.links:
+            bool = False
+            break
     return bool
-
-
-def between(b1, a, b2):
-    #   b1 MUST be smaller than b2!
-    bool = False
-    if a >= b1 and a <= b2:
-        bool = True
-    return bool
-
 
 def overlaps(node1, node2):
     dim1x = node1.dimensions.x
     dim1y = node1.dimensions.y
     dim2x = node2.dimensions.x
     dim2y = node2.dimensions.y
-    boolx = False
-    booly = False
-    boolboth = False
-
-    # check for x overlap
-    if between(node2.location.x, node1.location.x, (node2.location.x + dim2x)) or between(node2.location.x, (node1.location.x + dim1x), (node2.location.x + dim2x)):  # if either edges are inside the second node
-        boolx = True
-    if between(node1.location.x, node2.location.x, node1.location.x + dim1x) and between(node1.location.x, (node2.location.x + dim2x), node1.location.x + dim1x):  # if each edge is on either side of the second node
-        boolx = True
-
-    # check for y overlap
-    if between((node2.location.y - dim2y), node1.location.y, node2.location.y) or between((node2.location.y - dim2y), (node1.location.y - dim1y), node2.location.y):
-        booly = True
-    if between((node1.location.y - dim1y), node2.location.y, node1.location.y) and between((node1.location.y - dim1y), (node2.location.y - dim2y), node1.location.y):
-        booly = True
-
-    if boolx == True and booly == True:
-        boolboth = True
-    return boolboth
+    
+    return(
+        (  # check for x overlap
+            # if either edges are inside the second node
+            (node2.location.x <= node1.location.x <= (node2.location.x + dim2x)) or (node2.location.x <= (node1.location.x + dim1x) <= (node2.location.x + dim2x)) or\
+            # if each edge is on either side of the second node
+            (node1.location.x <= node2.location.x <= (node1.location.x + dim1x)) and (node1.location.x <= (node2.location.x + dim2x) <= (node1.location.x + dim1x))
+            ) and\
+            (  # check for y overlap
+            ((node2.location.y - dim2y) <= node1.location.y <= node2.location.y) or ((node2.location.y - dim2y) <= (node1.location.y - dim1y) <= node2.location.y) or\
+            ((node1.location.y - dim1y) <= node2.location.y <= node1.location.y) and ((node1.location.y - dim1y) <= (node2.location.y - dim2y) <= node1.location.y)
+            )
+        )
 
 
-def nodeMidPt(node, axis):
+def node_mid_pt(node, axis):
     if axis == 'x':
         d = node.location.x+(node.dimensions.x/2)
     elif axis == 'y':
@@ -389,7 +374,7 @@ def autolink (node1, node2, links):
     return link_made
 
 
-def nodeAtPos(nodes, context, event):
+def node_at_pos(nodes, context, event):
     nodes_near_mouse = []
     nodes_under_mouse = []
     target_node = None
@@ -398,11 +383,11 @@ def nodeAtPos(nodes, context, event):
     x, y = context.space_data.cursor_location
 
     # nearest node
-    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-nodeMidPt(k, 'x'))**2 + (y-nodeMidPt(k, 'y'))**2))
+    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-node_mid_pt(k, 'x'))**2 + (y-node_mid_pt(k, 'y'))**2))
 
     for node in nodes:
-        if between(node.location.x, x, node.location.x+node.dimensions.x) and \
-           between(node.location.y-node.dimensions.y, y, node.location.y):
+        if (node.location.x <= x <= node.location.x+node.dimensions.x) and \
+           (node.location.y-node.dimensions.y <= y <= node.location.y):
             nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
@@ -427,7 +412,7 @@ def store_mouse_cursor(context, event):
         space.cursor_location = tree.view_center
         
 
-def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
+def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     bgl.glLineWidth(size)
@@ -442,7 +427,7 @@ def drawLine(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnd()
 
 
-def drawCircle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
+def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     radius = radius
@@ -481,15 +466,15 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         m2y = self.mouse_path[-1][1]
 
         # circle outline
-        drawCircle(m1x, m1y, 6, colors[0])
-        drawCircle(m2x, m2y, 6, colors[0])
+        draw_circle(m1x, m1y, 6, colors[0])
+        draw_circle(m2x, m2y, 6, colors[0])
 
-        drawLine(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
-        drawLine(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
+        draw_line(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
+        draw_line(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
 
         # circle inner
-        drawCircle(m1x, m1y, 5, colors[2])
-        drawCircle(m2x, m2y, 5, colors[2])
+        draw_circle(m1x, m1y, 5, colors[2])
+        draw_circle(m2x, m2y, 5, colors[2])
 
         # restore opengl defaults
         bgl.glLineWidth(1)
@@ -599,7 +584,7 @@ class NWLazyMix(Operator, NWBase):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            node1 = nodeAtPos(nodes, context, event)
+            node1 = node_at_pos(nodes, context, event)
             if node1:
                 context.scene.NWBusyDrawing = node1.name
         else:
@@ -614,7 +599,7 @@ class NWLazyMix(Operator, NWBase):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            node2 = nodeAtPos(nodes, context, event)
+            node2 = node_at_pos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
 
@@ -676,7 +661,7 @@ class NWLazyConnect(Operator, NWBase):
 
         node1=None
         if not context.scene.NWBusyDrawing:
-            node1 = nodeAtPos(nodes, context, event)
+            node1 = node_at_pos(nodes, context, event)
             if node1:
                 context.scene.NWBusyDrawing = node1.name
         else:
@@ -691,7 +676,7 @@ class NWLazyConnect(Operator, NWBase):
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
             node2=None
-            node2 = nodeAtPos(nodes, context, event)
+            node2 = node_at_pos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
 
@@ -731,7 +716,7 @@ class NWLazyConnect(Operator, NWBase):
     def invoke(self, context, event):
         if context.area.type == 'NODE_EDITOR':
             nodes, links = get_nodes_links(context)
-            node = nodeAtPos(nodes, context, event)
+            node = node_at_pos(nodes, context, event)
             if node:
                 context.scene.NWBusyDrawing = node.name
                 if node.outputs:
@@ -790,7 +775,7 @@ class NWDeleteUnused(Operator, NWBase):
             for node in nodes:
                 node.select = False
             for node in nodes:
-                if isEndNode(node) and not node.type in end_types and node.type != 'FRAME':
+                if is_end_node(node) and not node.type in end_types and node.type != 'FRAME':
                     node.select = True
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
