@@ -773,8 +773,8 @@ class NWDeleteUnused(Operator, NWBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         end_types = 'OUTPUT_MATERIAL', 'OUTPUT', 'VIEWER', 'COMPOSITE', \
-        	'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
-        	'OUTPUT_WORLD', 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT'
+            'SPLITVIEWER', 'OUTPUT_FILE', 'LEVELS', 'OUTPUT_LAMP', \
+            'OUTPUT_WORLD', 'GROUP', 'GROUP_INPUT', 'GROUP_OUTPUT'
 
         # Store selection
         selection = []
@@ -1350,6 +1350,58 @@ class NWSwapMixMathAlpha(Operator, NWBase):
                 if hasattr(newnode, 'use_clamp') and hasattr(node, 'use_clamp'):
                     newnode.use_clamp = node.use_clamp
                 newnode.label = node.label
+
+                newnode.select = False
+                new_nodes.append(newnode)
+                nodes.remove(node)
+
+        for n in new_nodes:
+            n.select = True
+
+        return {'FINISHED'}
+
+
+class NWSwapAddMixShader(Operator, NWBase):
+
+    "Swap the selected nodes"
+    bl_idname = 'node.nw_swap_addmixshader'
+    bl_label = 'Swap Add/Mix Shaders'
+    newtype = bpy.props.StringProperty()
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        selected_nodes = context.selected_nodes
+        new_nodes = []
+        old_nodes = []
+        newnode = None
+
+        for node in selected_nodes:
+            cnd_toadd = (node.type == 'MIX_SHADER' and self.newtype == 'ShaderNodeAddShader')
+            cnd_tomix = (node.type == 'ADD_SHADER' and self.newtype == 'ShaderNodeMixShader')
+
+            if cnd_toadd or cnd_tomix:
+                old_nodes.append(node)
+                newnode = nodes.new(self.newtype)
+                newnode.location.x = node.location.x
+                newnode.location.y = node.location.y
+
+            if cnd_toadd:
+                for link in node.inputs[1].links:
+                    links.new(link.from_socket, newnode.inputs[0])
+                for link in node.inputs[2].links:
+                    links.new(link.from_socket, newnode.inputs[1])
+            elif cnd_tomix:
+                for link in node.inputs[0].links:
+                    links.new(link.from_socket, newnode.inputs[1])
+                for link in node.inputs[1].links:
+                    links.new(link.from_socket, newnode.inputs[2])
+                newnode.inputs[0].default_value = 1.0 # set mix fac to 1.0
+
+            if cnd_tomix or cnd_toadd:
+                for link in node.outputs[0].links:
+                    links.new(newnode.outputs[0], link.to_socket)
 
                 newnode.select = False
                 new_nodes.append(newnode)
@@ -2476,8 +2528,8 @@ class NWSwapMenu(Menu, NWBase):
                     index+=1
                 sub = row.column()
                 sub.label("    Other")
-                sub.operator(NWSwapType.bl_idname, text = "Swap to Add Shader").newtype = 'ShaderNodeAddShader'
-                sub.operator(NWSwapType.bl_idname, text = "Swap to Mix Shader").newtype = 'ShaderNodeMixShader'
+                sub.operator(NWSwapAddMixShader.bl_idname, text = "Swap to Add Shader").newtype = 'ShaderNodeAddShader'
+                sub.operator(NWSwapAddMixShader.bl_idname, text = "Swap to Mix Shader").newtype = 'ShaderNodeMixShader'
                 sub.separator()
                 sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Mix").newtype = 'ShaderNodeMixRGB'
                 sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'ShaderNodeMath'
