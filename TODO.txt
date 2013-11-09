@@ -1,2 +1,0 @@
-The TODO list is now stored on this page:
-https://github.com/gregzaal/node_wrangler/blob/master/TODO.md
