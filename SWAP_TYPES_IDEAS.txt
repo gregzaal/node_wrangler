@@ -9,10 +9,22 @@ Main idea is to be able to change any node type to any other available node type
 This is possible, because temporary list could be created where several parameters could be stored.
 the node has its "history". It once was "Mix" and gad some paramsters, then we "swapped" it to "Blur", then to "Math" and so on.
 All parameters that this node had can be stored.
-It can be done by giving the class some property, called "history" or whatever.
-When we execute the operator - data get added or removed from this property.
-It works such that those data are stored in clipboard, so they disappear only after quitting blender.
-I used this functionality in "Copy Render Layer" Add On.
+	a.
+	Store in property:
+	It can be done by giving the class some property, called "history" or whatever.
+	When we execute the operator - data get added or removed from this property.
+	It works such that those data are stored in clipboard, so they disappear only after quitting blender.
+	I used this functionality in "Copy Render Layer" Add On.
+	
+	b.
+	Another idea for storing nodes would be to create "NodeTree" copy.
+	Don't exactly know how this could work and what issues we could encounter, but should perhaps be doable.
+	This option would allow using copy/paste operators for nodes in order to pass data of nodes that can't be accessed via python.
+	In "Copy Settings" we create a copy of node, so we don't access for example "RGB Curves" shape, but simply replace "old" node
+	with a copy of the one we take the data from.
+	Here we could copy/paste the nodes between node trees.
+	Maybe we could use a node group for this?
+	When using group we will face a problem that users have the access to it and can mess with it.
 
 3.
 Some hierarchy need to be created, such that we know when take settings from current "state" of the node and when take them from "history".
