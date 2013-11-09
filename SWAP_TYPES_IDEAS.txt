@@ -5,9 +5,9 @@ Long term
 Main idea is to be able to change any node type to any other available node type.
 
 2.
-"History" of the node should be stored. When "swapping back" (different than "undo" - previous data could get restored.
+"History" of the node should be stored. When "swapping back" (different than "undo" - previous data could get restored).
 This is possible, because temporary list could be created where several parameters could be stored.
-the node has its "history". It once was "Mix" and gad some paramsters, then we "swapped" it to "Blur", then to "Math" and so on.
+the node has its "history". It once was "Mix" and had some parameters, then we "swapped" it to "Blur", then to "Math" and so on.
 All parameters that this node had can be stored.
 	a.
 	Store in property:
@@ -34,5 +34,5 @@ Warnings: We should be able to warn the user that for example: "Some links may b
 History should as well store info about "lost links" such that when we "swap" to type that can use those lost links - it can.
 
 5.
-Interface: I think we could make a menu to look exactly the same as "Add Node" menu. Users know where to look for nodes in this manu because they keep adding nodes all the time.
+Interface: I think we could make a menu to look exactly the same as "Add Node" menu. Users know where to look for nodes in this menu because they keep adding nodes all the time.
 When we execute the operator we are presented with all the nodes. The header would only be different: Instead of saying: "Add", it could say "Swap to".
