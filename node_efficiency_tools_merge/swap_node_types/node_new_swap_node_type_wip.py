@@ -365,6 +365,8 @@ class NWSwapNodeType(Operator, NWBase):
             elif node.type == 'MATH' and new_node.type == 'MIX_RGB':
                 if node.operation in [b[0] for b in blend_types]:
                     new_node.blend_type = node.operation
+                # Set Fac to 1.0. In 'SHADER' tree type Mix nodes Fac is 0.5 by default.
+                new_node.inputs[0].default_value = 1.0
                 for i in range(0, 2):
                     if node.inputs[i].links:
                         links.new(node.inputs[i].links[0].from_socket, new_node.inputs[i+1])
