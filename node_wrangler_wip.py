@@ -116,7 +116,7 @@ operations = [
     ('MINIMUM', 'Minimum', 'Minimum Mode'),
     ('MAXIMUM', 'Maximum', 'Maximum Mode'),
     ('ROUND', 'Round', 'Round Mode'),
-    ('LESS_THAN', 'Less Than', 'Less Thann Mode'),
+    ('LESS_THAN', 'Less Than', 'Less Than Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
     ]
 
