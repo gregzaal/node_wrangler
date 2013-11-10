@@ -110,6 +110,7 @@ shaders_converter_nodes_props = (
     )
 # (rna_type.identifier, type, rna_type.name)
 shaders_layout_nodes_props = (
+    ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
     )
 
@@ -222,9 +223,76 @@ compo_distort_nodes_props = (
     )
 # (rna_type.identifier, type, rna_type.name)
 compo_layout_nodes_props = (
+    ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
     ('CompositorNodeSwitch', 'SWITCH', 'Switch'),
     )
+# list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
+# used list, not tuple for easy merging with other lists.
+blend_types = [
+    ('MIX', 'Mix', 'Mix Mode'),
+    ('ADD', 'Add', 'Add Mode'),
+    ('MULTIPLY', 'Multiply', 'Multiply Mode'),
+    ('SUBTRACT', 'Subtract', 'Subtract Mode'),
+    ('SCREEN', 'Screen', 'Screen Mode'),
+    ('DIVIDE', 'Divide', 'Divide Mode'),
+    ('DIFFERENCE', 'Difference', 'Difference Mode'),
+    ('DARKEN', 'Darken', 'Darken Mode'),
+    ('LIGHTEN', 'Lighten', 'Lighten Mode'),
+    ('OVERLAY', 'Overlay', 'Overlay Mode'),
+    ('DODGE', 'Dodge', 'Dodge Mode'),
+    ('BURN', 'Burn', 'Burn Mode'),
+    ('HUE', 'Hue', 'Hue Mode'),
+    ('SATURATION', 'Saturation', 'Saturation Mode'),
+    ('VALUE', 'Value', 'Value Mode'),
+    ('COLOR', 'Color', 'Color Mode'),
+    ('SOFT_LIGHT', 'Soft Light', 'Soft Light Mode'),
+    ('LINEAR_LIGHT', 'Linear Light', 'Linear Light Mode'),
+    ]
+# list of operations of "Math" nodes in a form that can be used as 'items' for EnumProperty.
+# used list, not tuple for easy merging with other lists.
+operations = [
+    ('ADD', 'Add', 'Add Mode'),
+    ('MULTIPLY', 'Multiply', 'Multiply Mode'),
+    ('SUBTRACT', 'Subtract', 'Subtract Mode'),
+    ('DIVIDE', 'Divide', 'Divide Mode'),
+    ('SINE', 'Sine', 'Sine Mode'),
+    ('COSINE', 'Cosine', 'Cosine Mode'),
+    ('TANGENT', 'Tangent', 'Tangent Mode'),
+    ('ARCSINE', 'Arcsine', 'Arcsine Mode'),
+    ('ARCCOSINE', 'Arccosine', 'Arccosine Mode'),
+    ('ARCTANGENT', 'Arctangent', 'Arctangent Mode'),
+    ('POWER', 'Power', 'Power Mode'),
+    ('LOGARITHM', 'Logatithm', 'Logarithm Mode'),
+    ('MINIMUM', 'Minimum', 'Minimum Mode'),
+    ('MAXIMUM', 'Maximum', 'Maximum Mode'),
+    ('ROUND', 'Round', 'Round Mode'),
+    ('LESS_THAN', 'Less Than', 'Less Than Mode'),
+    ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
+    ]
+
+def get_nodes_links(context):
+    space = context.space_data
+    tree = space.node_tree
+    nodes = tree.nodes
+    links = tree.links
+    active = nodes.active
+    context_active = context.active_node
+    # check if we are working on regular node tree or node group is currently edited.
+    # if group is edited - active node of space_tree is the group
+    # if context.active_node != space active node - it means that the group is being edited.
+    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
+    # if context.active_node == space.active_node it means that we are not currently editing group
+    is_main_tree = True
+    if active:
+        is_main_tree = context_active == active
+    if not is_main_tree:  # if group is currently edited
+        tree = active.node_tree
+        nodes = tree.nodes
+        links = tree.links
+
+    return nodes, links
+
 
 class NWBase:
     @classmethod
@@ -261,7 +329,54 @@ class NWSwapNodeType(Operator, NWBase):
         )
     
     def execute(self, context):
-        print(self.to_type)
+        nodes, links = get_nodes_links(context)
+        to_type = self.to_type
+        # Those types of nodes will not swap.
+        src_excludes = ('CompositorNodeComposite', 'NodeFrame')
+        # Those attributes of nodes will not be copied
+        attr_excludes = (
+            '__doc__', '__module__', '__slots__', 'bl_description', 'bl_height_default',\
+            'bl_height_max', 'bl_height_min', 'bl_icon', 'bl_idname', 'bl_label',\
+            'bl_rna', 'bl_static_type', 'bl_width_default', 'bl_width_max', 'bl_width_min',\
+            'dimensions', 'draw_buttons', 'draw_buttons_ext', 'height', 'input_template',\
+            'inputs', 'internal_links', 'is_registered_node_type', 'name', 'output_template',\
+            'operation', 'outputs', 'poll', 'poll_instance', 'rna_type', 'select',\
+            'socket_value_update', 'type', 'update', 'width', 'width_hidden'\
+            )
+        selected = [n for n in nodes if n.select]
+        reselect = []
+        for node in [n for n in selected if\
+            n.rna_type.identifier not in src_excludes and\
+            n.rna_type.identifier != to_type]:
+            new_node = nodes.new(to_type)
+            for attr in [a for a in dir(new_node) if a not in attr_excludes and a in dir(node)]:
+                setattr(new_node, attr, getattr(node, attr))
+            # Mix to Math
+            if node.type == 'MIX_RGB' and new_node.type == 'MATH':
+                if node.blend_type in [o[0] for o in operations]:
+                    new_node.operation = node.blend_type
+                for i in range(1, 3):
+                    if node.inputs[i].links:
+                        links.new(node.inputs[i].links[0].from_socket, new_node.inputs[i-1])
+                for lnk in node.outputs[0].links:
+                    links.new(new_node.outputs[0], lnk.to_socket)
+                nodes.remove(node)
+            # Math to Mix
+            elif node.type == 'MATH' and new_node.type == 'MIX_RGB':
+                if node.operation in [b[0] for b in blend_types]:
+                    new_node.blend_type = node.operation
+                for i in range(0, 2):
+                    if node.inputs[i].links:
+                        links.new(node.inputs[i].links[0].from_socket, new_node.inputs[i+1])
+                for lnk in node.outputs[0].links:
+                    links.new(new_node.outputs[0], lnk.to_socket)
+                nodes.remove(node)
+            else:
+                # this is temporary
+                new_node.location.x += 50.0
+                new_node.location.y -= 50.0
+                self.report({'WARNING'}, 'Only MIX to MATH and MATH to MIX works at the moment')
+                
         return {'FINISHED'}
 
 
