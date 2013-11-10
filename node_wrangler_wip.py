@@ -491,7 +491,7 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
 
 
 # Addon prefs
-class NodeWrangler(bpy.types.AddonPreferences):
+class NWNodeWrangler(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     # merge_hide = bpy.props.BoolProperty(
@@ -2438,7 +2438,7 @@ def drawlayout(context, layout, mode = 'non-panel'):
 
 
 class NodeWranglerPanel(Panel, NWBase):
-    bl_idname = "NODE_PT_node_wrangler"
+    bl_idname = "NODE_PT_nw_node_wrangler"
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Node Wrangler"
@@ -2461,7 +2461,7 @@ class NodeWranglerPanel(Panel, NWBase):
 
 
 class NodeWranglerMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_node_wrangler_menu"
+    bl_idname = "NODE_MT_nw_node_wrangler_menu"
     bl_label = "Node Wrangler"
 
     def draw(self, context):
@@ -2469,7 +2469,7 @@ class NodeWranglerMenu(Menu, NWBase):
 
 
 class NWSwapMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_type_swap_menu"
+    bl_idname = "NODE_MT_nw_type_swap_menu"
     bl_label = "Swap the type of selected nodes"
 
     @classmethod
@@ -2544,7 +2544,7 @@ class NWSwapMenu(Menu, NWBase):
 
 
 class NWMergeNodesMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_merge_nodes_menu"
+    bl_idname = "NODE_MT_nw_merge_nodes_menu"
     bl_label = "Merge Selected Nodes"
 
     def draw(self, context):
@@ -2557,7 +2557,7 @@ class NWMergeNodesMenu(Menu, NWBase):
 
 
 class NWMergeShadersMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_merge_shaders_menu"
+    bl_idname = "NODE_MT_nw_merge_shaders_menu"
     bl_label = "Merge Selected Nodes using Shaders"
 
     def draw(self, context):
@@ -2569,7 +2569,7 @@ class NWMergeShadersMenu(Menu, NWBase):
 
 
 class NWMergeMixMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_merge_mix_menu"
+    bl_idname = "NODE_MT_nw_merge_mix_menu"
     bl_label = "Merge Selected Nodes using Mix"
 
     def draw(self, context):
@@ -2581,7 +2581,7 @@ class NWMergeMixMenu(Menu, NWBase):
 
 
 class NWMergeMathMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_merge_math_menu"
+    bl_idname = "NODE_MT_nw_merge_math_menu"
     bl_label = "Merge Selected Nodes using Math"
 
     def draw(self, context):
@@ -2593,7 +2593,7 @@ class NWMergeMathMenu(Menu, NWBase):
 
 
 class NWBatchChangeNodesMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_batch_change_nodes_menu"
+    bl_idname = "NODE_MT_nw_batch_change_nodes_menu"
     bl_label = "Batch Change Selected Nodes"
 
     def draw(self, context):
@@ -2603,7 +2603,7 @@ class NWBatchChangeNodesMenu(Menu, NWBase):
 
 
 class NWBatchChangeBlendTypeMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_batch_change_blend_type_menu"
+    bl_idname = "NODE_MT_nw_batch_change_blend_type_menu"
     bl_label = "Batch Change Blend Type"
 
     def draw(self, context):
@@ -2615,7 +2615,7 @@ class NWBatchChangeBlendTypeMenu(Menu, NWBase):
 
 
 class NWBatchChangeOperationMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_batch_change_operation_menu"
+    bl_idname = "NODE_MT_nw_batch_change_operation_menu"
     bl_label = "Batch Change Math Operation"
 
     def draw(self, context):
@@ -2627,7 +2627,7 @@ class NWBatchChangeOperationMenu(Menu, NWBase):
 
 
 class NWCopyToSelectedMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_copy_node_properties_menu"
+    bl_idname = "NODE_MT_nw_copy_node_properties_menu"
     bl_label = "Copy to Selected"
 
     def draw(self, context):
@@ -2637,7 +2637,7 @@ class NWCopyToSelectedMenu(Menu, NWBase):
 
 
 class NWCopyLabelMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_copy_label_menu"
+    bl_idname = "NODE_MT_nw_copy_label_menu"
     bl_label = "Copy Label"
 
     def draw(self, context):
@@ -2648,7 +2648,7 @@ class NWCopyLabelMenu(Menu, NWBase):
 
 
 class NWAddReroutesMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_add_reroutes_menu"
+    bl_idname = "NODE_MT_nw_add_reroutes_menu"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroute Nodes to Selected Nodes' Outputs"
 
@@ -2660,7 +2660,7 @@ class NWAddReroutesMenu(Menu, NWBase):
 
 
 class NWLinkActiveToSelectedMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_link_active_to_selected_menu"
+    bl_idname = "NODE_MT_nw_link_active_to_selected_menu"
     bl_label = "Link Active to Selected"
 
     def draw(self, context):
@@ -2671,7 +2671,7 @@ class NWLinkActiveToSelectedMenu(Menu, NWBase):
 
 
 class NWLinkStandardMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_link_standard_menu"
+    bl_idname = "NODE_MT_nw_link_standard_menu"
     bl_label = "To All Selected"
 
     def draw(self, context):
@@ -2687,7 +2687,7 @@ class NWLinkStandardMenu(Menu, NWBase):
 
 
 class NWLinkUseNodeNameMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_link_use_node_name_menu"
+    bl_idname = "NODE_MT_nw_link_use_node_name_menu"
     bl_label = "Use Node Name/Label"
 
     def draw(self, context):
@@ -2703,7 +2703,7 @@ class NWLinkUseNodeNameMenu(Menu, NWBase):
 
 
 class NWLinkUseOutputsNamesMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_link_use_outputs_names_menu"
+    bl_idname = "NODE_MT_nw_link_use_outputs_names_menu"
     bl_label = "Use Outputs Names"
 
     def draw(self, context):
@@ -2719,7 +2719,7 @@ class NWLinkUseOutputsNamesMenu(Menu, NWBase):
 
 
 class NWNodeAlignMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_node_align_menu"
+    bl_idname = "NODE_MT_nw_node_align_menu"
     bl_label = "Align Nodes"
 
     def draw(self, context):
@@ -2730,7 +2730,7 @@ class NWNodeAlignMenu(Menu, NWBase):
 
 # TODO, add to toolbar panel
 class NWUVMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_node_uvs_menu"
+    bl_idname = "NODE_MT_nw_node_uvs_menu"
     bl_label = "UV Maps"
 
     @classmethod
@@ -2779,7 +2779,7 @@ def select_parent_children_buttons(self, context):
 
 
 def uvs_menu_func(self, context):
-    self.layout.menu("NODE_MT_node_uvs_menu")
+    self.layout.menu("NODE_MT_nw_node_uvs_menu")
 
 
 def bgreset_menu_func(self, context):
