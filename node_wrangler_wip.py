@@ -33,7 +33,7 @@ import bpy
 import blf
 import bgl
 from bpy.types import Operator, Panel, Menu
-from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty
+from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
 
@@ -78,6 +78,7 @@ rl_outputs = (
     )
 
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
+# used list, not tuple for easy merging with other lists.
 blend_types = [
     ('MIX', 'Mix', 'Mix Mode'),
     ('ADD', 'Add', 'Add Mode'),
@@ -100,6 +101,7 @@ blend_types = [
     ]
 
 # list of operations of "Math" nodes in a form that can be used as 'items' for EnumProperty.
+# used list, not tuple for easy merging with other lists.
 operations = [
     ('ADD', 'Add', 'Add Mode'),
     ('MULTIPLY', 'Multiply', 'Multiply Mode'),
@@ -121,6 +123,7 @@ operations = [
     ]
 
 # in NWBatchChangeNodes additional types/operations in a form that can be used as 'items' for EnumProperty.
+# used list, not tuple for easy merging with other lists.
 navs = [
     ('CURRENT', 'Current', 'Leave at current state'),
     ('NEXT', 'Next', 'Next blend type/operation'),
@@ -131,7 +134,7 @@ navs = [
 merge_shaders_types = ('MIX', 'ADD')
 
 # list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
-# Keeping mixed case to avoid having to translate entries when adding new nodes in SwapNodes.
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 regular_shaders = (
     ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
     ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
@@ -149,11 +152,13 @@ regular_shaders = (
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
 
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 merge_shaders = (
     ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
     ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
     )
 
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 texture_list = (
     ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
     ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
@@ -494,31 +499,35 @@ class NodeWrangler(bpy.types.AddonPreferences):
     #     default=True,
     #     description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded"
     # )
-    merge_hide = bpy.props.EnumProperty(
+    merge_hide = EnumProperty(
         name="Hide Mix nodes",
-        items=(("always", "Always", "Always collapse the new merge nodes"),
-               ("non_shader", "Non-Shader", "Collapse in all cases except for shaders"),
-               ("never", "Never", "Never collapse the new merge nodes")),
-        default='non_shader',
+        items=(
+            ("ALWAYS", "Always", "Always collapse the new merge nodes"),
+            ("NON_SHADER", "Non-Shader", "Collapse in all cases except for shaders"),
+            ("NEVER", "Never", "Never collapse the new merge nodes")
+            ),
+        default='NON_SHADER',
         description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded")
-    merge_position = bpy.props.EnumProperty(
+    merge_position = EnumProperty(
         name="Mix Node Position",
-        items=(("center", "Center", "Place the Mix node between the two nodes"),
-               ("bottom", "Bottom", "Place the Mix node at the same height as the lowest node")),
-        default='center',
+        items=(
+            ("CENTER", "Center", "Place the Mix node between the two nodes"),
+            ("BOTTOM", "Bottom", "Place the Mix node at the same height as the lowest node")
+            ),
+        default='CENTER',
         description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy the position of the new nodes")
-    bgl_antialiasing = bpy.props.BoolProperty(
+    bgl_antialiasing = BoolProperty(
         name="Line Antialiasing",
         default=False,
         description="Remove aliasing artifacts on lines drawn in interactive modes such as Lazy Connect (Alt+LMB) and Lazy Merge (Alt+RMB) - this may cause issues on some systems"
     )
 
-    show_hotkey_list = bpy.props.BoolProperty(
+    show_hotkey_list = BoolProperty(
         name="Show Hotkey List",
         default=False,
         description="Expand this box into a list of all the hotkeys for functions in this addon"
     )
-    hotkey_list_filter = bpy.props.StringProperty(
+    hotkey_list_filter = StringProperty(
         name="        Filter by Name",
         default="",
         description="Show only hotkeys that have this text in their name"
@@ -572,8 +581,8 @@ class NWLazyMix(Operator, NWBase):
     bl_label = "Mix Nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.StringProperty(default='MIX')
-    merge_type = bpy.props.StringProperty(default='AUTO')
+    mode = StringProperty(default='MIX')
+    merge_type = StringProperty(default='AUTO')
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -649,8 +658,8 @@ class NWLazyConnect(Operator, NWBase):
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.StringProperty(default='MIX')
-    merge_type = bpy.props.StringProperty(default='AUTO')
+    mode = StringProperty(default='MIX')
+    merge_type = StringProperty(default='AUTO')
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -884,7 +893,7 @@ class NWAddUVNode(Operator, NWBase):
     "Add an Attribute node for this UV layer"
     bl_idname = 'node.nw_add_uv_node'
     bl_label = 'Add UV map'
-    uv_name = bpy.props.StringProperty()
+    uv_name = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1032,8 +1041,8 @@ class NWFrameSelected(Operator, NWBase):
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
-    label_prop = bpy.props.StringProperty(name='Label', default = ' ', description='The visual name of the frame node')
-    color_prop = bpy.props.FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
+    label_prop = StringProperty(name='Label', default = ' ', description='The visual name of the frame node')
+    color_prop = FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
                                                 min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
 
     @classmethod
@@ -1186,7 +1195,7 @@ class NWSwapSwitchReroute(Operator, NWBase):
     "Swap the selected nodes"
     bl_idname = 'node.nw_swap_switchreroute'
     bl_label = 'Swap Switch/Reroute'
-    newtype = bpy.props.StringProperty()
+    newtype = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1228,7 +1237,7 @@ class NWSwapMixMathAlpha(Operator, NWBase):
     "Swap the selected nodes"
     bl_idname = 'node.nw_swap_mixmathalpha'
     bl_label = 'Swap Mix/Math/Alpha Over'
-    newtype = bpy.props.StringProperty()
+    newtype = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1351,7 +1360,7 @@ class NWSwapAddMixShader(Operator, NWBase):
     "Swap the selected nodes"
     bl_idname = 'node.nw_swap_addmixshader'
     bl_label = 'Swap Add/Mix Shaders'
-    newtype = bpy.props.StringProperty()
+    newtype = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1403,7 +1412,7 @@ class NWSwapType(Operator, NWBase):
     "Swap the selected nodes to another type"
     bl_idname = 'node.nw_swap'
     bl_label = 'Swap Type'
-    newtype = bpy.props.StringProperty()
+    newtype = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -1506,10 +1515,10 @@ class NWMergeNodes(Operator, NWBase):
 
         do_hide = False
         do_hide_shader = False
-        if merge_hide == 'always':
+        if merge_hide == 'ALWAYS':
             do_hide = True
             do_hide_shader = True
-        elif merge_hide == 'non_shader':
+        elif merge_hide == 'NON_SHADER':
             do_hide = True
 
 
@@ -1568,7 +1577,7 @@ class NWMergeNodes(Operator, NWBase):
                 # get maximum loc_x
                 loc_x = nodes_list[0][1] + 250.0
                 nodes_list.sort(key=lambda k: k[2], reverse=True)
-                if merge_position == 'center':
+                if merge_position == 'CENTER':
                     loc_y = ((nodes_list[len(nodes_list) - 1][2])+(nodes_list[len(nodes_list) - 2][2]))/2  # average yloc of last two nodes (lowest two)
                 else:
                     loc_y = nodes_list[len(nodes_list) - 1][2]
@@ -2977,33 +2986,33 @@ kmi_defs = (
 
 def register():
     # props
-    bpy.types.Scene.NWStartAlign = bpy.props.BoolProperty(
+    bpy.types.Scene.NWStartAlign = BoolProperty(
         name="Align Start Nodes",
         default=True,
         description="Put all nodes with no inputs on the left of the tree")
-    bpy.types.Scene.NWEndAlign = bpy.props.BoolProperty(
+    bpy.types.Scene.NWEndAlign = BoolProperty(
         name="Align End Nodes",
         default=True,
         description="Put all nodes with no outputs on the right of the tree")
-    bpy.types.Scene.NWSpacing = bpy.props.FloatProperty(
+    bpy.types.Scene.NWSpacing = FloatProperty(
         name="Spacing",
         default=80.0,
         min=0.0,
         description="The horizonal space between nodes (vertical is half this)")
-    bpy.types.Scene.NWDelReroutes = bpy.props.BoolProperty(
+    bpy.types.Scene.NWDelReroutes = BoolProperty(
         name="Delete Reroutes",
         default=True,
         description="Delete all Reroute nodes to avoid unexpected layouts")
-    bpy.types.Scene.NWFrameHandling = bpy.props.EnumProperty(
+    bpy.types.Scene.NWFrameHandling = EnumProperty(
         name="Frames",
         items=(("ignore", "Ignore", "Do nothing about Frame nodes (can be messy)"), ("delete", "Delete", "Delete Frame nodes")),
         default='ignore',
         description="How to handle Frame nodes")
-    bpy.types.Scene.NWBusyDrawing = bpy.props.StringProperty(
+    bpy.types.Scene.NWBusyDrawing = StringProperty(
         name="Busy Drawing!",
         default="",
         description="An internal property used to store only the first mouse position")
-    bpy.types.Scene.NWDrawColType = bpy.props.StringProperty(
+    bpy.types.Scene.NWDrawColType = StringProperty(
         name="Color Type!",
         default="x",
         description="An internal property used to store the line color")
