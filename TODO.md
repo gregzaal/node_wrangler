@@ -9,8 +9,6 @@ Short term:
 * Add Vertex colors menu (same as UV Layers)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
-* Ctrl+Shift+Click to cut lines and add clamps (not sure if this is possible with current api)
-* Alt+Shift+Click to cut lines and add mix nodes
 * Comment node
  - Multiline
  - Automatic wordwrap
@@ -26,6 +24,7 @@ Short term:
 * Ctrl+Shift+A to add a node connected to the selected node(s) - same menu as Shift+A, but add one node per selected nodes and place it to the right, connecting everything nicely.
 * Increase/Decrease mix fac hotkeys also work for other node values.
 * Lazy functions should use the nearest border, not the nearest center
+* Lazy Mix: when to/from node is the same node, add a clamp
 
 Long Term:
 ----------
