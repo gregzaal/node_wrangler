@@ -25,6 +25,7 @@ Short term:
 * Increase/Decrease mix fac hotkeys also work for other node values.
 * Lazy functions should use the nearest border, not the nearest center
 * Lazy Mix: when to/from node is the same node, add a clamp
+* Nicer zooming of background image (Z to enter view transform mode, mouse wheel to zoom into cursor, backspace to reset) - just an idea
 
 Long Term:
 ----------
