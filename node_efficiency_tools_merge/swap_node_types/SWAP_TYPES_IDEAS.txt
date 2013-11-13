@@ -1,9 +1,6 @@
 Ideas for "Swap Node Type":
 
-Long term
-1.
-Main idea is to be able to change any node type to any other available node type.
-
+TO DO:
 2.
 "History" of the node should be stored. When "swapping back" (different than "undo" - previous data could get restored).
 This is possible, because temporary list could be created where several parameters could be stored.
@@ -33,6 +30,14 @@ Some hierarchy need to be created, such that we know when take settings from cur
 Warnings: We should be able to warn the user that for example: "Some links may be lost".
 History should as well store info about "lost links" such that when we "swap" to type that can use those lost links - it can.
 
+
+
+DONE:
+1.
+Main idea is to be able to change any node type to any other available node type.
+DONE
+
 5.
 Interface: I think we could make a menu to look exactly the same as "Add Node" menu. Users know where to look for nodes in this menu because they keep adding nodes all the time.
 When we execute the operator we are presented with all the nodes. The header would only be different: Instead of saying: "Add", it could say "Swap to".
+DONE
