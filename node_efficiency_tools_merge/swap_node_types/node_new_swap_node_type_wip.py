@@ -347,6 +347,8 @@ class NWSwapNodeType(Operator, NWBase):
             for attr in attrs_to_pass:
                 if hasattr(node, attr) and hasattr(new_node, attr):
                     setattr(new_node, attr, getattr(node, attr))
+            if new_node.type == 'SWITCH':
+                new_node.hide = True
             # Dictionaries: src_sockets and dst_sockets:
             # 'INPUTS': input sockets ordered by type (entry 'MAIN' main type of inputs).
             # 'OUTPUTS': output sockets ordered by type (entry 'MAIN' main type of outputs).
@@ -390,7 +392,6 @@ class NWSwapNodeType(Operator, NWBase):
                     for type_check in types_order_one:
                         if sockets[in_out_name][type_check]:
                             sockets[in_out_name]['MAIN'] = type_check
-                            # if ['MAIN'] key has already been assigned, don't do it again.
                             break
             
             matches = {
@@ -421,22 +422,46 @@ class NWSwapNodeType(Operator, NWBase):
                     for i, soc in enumerate(dt):
                         # if src main has enough entries - match them with dst main sockets by indexes.
                         if len(sc) > i:
-                            matches[inout][soctype].append((sc[i][1], soc[1]))
+                            matches[inout][soctype].append(((sc[i][1], sc[i][3]), (soc[1], soc[3])))
                         # add 'VALUE_NAME' criterion to inputs.
                         if inout == 'INPUTS' and soctype == 'VALUE':
                             for s in sc:
                                 if s[2] == soc[2]:  # if names match
-                                    matches['INPUTS']['VALUE_NAME'].append((s[1], soc[1]))
+                                    # append src (index, dval), dst (index, dval)
+                                    matches['INPUTS']['VALUE_NAME'].append(((s[1], s[3]), (soc[1], soc[3])))
             
             # When src ['INPUTS']['MAIN'] is 'VECTOR' replace 'MAIN' with matches VECTOR if possible.
             # This creates better links when relinking textures.
             if src_sockets['INPUTS']['MAIN'] == 'VECTOR' and matches['INPUTS']['VECTOR']:
                 matches['INPUTS']['MAIN'] = matches['INPUTS']['VECTOR']
             
-            # RELINK:
+            # Pass default values and RELINK:
             for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE_NAME', 'VALUE'):
                 # INPUTS: Base on matches in proper order.
-                for src_i, dst_i in matches['INPUTS'][tp]:
+                for (src_i, src_dval), (dst_i, dst_dval) in matches['INPUTS'][tp]:
+                    # pass dvals
+                    if src_dval and dst_dval and tp in {'RGBA', 'VALUE_NAME'}:
+                        new_node.inputs[dst_i].default_value = src_dval
+                    # Special case: swap to math
+                    if node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                            new_node.type == 'MATH' and\
+                            tp == 'MAIN':
+                        new_dst_dval = max(src_dval[0], src_dval[1], src_dval[2])
+                        new_node.inputs[dst_i].default_value = new_dst_dval
+                        if node.type == 'MIX_RGB':
+                            if node.blend_type in [o[0] for o in operations]:
+                                new_node.operation = node.blend_type
+                    # Special case: swap from math to some types
+                    if node.type == 'MATH' and\
+                            new_node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                            tp == 'MAIN':
+                        for i in range(3):
+                            new_node.inputs[dst_i].default_value[i] = src_dval
+                        if new_node.type == 'MIX_RGB':
+                            if node.operation in [t[0] for t in blend_types]:
+                                new_node.blend_type = node.operation
+                            # Set Fac of MIX_RGB to 1.0
+                            new_node.inputs[0].default_value = 1.0
                     # make link only when dst matching input is not linked already.
                     if node.inputs[src_i].links and not new_node.inputs[dst_i].links:
                         in_src_link = node.inputs[src_i].links[0]
@@ -444,9 +469,9 @@ class NWSwapNodeType(Operator, NWBase):
                         links.new(in_src_link.from_socket, in_dst_socket)
                         links.remove(in_src_link)
                 # OUTPUTS: Base on matches in proper order.
-                for src_o, dst_o in matches['OUTPUTS'][tp]:
-                    for out_src_link in node.outputs[src_o].links:
-                        out_dst_socket = new_node.outputs[dst_o]
+                for (src_i, src_dval), (dst_i, dst_dval) in matches['OUTPUTS'][tp]:
+                    for out_src_link in node.outputs[src_i].links:
+                        out_dst_socket = new_node.outputs[dst_i]
                         links.new(out_dst_socket, out_src_link.to_socket)
             # relink rest inputs if possible, no criteria
             for src_inp in node.inputs:
