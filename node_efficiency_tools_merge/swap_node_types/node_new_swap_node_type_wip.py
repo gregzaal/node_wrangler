@@ -333,52 +333,134 @@ class NWSwapNodeType(Operator, NWBase):
         to_type = self.to_type
         # Those types of nodes will not swap.
         src_excludes = ('CompositorNodeComposite', 'NodeFrame')
-        # Those attributes of nodes will not be copied
-        attr_excludes = (
-            '__doc__', '__module__', '__slots__', 'bl_description', 'bl_height_default',\
-            'bl_height_max', 'bl_height_min', 'bl_icon', 'bl_idname', 'bl_label',\
-            'bl_rna', 'bl_static_type', 'bl_width_default', 'bl_width_max', 'bl_width_min',\
-            'dimensions', 'draw_buttons', 'draw_buttons_ext', 'height', 'input_template',\
-            'inputs', 'internal_links', 'is_registered_node_type', 'name', 'output_template',\
-            'operation', 'outputs', 'poll', 'poll_instance', 'rna_type', 'select',\
-            'socket_value_update', 'type', 'update', 'width', 'width_hidden'\
+        # Those attributes of nodes will be copied if possible
+        attrs_to_pass = ('color', 'hide', 'label', 'mute', 'parent',\
+            'show_options', 'show_preview', 'show_texture',\
+            'use_clamp', 'use_custom_color', 'location'
             )
         selected = [n for n in nodes if n.select]
         reselect = []
         for node in [n for n in selected if\
-            n.rna_type.identifier not in src_excludes and\
-            n.rna_type.identifier != to_type]:
+                n.rna_type.identifier not in src_excludes and\
+                n.rna_type.identifier != to_type]:
             new_node = nodes.new(to_type)
-            for attr in [a for a in dir(new_node) if a not in attr_excludes and a in dir(node)]:
-                setattr(new_node, attr, getattr(node, attr))
-            # Mix to Math
-            if node.type == 'MIX_RGB' and new_node.type == 'MATH':
-                if node.blend_type in [o[0] for o in operations]:
-                    new_node.operation = node.blend_type
-                for i in range(1, 3):
-                    if node.inputs[i].links:
-                        links.new(node.inputs[i].links[0].from_socket, new_node.inputs[i-1])
-                for lnk in node.outputs[0].links:
-                    links.new(new_node.outputs[0], lnk.to_socket)
-                nodes.remove(node)
-            # Math to Mix
-            elif node.type == 'MATH' and new_node.type == 'MIX_RGB':
-                if node.operation in [b[0] for b in blend_types]:
-                    new_node.blend_type = node.operation
-                # Set Fac to 1.0. In 'SHADER' tree type Mix nodes Fac is 0.5 by default.
-                new_node.inputs[0].default_value = 1.0
-                for i in range(0, 2):
-                    if node.inputs[i].links:
-                        links.new(node.inputs[i].links[0].from_socket, new_node.inputs[i+1])
-                for lnk in node.outputs[0].links:
-                    links.new(new_node.outputs[0], lnk.to_socket)
-                nodes.remove(node)
-            else:
-                # this is temporary
-                new_node.location.x += 50.0
-                new_node.location.y -= 50.0
-                self.report({'WARNING'}, 'Only MIX to MATH and MATH to MIX works at the moment')
-                
+            for attr in attrs_to_pass:
+                if hasattr(node, attr) and hasattr(new_node, attr):
+                    setattr(new_node, attr, getattr(node, attr))
+            # Dictionaries: src_sockets and dst_sockets:
+            # 'INPUTS': input sockets ordered by type (entry 'MAIN' main type of inputs).
+            # 'OUTPUTS': output sockets ordered by type (entry 'MAIN' main type of outputs).
+            # in 'INPUTS' and 'OUTPUTS':
+            # 'SHADER', 'RGBA', 'VECTOR', 'VALUE' - sockets of those types.
+            # socket entry:
+            # (index_in_type, socket_index, socket_name, socket_default_value, socket_links)
+            src_sockets = {
+                'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                }
+            dst_sockets = {
+                'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                }
+            types_order_one = 'SHADER', 'RGBA', 'VECTOR', 'VALUE'
+            types_order_two = 'SHADER', 'VECTOR', 'RGBA', 'VALUE'
+            # check src node to set src_sockets values and dst node to set dst_sockets dict values
+            for sockets, nd in ((src_sockets, node), (dst_sockets, new_node)):
+                # Check node's inputs and outputs and fill proper entries in "sockets" dict
+                for in_out, in_out_name in ((nd.inputs, 'INPUTS'), (nd.outputs, 'OUTPUTS')):
+                    # enumerate in inputs, then in outputs
+                    # find name, default value and links of socket
+                    for i, socket in enumerate(in_out):
+                        the_name = socket.name
+                        dval = None
+                        # Not every socket, especially in outputs has "default_value"
+                        if hasattr(socket, 'default_value'):
+                            dval = socket.default_value
+                        socket_links = []
+                        for lnk in socket.links:
+                            socket_links.append(lnk)
+                        # check type of socket to fill proper keys.
+                        for the_type in types_order_one:
+                            if socket.type == the_type:
+                                # create values for sockets['INPUTS'][the_type] and sockets['OUTPUTS'][the_type]
+                                # entry structure: (index_in_type, socket_index, socket_name, socket_default_value, socket_links)
+                                sockets[in_out_name][the_type].append((len(sockets[in_out_name][the_type]), i, the_name, dval, socket_links))
+                    # Check which of the types in inputs/outputs is considered to be "main".
+                    # Set values of sockets['INPUTS']['MAIN'] and sockets['OUTPUTS']['MAIN']
+                    for type_check in types_order_one:
+                        if sockets[in_out_name][type_check]:
+                            sockets[in_out_name]['MAIN'] = type_check
+                            # if ['MAIN'] key has already been assigned, don't do it again.
+                            break
+            
+            matches = {
+                    'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': []},
+                    'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': []},
+                    }
+            
+            for inout, soctype in (
+                    ('INPUTS', 'MAIN',),
+                    ('INPUTS', 'SHADER',),
+                    ('INPUTS', 'RGBA',),
+                    ('INPUTS', 'VECTOR',),
+                    ('INPUTS', 'VALUE',),
+                    ('OUTPUTS', 'MAIN',),
+                    ('OUTPUTS', 'SHADER',),
+                    ('OUTPUTS', 'RGBA',),
+                    ('OUTPUTS', 'VECTOR',),
+                    ('OUTPUTS', 'VALUE',),
+                    ):
+                if src_sockets[inout][soctype] and dst_sockets[inout][soctype]:
+                    if soctype == 'MAIN':
+                        sc = src_sockets[inout][src_sockets[inout]['MAIN']]
+                        dt = dst_sockets[inout][dst_sockets[inout]['MAIN']]
+                    else:
+                        sc = src_sockets[inout][soctype]
+                        dt = dst_sockets[inout][soctype]
+                    # match "mains". 'dst' determins number of possibilities.
+                    for i, soc in enumerate(dt):
+                        # if src main has enough entries - match them with dst main sockets by indexes.
+                        if len(sc) > i:
+                            matches[inout][soctype].append((sc[i][1], dt[i][1]))
+            
+            # When src ['INPUTS']['MAIN'] is 'VECTOR' replace 'MAIN' with matches VECTOR if possible.
+            # This creates better links when relinking textures.
+            if src_sockets['INPUTS']['MAIN'] == 'VECTOR' and matches['INPUTS']['VECTOR']:
+                matches['INPUTS']['MAIN'] = matches['INPUTS']['VECTOR']
+            
+            # RELINK:
+            for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE'):
+                # INPUTS: Base on matches in proper order.
+                for src_i, dst_i in matches['INPUTS'][tp]:
+                    # make link only when dst matching input is not linked already.
+                    if node.inputs[src_i].links and not new_node.inputs[dst_i].links:
+                        in_src_link = node.inputs[src_i].links[0]
+                        in_dst_socket = new_node.inputs[dst_i]
+                        links.new(in_src_link.from_socket, in_dst_socket)
+                        links.remove(in_src_link)
+                # OUTPUTS: Base on matches in proper order.
+                for src_o, dst_o in matches['OUTPUTS'][tp]:
+                    for out_src_link in node.outputs[src_o].links:
+                        out_dst_socket = new_node.outputs[dst_o]
+                        links.new(out_dst_socket, out_src_link.to_socket)
+            # relink rest inputs if possible, no criteria
+            for src_inp in [soc for soc in node.inputs if soc.links]:
+                for dst_inp in [soc for soc in new_node.inputs if not soc.links]:
+                    src_link = src_inp.links[0]
+                    links.new(src_link.from_socket, dst_inp)
+                    links.remove(src_link)
+            # relink rest outputs if possible, base on node kind if any left.
+            for src_o in node.outputs:
+                for out_src_link in src_o.links:
+                    for dst_o in new_node.outputs:
+                        if src_o.type == dst_o.type:
+                            links.new(dst_o, out_src_link.to_socket)
+            # relink rest outputs no criteria if any left. Link all from first output.
+            for src_o in node.outputs:
+                for out_src_link in src_o.links:
+                    if new_node.outputs:
+                        links.new(new_node.outputs[0], out_src_link.to_socket)
+            nodes.remove(node)
         return {'FINISHED'}
 
 
