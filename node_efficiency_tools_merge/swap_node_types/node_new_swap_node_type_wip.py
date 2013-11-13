@@ -394,8 +394,8 @@ class NWSwapNodeType(Operator, NWBase):
                             break
             
             matches = {
-                    'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': []},
-                    'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': []},
+                    'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
+                    'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
                     }
             
             for inout, soctype in (
@@ -417,11 +417,16 @@ class NWSwapNodeType(Operator, NWBase):
                     else:
                         sc = src_sockets[inout][soctype]
                         dt = dst_sockets[inout][soctype]
-                    # match "mains". 'dst' determins number of possibilities.
+                    # start with 'dt' to determine number of possibilities.
                     for i, soc in enumerate(dt):
                         # if src main has enough entries - match them with dst main sockets by indexes.
                         if len(sc) > i:
-                            matches[inout][soctype].append((sc[i][1], dt[i][1]))
+                            matches[inout][soctype].append((sc[i][1], soc[1]))
+                        # add 'VALUE_NAME' criterion to inputs.
+                        if inout == 'INPUTS' and soctype == 'VALUE':
+                            for s in sc:
+                                if s[2] == soc[2]:  # if names match
+                                    matches['INPUTS']['VALUE_NAME'].append((s[1], soc[1]))
             
             # When src ['INPUTS']['MAIN'] is 'VECTOR' replace 'MAIN' with matches VECTOR if possible.
             # This creates better links when relinking textures.
@@ -429,7 +434,7 @@ class NWSwapNodeType(Operator, NWBase):
                 matches['INPUTS']['MAIN'] = matches['INPUTS']['VECTOR']
             
             # RELINK:
-            for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE'):
+            for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE_NAME', 'VALUE'):
                 # INPUTS: Base on matches in proper order.
                 for src_i, dst_i in matches['INPUTS'][tp]:
                     # make link only when dst matching input is not linked already.
@@ -444,11 +449,12 @@ class NWSwapNodeType(Operator, NWBase):
                         out_dst_socket = new_node.outputs[dst_o]
                         links.new(out_dst_socket, out_src_link.to_socket)
             # relink rest inputs if possible, no criteria
-            for src_inp in [soc for soc in node.inputs if soc.links]:
-                for dst_inp in [soc for soc in new_node.inputs if not soc.links]:
-                    src_link = src_inp.links[0]
-                    links.new(src_link.from_socket, dst_inp)
-                    links.remove(src_link)
+            for src_inp in node.inputs:
+                for dst_inp in new_node.inputs:
+                    if src_inp.links and not dst_inp.links:
+                        src_link = src_inp.links[0]
+                        links.new(src_link.from_socket, dst_inp)
+                        links.remove(src_link)
             # relink rest outputs if possible, base on node kind if any left.
             for src_o in node.outputs:
                 for out_src_link in src_o.links:
