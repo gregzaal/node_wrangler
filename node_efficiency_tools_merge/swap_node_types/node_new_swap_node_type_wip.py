@@ -611,8 +611,9 @@ class NWSwapShadersLayoutSubmenu(Menu, NWBase):
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_layout_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
-            props.to_type = ident
+            if type != 'FRAME':
+                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
 
 class NWSwapCompoInputSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_input_submenu"
@@ -701,8 +702,9 @@ class NWSwapCompoLayoutSubmenu(Menu, NWBase):
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_layout_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
-            props.to_type = ident
+            if type != 'FRAME':
+                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
 
 addon_keymaps = []
 # kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props, nice name)
