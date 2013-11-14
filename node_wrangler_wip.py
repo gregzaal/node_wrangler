@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Greg Zaal, Bartek Skorupa",
-    'version': (2, 37),
+    'version': (2, 40),
     'blender': (2, 6, 9),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -75,6 +75,215 @@ rl_outputs = (
     ('use_pass_uv', 'UV', 'UV', True, True),
     ('use_pass_vector', 'Speed', 'Vector', True, True),
     ('use_pass_z', 'Z', 'Depth', True, True),
+    )
+
+# shader nodes
+# (rna_type.identifier, type, rna_type.name)
+shaders_input_nodes_props = (
+    ('ShaderNodeTexCoord', 'TEX_COORD', 'Texture Coordinate'),
+    ('ShaderNodeAttribute', 'ATTRIBUTE', 'Attribute'),
+    ('ShaderNodeLightPath', 'LIGHT_PATH', 'Light Path'),
+    ('ShaderNodeFresnel', 'FRESNEL', 'Fresnel'),
+    ('ShaderNodeLayerWeight', 'LAYER_WEIGHT', 'Layer Weight'),
+    ('ShaderNodeRGB', 'RGB', 'RGB'),
+    ('ShaderNodeValue', 'VALUE', 'Value'),
+    ('ShaderNodeTangent', 'TANGENT', 'Tangent'),
+    ('ShaderNodeNewGeometry', 'NEW_GEOMETRY', 'Geometry'),
+    ('ShaderNodeWireframe', 'WIREFRAME', 'Wireframe'),
+    ('ShaderNodeObjectInfo', 'OBJECT_INFO', 'Object Info'),
+    ('ShaderNodeHairInfo', 'HAIR_INFO', 'Hair Info'),
+    ('ShaderNodeParticleInfo', 'PARTICLE_INFO', 'Particle Info'),
+    ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_output_nodes_props = (
+    ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
+    ('ShaderNodeOutputLamp', 'OUTPUT_LAMP', 'Lamp Output'),
+    ('ShaderNodeOutputWorld', 'OUTPUT_WORLD', 'World Output'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_shader_nodes_props = (
+    ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
+    ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
+    ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
+    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
+    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
+    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
+    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
+    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
+    ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
+    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
+    ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
+    ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
+    ('ShaderNodeEmission', 'EMISSION', 'Emission'),
+    ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
+    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
+    ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_texture_nodes_props = (
+    ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
+    ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
+    ('ShaderNodeTexSky', 'TEX_SKY', 'Sky'),
+    ('ShaderNodeTexNoise', 'TEX_NOISE', 'Noise'),
+    ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave'),
+    ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'),
+    ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'),
+    ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'),
+    ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
+    ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
+    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_color_nodes_props = (
+    ('ShaderNodeMixRGB', 'MIX_RGB', 'MixRGB'),
+    ('ShaderNodeRGBCurve', 'CURVE_RGB', 'RGB Curves'),
+    ('ShaderNodeInvert', 'INVERT', 'Invert'),
+    ('ShaderNodeLightFalloff', 'LIGHT_FALLOFF', 'Light Falloff'),
+    ('ShaderNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
+    ('ShaderNodeGamma', 'GAMMA', 'Gamma'),
+    ('ShaderNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright Contrast'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_vector_nodes_props = (
+    ('ShaderNodeMapping', 'MAPPING', 'Mapping'),
+    ('ShaderNodeBump', 'BUMP', 'Bump'),
+    ('ShaderNodeNormalMap', 'NORMAL_MAP', 'Normal Map'),
+    ('ShaderNodeNormal', 'NORMAL', 'Normal'),
+    ('ShaderNodeVectorCurve', 'CURVE_VEC', 'Vector Curves'),
+    ('ShaderNodeVectorTransform', 'VECT_TRANSFORM', 'Vector Transform'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_converter_nodes_props = (
+    ('ShaderNodeMath', 'MATH', 'Math'),
+    ('ShaderNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('ShaderNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
+    ('ShaderNodeVectorMath', 'VECT_MATH', 'Vector Math'),
+    ('ShaderNodeSeparateRGB', 'SEPRGB', 'Separate RGB'),
+    ('ShaderNodeCombineRGB', 'COMBRGB', 'Combine RGB'),
+    ('ShaderNodeSeparateHSV', 'SEPHSV', 'Separate HSV'),
+    ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
+    ('ShaderNodeWavelength', 'WAVELENGTH', 'Wavelength'),
+    ('ShaderNodeBlackbody', 'BLACKBODY', 'Blackbody'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+shaders_layout_nodes_props = (
+    ('NodeFrame', 'FRAME', 'Frame'),
+    ('NodeReroute', 'REROUTE', 'Reroute'),
+    )
+
+# compositing nodes
+# (rna_type.identifier, type, rna_type.name)
+compo_input_nodes_props = (
+    ('CompositorNodeRLayers', 'R_LAYERS', 'Render Layers'),
+    ('CompositorNodeImage', 'IMAGE', 'Image'),
+    ('CompositorNodeMovieClip', 'MOVIECLIP', 'Movie Clip'),
+    ('CompositorNodeMask', 'MASK', 'Mask'),
+    ('CompositorNodeRGB', 'RGB', 'RGB'),
+    ('CompositorNodeValue', 'VALUE', 'Value'),
+    ('CompositorNodeTexture', 'TEXTURE', 'Texture'),
+    ('CompositorNodeBokehImage', 'BOKEHIMAGE', 'Bokeh Image'),
+    ('CompositorNodeTime', 'TIME', 'Time'),
+    ('CompositorNodeTrackPos', 'TRACKPOS', 'Track Position'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_output_nodes_props = (
+    ('CompositorNodeComposite', 'COMPOSITE', 'Composite'),
+    ('CompositorNodeViewer', 'VIEWER', 'Viewer'),
+    ('CompositorNodeSplitViewer', 'SPLITVIEWER', 'Split Viewer'),
+    ('CompositorNodeOutputFile', 'OUTPUT_FILE', 'File Output'),
+    ('CompositorNodeLevels', 'LEVELS', 'Levels'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_color_nodes_props = (
+    ('CompositorNodeMixRGB', 'MIX_RGB', 'Mix'),
+    ('CompositorNodeAlphaOver', 'ALPHAOVER', 'Alpha Over'),
+    ('CompositorNodeInvert', 'INVERT', 'Invert'),
+    ('CompositorNodeCurveRGB', 'CURVE_RGB', 'RGB Curves'),
+    ('CompositorNodeHueSat', 'HUE_SAT', 'Hue Saturation Value'),
+    ('CompositorNodeColorBalance', 'COLORBALANCE', 'Color Balance'),
+    ('CompositorNodeHueCorrect', 'HUECORRECT', 'Hue Correct'),
+    ('CompositorNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright/Contrast'),
+    ('CompositorNodeGamma', 'GAMMA', 'Gamma'),
+    ('CompositorNodeColorCorrection', 'COLORCORRECTION', 'Color Correction'),
+    ('CompositorNodeTonemap', 'TONEMAP', 'Tonemap'),
+    ('CompositorNodeZcombine', 'ZCOMBINE', 'Z Combine'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_converter_nodes_props = (
+    ('CompositorNodeMath', 'MATH', 'Math'),
+    ('CompositorNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('CompositorNodeSetAlpha', 'SETALPHA', 'Set Alpha'),
+    ('CompositorNodePremulKey', 'PREMULKEY', 'Alpha Convert'),
+    ('CompositorNodeIDMask', 'ID_MASK', 'ID Mask'),
+    ('CompositorNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
+    ('CompositorNodeSepRGBA', 'SEPRGBA', 'Separate RGBA'),
+    ('CompositorNodeCombRGBA', 'COMBRGBA', 'Combine RGBA'),
+    ('CompositorNodeSepHSVA', 'SEPHSVA', 'Separate HSVA'),
+    ('CompositorNodeCombHSVA', 'COMBHSVA', 'Combine HSVA'),
+    ('CompositorNodeSepYUVA', 'SEPYUVA', 'Separate YUVA'),
+    ('CompositorNodeCombYUVA', 'COMBYUVA', 'Combine YUVA'),
+    ('CompositorNodeSepYCCA', 'SEPYCCA', 'Separate YCbCrA'),
+    ('CompositorNodeCombYCCA', 'COMBYCCA', 'Combine YCbCrA'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_filter_nodes_props = (
+    ('CompositorNodeBlur', 'BLUR', 'Blur'),
+    ('CompositorNodeBilateralblur', 'BILATERALBLUR', 'Bilateral Blur'),
+    ('CompositorNodeDilateErode', 'DILATEERODE', 'Dilate/Erode'),
+    ('CompositorNodeDespeckle', 'DESPECKLE', 'Despeckle'),
+    ('CompositorNodeFilter', 'FILTER', 'Filter'),
+    ('CompositorNodeBokehBlur', 'BOKEHBLUR', 'Bokeh Blur'),
+    ('CompositorNodeVecBlur', 'VECBLUR', 'Vector Blur'),
+    ('CompositorNodeDefocus', 'DEFOCUS', 'Defocus'),
+    ('CompositorNodeGlare', 'GLARE', 'Glare'),
+    ('CompositorNodeInpaint', 'INPAINT', 'Inpaint'),
+    ('CompositorNodeDBlur', 'DBLUR', 'Directional Blur'),
+    ('CompositorNodePixelate', 'PIXELATE', 'Pixelate'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_vector_nodes_props = (
+    ('CompositorNodeNormal', 'NORMAL', 'Normal'),
+    ('CompositorNodeMapValue', 'MAP_VALUE', 'Map Value'),
+    ('CompositorNodeMapRange', 'MAP_RANGE', 'Map Range'),
+    ('CompositorNodeNormalize', 'NORMALIZE', 'Normalize'),
+    ('CompositorNodeCurveVec', 'CURVE_VEC', 'Vector Curves'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_matte_nodes_props = (
+    ('CompositorNodeKeying', 'KEYING', 'Keying'),
+    ('CompositorNodeKeyingScreen', 'KEYINGSCREEN', 'Keying Screen'),
+    ('CompositorNodeChannelMatte', 'CHANNEL_MATTE', 'Channel Key'),
+    ('CompositorNodeColorSpill', 'COLOR_SPILL', 'Color Spill'),
+    ('CompositorNodeBoxMask', 'BOXMASK', 'Box Mask'),
+    ('CompositorNodeEllipseMask', 'ELLIPSEMASK', 'Ellipse Mask'),
+    ('CompositorNodeLumaMatte', 'LUMA_MATTE', 'Luminance Key'),
+    ('CompositorNodeDiffMatte', 'DIFF_MATTE', 'Difference Key'),
+    ('CompositorNodeDistanceMatte', 'DISTANCE_MATTE', 'Distance Key'),
+    ('CompositorNodeChromaMatte', 'CHROMA_MATTE', 'Chroma Key'),
+    ('CompositorNodeColorMatte', 'COLOR_MATTE', 'Color Key'),
+    ('CompositorNodeDoubleEdgeMask', 'DOUBLEEDGEMASK', 'Double Edge Mask'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_distort_nodes_props = (
+    ('CompositorNodeScale', 'SCALE', 'Scale'),
+    ('CompositorNodeLensdist', 'LENSDIST', 'Lens Distortion'),
+    ('CompositorNodeMovieDistortion', 'MOVIEDISTORTION', 'Movie Distortion'),
+    ('CompositorNodeTranslate', 'TRANSLATE', 'Translate'),
+    ('CompositorNodeRotate', 'ROTATE', 'Rotate'),
+    ('CompositorNodeFlip', 'FLIP', 'Flip'),
+    ('CompositorNodeCrop', 'CROP', 'Crop'),
+    ('CompositorNodeDisplace', 'DISPLACE', 'Displace'),
+    ('CompositorNodeMapUV', 'MAP_UV', 'Map UV'),
+    ('CompositorNodeTransform', 'TRANSFORM', 'Transform'),
+    ('CompositorNodeStabilize', 'STABILIZE2D', 'Stabilize 2D'),
+    ('CompositorNodePlaneTrackDeform', 'PLANETRACKDEFORM', 'Plane Track Deform'),
+    )
+# (rna_type.identifier, type, rna_type.name)
+compo_layout_nodes_props = (
+    ('NodeFrame', 'FRAME', 'Frame'),
+    ('NodeReroute', 'REROUTE', 'Reroute'),
+    ('CompositorNodeSwitch', 'SWITCH', 'Switch'),
     )
 
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
@@ -1190,301 +1399,203 @@ class NWViewImage(Operator, NWBase):
         return {'FINISHED'}
 
 
-class NWSwapSwitchReroute(Operator, NWBase):
-
-    "Swap the selected nodes"
-    bl_idname = 'node.nw_swap_switchreroute'
-    bl_label = 'Swap Switch/Reroute'
-    newtype = StringProperty()
+class NWSwapNodeType(Operator, NWBase):
+    """Swap type of selected nodes """
+    bl_idname = "node.nw_swap_node_type"
+    bl_label = "Swap Node Type"
     bl_options = {'REGISTER', 'UNDO'}
-
+    
+    to_type = EnumProperty(
+        name="Swap to type",
+        items=list(shaders_input_nodes_props) +\
+            list(shaders_output_nodes_props) +\
+            list(shaders_shader_nodes_props) +\
+            list(shaders_texture_nodes_props) +\
+            list(shaders_color_nodes_props) +\
+            list(shaders_vector_nodes_props) +\
+            list(shaders_converter_nodes_props) +\
+            list(shaders_layout_nodes_props) +\
+            list(compo_input_nodes_props) +\
+            list(compo_output_nodes_props) +\
+            list(compo_color_nodes_props) +\
+            list(compo_converter_nodes_props) +\
+            list(compo_filter_nodes_props) +\
+            list(compo_vector_nodes_props) +\
+            list(compo_matte_nodes_props) +\
+            list(compo_distort_nodes_props) +\
+            list(compo_layout_nodes_props),
+        )
+    
     def execute(self, context):
         nodes, links = get_nodes_links(context)
-
-        selected_nodes = context.selected_nodes
-        new_nodes = []
-        old_nodes = []
-        for node in selected_nodes:
-            if node.type in ["REROUTE", "SWITCH"]:
-                old_nodes.append(node)
-                newnode = nodes.new(self.newtype)
-                newnode.location.x = node.location.x
-                newnode.location.y = node.location.y
-
-                for link in node.inputs[0].links:
-                    links.new(link.from_socket, newnode.inputs[0])
-                for link in node.outputs[0].links:
-                    links.new(link.to_socket, newnode.outputs[0])
-
-                newnode.label = node.label
-
-                if nodes.active == node:
-                    nodes.active = newnode
-
-                newnode.select = False
-                newnode.hide = True
-                new_nodes.append(newnode)
-                nodes.remove(node)
-
-        for n in new_nodes:
-            n.select = True
-
+        to_type = self.to_type
+        # Those types of nodes will not swap.
+        src_excludes = ('NodeFrame')
+        # Those attributes of nodes will be copied if possible
+        attrs_to_pass = ('color', 'hide', 'label', 'mute', 'parent',\
+            'show_options', 'show_preview', 'show_texture',\
+            'use_alpha', 'use_clamp', 'use_custom_color', 'location'
+            )
+        selected = [n for n in nodes if n.select]
+        reselect = []
+        for node in [n for n in selected if\
+                n.rna_type.identifier not in src_excludes and\
+                n.rna_type.identifier != to_type]:
+            new_node = nodes.new(to_type)
+            for attr in attrs_to_pass:
+                if hasattr(node, attr) and hasattr(new_node, attr):
+                    setattr(new_node, attr, getattr(node, attr))
+            # set image datablock of dst to image of src
+            if hasattr(node, 'image') and hasattr(new_node, 'image'):
+                if node.image:
+                    new_node.image = node.image
+            # Special cases
+            if new_node.type == 'SWITCH':
+                new_node.hide = True
+            # Dictionaries: src_sockets and dst_sockets:
+            # 'INPUTS': input sockets ordered by type (entry 'MAIN' main type of inputs).
+            # 'OUTPUTS': output sockets ordered by type (entry 'MAIN' main type of outputs).
+            # in 'INPUTS' and 'OUTPUTS':
+            # 'SHADER', 'RGBA', 'VECTOR', 'VALUE' - sockets of those types.
+            # socket entry:
+            # (index_in_type, socket_index, socket_name, socket_default_value, socket_links)
+            src_sockets = {
+                'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                }
+            dst_sockets = {
+                'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
+                }
+            types_order_one = 'SHADER', 'RGBA', 'VECTOR', 'VALUE'
+            types_order_two = 'SHADER', 'VECTOR', 'RGBA', 'VALUE'
+            # check src node to set src_sockets values and dst node to set dst_sockets dict values
+            for sockets, nd in ((src_sockets, node), (dst_sockets, new_node)):
+                # Check node's inputs and outputs and fill proper entries in "sockets" dict
+                for in_out, in_out_name in ((nd.inputs, 'INPUTS'), (nd.outputs, 'OUTPUTS')):
+                    # enumerate in inputs, then in outputs
+                    # find name, default value and links of socket
+                    for i, socket in enumerate(in_out):
+                        the_name = socket.name
+                        dval = None
+                        # Not every socket, especially in outputs has "default_value"
+                        if hasattr(socket, 'default_value'):
+                            dval = socket.default_value
+                        socket_links = []
+                        for lnk in socket.links:
+                            socket_links.append(lnk)
+                        # check type of socket to fill proper keys.
+                        for the_type in types_order_one:
+                            if socket.type == the_type:
+                                # create values for sockets['INPUTS'][the_type] and sockets['OUTPUTS'][the_type]
+                                # entry structure: (index_in_type, socket_index, socket_name, socket_default_value, socket_links)
+                                sockets[in_out_name][the_type].append((len(sockets[in_out_name][the_type]), i, the_name, dval, socket_links))
+                    # Check which of the types in inputs/outputs is considered to be "main".
+                    # Set values of sockets['INPUTS']['MAIN'] and sockets['OUTPUTS']['MAIN']
+                    for type_check in types_order_one:
+                        if sockets[in_out_name][type_check]:
+                            sockets[in_out_name]['MAIN'] = type_check
+                            break
+            
+            matches = {
+                    'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
+                    'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
+                    }
+            
+            for inout, soctype in (
+                    ('INPUTS', 'MAIN',),
+                    ('INPUTS', 'SHADER',),
+                    ('INPUTS', 'RGBA',),
+                    ('INPUTS', 'VECTOR',),
+                    ('INPUTS', 'VALUE',),
+                    ('OUTPUTS', 'MAIN',),
+                    ('OUTPUTS', 'SHADER',),
+                    ('OUTPUTS', 'RGBA',),
+                    ('OUTPUTS', 'VECTOR',),
+                    ('OUTPUTS', 'VALUE',),
+                    ):
+                if src_sockets[inout][soctype] and dst_sockets[inout][soctype]:
+                    if soctype == 'MAIN':
+                        sc = src_sockets[inout][src_sockets[inout]['MAIN']]
+                        dt = dst_sockets[inout][dst_sockets[inout]['MAIN']]
+                    else:
+                        sc = src_sockets[inout][soctype]
+                        dt = dst_sockets[inout][soctype]
+                    # start with 'dt' to determine number of possibilities.
+                    for i, soc in enumerate(dt):
+                        # if src main has enough entries - match them with dst main sockets by indexes.
+                        if len(sc) > i:
+                            matches[inout][soctype].append(((sc[i][1], sc[i][3]), (soc[1], soc[3])))
+                        # add 'VALUE_NAME' criterion to inputs.
+                        if inout == 'INPUTS' and soctype == 'VALUE':
+                            for s in sc:
+                                if s[2] == soc[2]:  # if names match
+                                    # append src (index, dval), dst (index, dval)
+                                    matches['INPUTS']['VALUE_NAME'].append(((s[1], s[3]), (soc[1], soc[3])))
+            
+            # When src ['INPUTS']['MAIN'] is 'VECTOR' replace 'MAIN' with matches VECTOR if possible.
+            # This creates better links when relinking textures.
+            if src_sockets['INPUTS']['MAIN'] == 'VECTOR' and matches['INPUTS']['VECTOR']:
+                matches['INPUTS']['MAIN'] = matches['INPUTS']['VECTOR']
+            
+            # Pass default values and RELINK:
+            for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE_NAME', 'VALUE'):
+                # INPUTS: Base on matches in proper order.
+                for (src_i, src_dval), (dst_i, dst_dval) in matches['INPUTS'][tp]:
+                    # pass dvals
+                    if src_dval and dst_dval and tp in {'RGBA', 'VALUE_NAME'}:
+                        new_node.inputs[dst_i].default_value = src_dval
+                    # Special case: swap to math
+                    if node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                            new_node.type == 'MATH' and\
+                            tp == 'MAIN':
+                        new_dst_dval = max(src_dval[0], src_dval[1], src_dval[2])
+                        new_node.inputs[dst_i].default_value = new_dst_dval
+                        if node.type == 'MIX_RGB':
+                            if node.blend_type in [o[0] for o in operations]:
+                                new_node.operation = node.blend_type
+                    # Special case: swap from math to some types
+                    if node.type == 'MATH' and\
+                            new_node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
+                            tp == 'MAIN':
+                        for i in range(3):
+                            new_node.inputs[dst_i].default_value[i] = src_dval
+                        if new_node.type == 'MIX_RGB':
+                            if node.operation in [t[0] for t in blend_types]:
+                                new_node.blend_type = node.operation
+                            # Set Fac of MIX_RGB to 1.0
+                            new_node.inputs[0].default_value = 1.0
+                    # make link only when dst matching input is not linked already.
+                    if node.inputs[src_i].links and not new_node.inputs[dst_i].links:
+                        in_src_link = node.inputs[src_i].links[0]
+                        in_dst_socket = new_node.inputs[dst_i]
+                        links.new(in_src_link.from_socket, in_dst_socket)
+                        links.remove(in_src_link)
+                # OUTPUTS: Base on matches in proper order.
+                for (src_i, src_dval), (dst_i, dst_dval) in matches['OUTPUTS'][tp]:
+                    for out_src_link in node.outputs[src_i].links:
+                        out_dst_socket = new_node.outputs[dst_i]
+                        links.new(out_dst_socket, out_src_link.to_socket)
+            # relink rest inputs if possible, no criteria
+            for src_inp in node.inputs:
+                for dst_inp in new_node.inputs:
+                    if src_inp.links and not dst_inp.links:
+                        src_link = src_inp.links[0]
+                        links.new(src_link.from_socket, dst_inp)
+                        links.remove(src_link)
+            # relink rest outputs if possible, base on node kind if any left.
+            for src_o in node.outputs:
+                for out_src_link in src_o.links:
+                    for dst_o in new_node.outputs:
+                        if src_o.type == dst_o.type:
+                            links.new(dst_o, out_src_link.to_socket)
+            # relink rest outputs no criteria if any left. Link all from first output.
+            for src_o in node.outputs:
+                for out_src_link in src_o.links:
+                    if new_node.outputs:
+                        links.new(new_node.outputs[0], out_src_link.to_socket)
+            nodes.remove(node)
         return {'FINISHED'}
-
-
-class NWSwapMixMathAlpha(Operator, NWBase):
-
-    "Swap the selected nodes"
-    bl_idname = 'node.nw_swap_mixmathalpha'
-    bl_label = 'Swap Mix/Math/Alpha Over'
-    newtype = StringProperty()
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-
-        selected_nodes = context.selected_nodes
-        new_nodes = []
-        old_nodes = []
-        for node in selected_nodes:
-            if node.type in ["MIX_RGB", "MATH", "ALPHAOVER"]:
-                old_nodes.append(node)
-                newnode = nodes.new(self.newtype)
-                newnode.location.x = node.location.x
-                newnode.location.y = node.location.y
-
-                if node.type == "MIX_RGB" and (self.newtype == "ShaderNodeMath" or self.newtype == "CompositorNodeMath"):
-                    io1 = node.inputs[1]
-                    io2 = node.inputs[2]
-                    in1 = newnode.inputs[0]
-                    in2 = newnode.inputs[1]
-                    for link in io1.links:
-                        links.new(link.from_socket, in1)
-                    for link in io2.links:
-                        links.new(link.from_socket, in2)
-                    for link in node.outputs[0].links:
-                        links.new(link.to_socket, newnode.outputs[0])
-                    in1.default_value = max([io1.default_value[0], io1.default_value[1], io1.default_value[2]])
-                    in2.default_value = max([io2.default_value[0], io2.default_value[1], io2.default_value[2]])
-                    try:
-                        newnode.operation = node.blend_type
-                    except:
-                        self.report({'WARNING'}, 'Warning: Cannot make matching Blend Type/Operation for "'
-                                                  +node.name+'" ('+(node.blend_type).title()+')')
-
-                if node.type == "MATH" and (self.newtype == "ShaderNodeMixRGB" or self.newtype == "CompositorNodeMixRGB"):
-                    io1 = node.inputs[0]
-                    io2 = node.inputs[1]
-                    in1 = newnode.inputs[1]
-                    in2 = newnode.inputs[2]
-                    for link in io1.links:
-                        links.new(link.from_socket, in1)
-                    for link in io2.links:
-                        links.new(link.from_socket, in2)
-                    for link in node.outputs[0].links:
-                        links.new(link.to_socket, newnode.outputs[0])
-                    in1.default_value[0] = io1.default_value
-                    in1.default_value[1] = io1.default_value
-                    in1.default_value[2] = io1.default_value
-                    in2.default_value[0] = io2.default_value
-                    in2.default_value[1] = io2.default_value
-                    in2.default_value[2] = io2.default_value
-                    try:
-                        newnode.blend_type = node.operation
-                    except:
-                        self.report({'WARNING'}, 'Warning: Cannot make matching Blend Type/Operation for "'
-                                                  +node.name+'" ('+(node.operation).title()+')')
-
-                if node.type == "ALPHAOVER" and self.newtype == "CompositorNodeMixRGB":
-                    io1 = node.inputs[1]
-                    io2 = node.inputs[2]
-                    in1 = newnode.inputs[1]
-                    in2 = newnode.inputs[2]
-                    for link in io1.links:
-                        links.new(link.from_socket, in1)
-                    for link in io2.links:
-                        links.new(link.from_socket, in2)
-                    for link in node.outputs[0].links:
-                        links.new(link.to_socket, newnode.outputs[0])
-                    if node.inputs[2].links:
-                        alphalinks = [n for n in node.inputs[2].links[0].from_node.outputs if n.name == "Alpha"]
-                        if (alphalinks):
-                            for al in alphalinks:
-                                links.new(al, newnode.inputs[0])
-                    in1.default_value[0] = io1.default_value[0]
-                    in1.default_value[1] = io1.default_value[1]
-                    in1.default_value[2] = io1.default_value[2]
-                    in2.default_value[0] = io2.default_value[0]
-                    in2.default_value[1] = io2.default_value[1]
-                    in2.default_value[2] = io2.default_value[2]
-
-                if node.type == "MIX_RGB" and self.newtype == "CompositorNodeAlphaOver":
-                    io1 = node.inputs[1]
-                    io2 = node.inputs[2]
-                    in1 = newnode.inputs[1]
-                    in2 = newnode.inputs[2]
-                    for link in io1.links:
-                        links.new(link.from_socket, in1)
-                    for link in io2.links:
-                        links.new(link.from_socket, in2)
-                    for link in node.outputs[0].links:
-                        links.new(link.to_socket, newnode.outputs[0])
-                    in1.default_value[0] = io1.default_value[0]
-                    in1.default_value[1] = io1.default_value[1]
-                    in1.default_value[2] = io1.default_value[2]
-                    in2.default_value[0] = io2.default_value[0]
-                    in2.default_value[1] = io2.default_value[1]
-                    in2.default_value[2] = io2.default_value[2]
-
-                if nodes.active == node:
-                    nodes.active = newnode
-
-                if hasattr(newnode, 'show_preview'):
-                    newnode.show_preview = False
-                if hasattr(newnode, 'use_clamp') and hasattr(node, 'use_clamp'):
-                    newnode.use_clamp = node.use_clamp
-                newnode.label = node.label
-
-                newnode.select = False
-                new_nodes.append(newnode)
-                nodes.remove(node)
-
-        for n in new_nodes:
-            n.select = True
-
-        return {'FINISHED'}
-
-
-class NWSwapAddMixShader(Operator, NWBase):
-
-    "Swap the selected nodes"
-    bl_idname = 'node.nw_swap_addmixshader'
-    bl_label = 'Swap Add/Mix Shaders'
-    newtype = StringProperty()
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-
-        selected_nodes = context.selected_nodes
-        new_nodes = []
-        old_nodes = []
-        newnode = None
-
-        for node in selected_nodes:
-            cnd_toadd = (node.type == 'MIX_SHADER' and self.newtype == 'ShaderNodeAddShader')
-            cnd_tomix = (node.type == 'ADD_SHADER' and self.newtype == 'ShaderNodeMixShader')
-
-            if cnd_toadd or cnd_tomix:
-                old_nodes.append(node)
-                newnode = nodes.new(self.newtype)
-                newnode.location.x = node.location.x
-                newnode.location.y = node.location.y
-
-            if cnd_toadd:
-                for link in node.inputs[1].links:
-                    links.new(link.from_socket, newnode.inputs[0])
-                for link in node.inputs[2].links:
-                    links.new(link.from_socket, newnode.inputs[1])
-            elif cnd_tomix:
-                for link in node.inputs[0].links:
-                    links.new(link.from_socket, newnode.inputs[1])
-                for link in node.inputs[1].links:
-                    links.new(link.from_socket, newnode.inputs[2])
-                newnode.inputs[0].default_value = 1.0 # set mix fac to 1.0
-
-            if cnd_tomix or cnd_toadd:
-                for link in node.outputs[0].links:
-                    links.new(newnode.outputs[0], link.to_socket)
-
-                newnode.select = False
-                new_nodes.append(newnode)
-                nodes.remove(node)
-
-        for n in new_nodes:
-            n.select = True
-
-        return {'FINISHED'}
-
-
-class NWSwapType(Operator, NWBase):
-
-    "Swap the selected nodes to another type"
-    bl_idname = 'node.nw_swap'
-    bl_label = 'Swap Type'
-    newtype = StringProperty()
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-
-        selected_nodes = context.selected_nodes
-        new_nodes = []
-        for node in selected_nodes:
-            # connections list: to/from socket object, swapped node's socket name, swapped node's socket type
-            input_connections = []
-            output_connections = []
-            input_defaults = {}
-            newnode = nodes.new(self.newtype)
-            newnode.location.x = node.location.x
-            newnode.location.y = node.location.y
-
-            for inpt in node.inputs:
-                if hasattr(inpt, 'default_value'):
-                    input_defaults[inpt.name] = inpt.default_value
-                for link in inpt.links:
-                    input_connections.append((link.from_socket, link.to_socket.name, link.to_socket.type))
-            for c in input_connections:
-                connection_made = False
-                for inpt in newnode.inputs:
-                    if inpt.name == c[1] and not connection_made:
-                        links.new(c[0], inpt)
-                        connection_made = True
-                if not connection_made: # if there is no socket name match, try to match by type
-                    for inpt in newnode.inputs:
-                        if inpt.type == c[2] and not connection_made:
-                            links.new(c[0], inpt)
-                            connection_made = True
-            for inpt in newnode.inputs: # set default_values
-                if inpt.name in input_defaults:
-                    inpt.default_value = input_defaults[inpt.name]
-
-            for attr in non_input_attrs:
-                if hasattr(node, attr) and hasattr(newnode, attr):
-                    if getattr(node, attr):
-                        try:
-                            setattr(newnode, attr, getattr(node, attr))
-                        except:
-                            print ("Failed to set \'"+attr+"\'' on \'"+newnode.name+"\'")
-
-            for outpt in node.outputs:
-                for link in outpt.links:
-                    output_connections.append((link.to_socket, link.from_socket.name, link.from_socket.type))
-            for c in output_connections:
-                connection_made = False
-                for outpt in newnode.outputs:
-                    if outpt.name == c[1] and not connection_made:
-                        links.new(c[0], outpt)
-                        connection_made = True
-                if not connection_made:
-                    for outpt in newnode.outputs:
-                        if outpt.type == c[2] and not connection_made:
-                            links.new(c[0], outpt)
-                            connection_made = True
-
-            if nodes.active == node:
-                nodes.active = newnode
-
-            newnode.select = False
-            new_nodes.append(newnode)
-
-        bpy.ops.node.delete() # remove old nodes
-
-        for n in new_nodes:
-            n.select = True
-
-        return {'FINISHED'}
-
 
 class NWMergeNodes(Operator, NWBase):
     bl_idname = "node.nw_merge_nodes"
@@ -2390,7 +2501,7 @@ def drawlayout(context, layout, mode = 'non-panel'):
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWSwapMenu.bl_idname, text = "Swap Type/Node")
+    col.menu(NWSwapNodeTypeMenu.bl_idname, text = "Swap Type/Node")
     col.separator()
 
     if tree_type == 'ShaderNodeTree':
@@ -2466,81 +2577,6 @@ class NodeWranglerMenu(Menu, NWBase):
 
     def draw(self, context):
         drawlayout(context, self.layout)
-
-
-class NWSwapMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_type_swap_menu"
-    bl_label = "Swap the type of selected nodes"
-
-    @classmethod
-    def poll(cls, context):
-        valid = False
-        shader_types = [x[1] for x in regular_shaders]
-        texture_types = [x[1] for x in texture_list]
-        misc_good_types = 'MIX_SHADER', 'ADD_SHADER', 'MATH', 'MIX_RGB', 'ALPHAOVER', 'REROUTE', 'SWITCH'
-        if context.space_data.node_tree:
-            tree = context.space_data.node_tree
-            if tree.type == 'SHADER' or tree.type == 'COMPOSITING':
-                if context.selected_nodes:
-                    checknode = None
-                    if tree.nodes.active in context.selected_nodes:
-                        checknode = tree.nodes.active
-                    else:
-                        checknode = context.selected_nodes[0]
-
-                    if checknode.type in shader_types or \
-                       checknode.type in texture_types or \
-                       checknode.type in misc_good_types:
-                        valid = True
-        return valid
-            
-    def draw(self, context):
-        l = self.layout
-        nodes, links = get_nodes_links(context)
-        tree = context.space_data.node_tree
-        shader_idents = [x[0] for x in regular_shaders]
-        shader_types = [x[1] for x in regular_shaders]
-        shader_names = [x[2] for x in regular_shaders]
-        texture_idents = [x[0] for x in texture_list]
-        texture_types = [x[1] for x in texture_list]
-        texture_names = [x[2] for x in texture_list]
-
-        if context.selected_nodes:
-            row = l.row()
-            if tree.type == 'SHADER':
-                index=0
-                sub = row.column()
-                sub.label("    Shaders")
-                for node_type in shader_names:
-                    sub.operator(NWSwapType.bl_idname, text = node_type).newtype = shader_idents[index]
-                    index+=1
-                index=0
-                sub = row.column()
-                sub.label("    Textures")
-                for node_type in texture_names:
-                    sub.operator(NWSwapType.bl_idname, text = node_type).newtype = texture_idents[index]
-                    index+=1
-                sub = row.column()
-                sub.label("    Other")
-                sub.operator(NWSwapAddMixShader.bl_idname, text = "Swap to Add Shader").newtype = 'ShaderNodeAddShader'
-                sub.operator(NWSwapAddMixShader.bl_idname, text = "Swap to Mix Shader").newtype = 'ShaderNodeMixShader'
-                sub.separator()
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Mix").newtype = 'ShaderNodeMixRGB'
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'ShaderNodeMath'
-            elif tree.type == 'COMPOSITING':
-                sub = row.column()
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Mix").newtype = 'CompositorNodeMixRGB'
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Math").newtype = 'CompositorNodeMath'
-                sub.separator()
-                # Shader nodes have no Alpha Over or Switch:
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap to Alpha Over").newtype = 'CompositorNodeAlphaOver'
-                sub.operator(NWSwapMixMathAlpha.bl_idname, text = "Swap Alpha Over to Mix").newtype = 'CompositorNodeMixRGB'
-                sub.separator()
-                sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Switch").newtype = 'CompositorNodeSwitch'
-                sub.operator(NWSwapSwitchReroute.bl_idname, text = "Swap to Reroute").newtype = 'NodeReroute'
-                # TODO, make all these modes work for all nodes in the selection (where relevant - e.g: when swapping shader type only change the selected shader nodes)
-        else:
-            l.label("No Nodes Selected")
 
 
 class NWMergeNodesMenu(Menu, NWBase):
@@ -2767,6 +2803,207 @@ class NWUVMenu(bpy.types.Menu):
             l.label("No UV layers on objects with this material")
 
 
+class NWSwapNodeTypeMenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_node_type_menu"
+    bl_label = "Swap Type to..."
+    
+    def draw(self, context):
+        layout = self.layout
+        tree = context.space_data.node_tree
+        if tree.type == 'SHADER':
+            layout.menu(NWSwapShadersInputSubmenu.bl_idname)
+            layout.menu(NWSwapShadersOutputSubmenu.bl_idname)
+            layout.menu(NWSwapShadersShaderSubmenu.bl_idname)
+            layout.menu(NWSwapShadersTextureSubmenu.bl_idname)
+            layout.menu(NWSwapShadersColorSubmenu.bl_idname)
+            layout.menu(NWSwapShadersVectorSubmenu.bl_idname)
+            layout.menu(NWSwapShadersConverterSubmenu.bl_idname)
+            layout.menu(NWSwapShadersLayoutSubmenu.bl_idname)
+        if tree.type == 'COMPOSITING':
+            layout.menu(NWSwapCompoInputSubmenu.bl_idname)
+            layout.menu(NWSwapCompoOutputSubmenu.bl_idname)
+            layout.menu(NWSwapCompoColorSubmenu.bl_idname)
+            layout.menu(NWSwapCompoConverterSubmenu.bl_idname)
+            layout.menu(NWSwapCompoFilterSubmenu.bl_idname)
+            layout.menu(NWSwapCompoVectorSubmenu.bl_idname)
+            layout.menu(NWSwapCompoMatteSubmenu.bl_idname)
+            layout.menu(NWSwapCompoDistortSubmenu.bl_idname)
+            layout.menu(NWSwapCompoLayoutSubmenu.bl_idname)
+
+
+class NWSwapShadersInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_input_submenu"
+    bl_label = "Input"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_input_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_output_submenu"
+    bl_label = "Output"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_output_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersShaderSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_shader_submenu"
+    bl_label = "Shader"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_shader_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersTextureSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_texture_submenu"
+    bl_label = "Texture"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_texture_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_color_submenu"
+    bl_label = "Color"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_color_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersVectorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_vector_submenu"
+    bl_label = "Vector"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_vector_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_converter_submenu"
+    bl_label = "Converter"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_converter_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapShadersLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_shaders_layout_submenu"
+    bl_label = "Layout"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in shaders_layout_nodes_props:
+            if type != 'FRAME':
+                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
+
+class NWSwapCompoInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_input_submenu"
+    bl_label = "Input"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_input_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_output_submenu"
+    bl_label = "Output"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_output_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_color_submenu"
+    bl_label = "Color"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_color_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_converter_submenu"
+    bl_label = "Converter"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_converter_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoFilterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_filter_submenu"
+    bl_label = "Filter"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_filter_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoVectorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_vector_submenu"
+    bl_label = "Vector"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_vector_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoMatteSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_matte_submenu"
+    bl_label = "Matte"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_matte_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoDistortSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_distort_submenu"
+    bl_label = "Distort"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_distort_nodes_props:
+            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+class NWSwapCompoLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_swap_compo_layout_submenu"
+    bl_label = "Layout"
+    
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in compo_layout_nodes_props:
+            if type != 'FRAME':
+                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
+
+
 #############################################################
 #  APPENDAGES TO EXISTING UI
 #############################################################
@@ -2980,7 +3217,7 @@ kmi_defs = (
     ('wm.call_menu', 'EQUAL', False, True, False, (('name', NWNodeAlignMenu.bl_idname),), "Node alignment menu"),
     ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', False, True, False, (('name', NWSwapMenu.bl_idname),), "Swap node menu"),
+    ('wm.call_menu', 'S', False, True, False, (('name', NWSwapNodeTypeMenu.bl_idname),), "Swap node type menu"),
     )
 # TODO, make new function keymaps use class.bl_idname and not op.name directly
 
