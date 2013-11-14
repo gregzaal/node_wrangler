@@ -79,6 +79,7 @@ rl_outputs = (
 
 # shader nodes
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_input_nodes_props = (
     ('ShaderNodeTexCoord', 'TEX_COORD', 'Texture Coordinate'),
     ('ShaderNodeAttribute', 'ATTRIBUTE', 'Attribute'),
@@ -96,12 +97,14 @@ shaders_input_nodes_props = (
     ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_output_nodes_props = (
     ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
     ('ShaderNodeOutputLamp', 'OUTPUT_LAMP', 'Lamp Output'),
     ('ShaderNodeOutputWorld', 'OUTPUT_WORLD', 'World Output'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_shader_nodes_props = (
     ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
     ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
@@ -121,6 +124,7 @@ shaders_shader_nodes_props = (
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_texture_nodes_props = (
     ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
     ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
@@ -135,6 +139,7 @@ shaders_texture_nodes_props = (
     ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_color_nodes_props = (
     ('ShaderNodeMixRGB', 'MIX_RGB', 'MixRGB'),
     ('ShaderNodeRGBCurve', 'CURVE_RGB', 'RGB Curves'),
@@ -145,6 +150,7 @@ shaders_color_nodes_props = (
     ('ShaderNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright Contrast'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_vector_nodes_props = (
     ('ShaderNodeMapping', 'MAPPING', 'Mapping'),
     ('ShaderNodeBump', 'BUMP', 'Bump'),
@@ -154,6 +160,7 @@ shaders_vector_nodes_props = (
     ('ShaderNodeVectorTransform', 'VECT_TRANSFORM', 'Vector Transform'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_converter_nodes_props = (
     ('ShaderNodeMath', 'MATH', 'Math'),
     ('ShaderNodeValToRGB', 'VALTORGB', 'ColorRamp'),
@@ -167,6 +174,7 @@ shaders_converter_nodes_props = (
     ('ShaderNodeBlackbody', 'BLACKBODY', 'Blackbody'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
@@ -174,6 +182,7 @@ shaders_layout_nodes_props = (
 
 # compositing nodes
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_input_nodes_props = (
     ('CompositorNodeRLayers', 'R_LAYERS', 'Render Layers'),
     ('CompositorNodeImage', 'IMAGE', 'Image'),
@@ -187,6 +196,7 @@ compo_input_nodes_props = (
     ('CompositorNodeTrackPos', 'TRACKPOS', 'Track Position'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_output_nodes_props = (
     ('CompositorNodeComposite', 'COMPOSITE', 'Composite'),
     ('CompositorNodeViewer', 'VIEWER', 'Viewer'),
@@ -195,6 +205,7 @@ compo_output_nodes_props = (
     ('CompositorNodeLevels', 'LEVELS', 'Levels'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_color_nodes_props = (
     ('CompositorNodeMixRGB', 'MIX_RGB', 'Mix'),
     ('CompositorNodeAlphaOver', 'ALPHAOVER', 'Alpha Over'),
@@ -210,6 +221,7 @@ compo_color_nodes_props = (
     ('CompositorNodeZcombine', 'ZCOMBINE', 'Z Combine'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_converter_nodes_props = (
     ('CompositorNodeMath', 'MATH', 'Math'),
     ('CompositorNodeValToRGB', 'VALTORGB', 'ColorRamp'),
@@ -227,6 +239,7 @@ compo_converter_nodes_props = (
     ('CompositorNodeCombYCCA', 'COMBYCCA', 'Combine YCbCrA'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_filter_nodes_props = (
     ('CompositorNodeBlur', 'BLUR', 'Blur'),
     ('CompositorNodeBilateralblur', 'BILATERALBLUR', 'Bilateral Blur'),
@@ -242,6 +255,7 @@ compo_filter_nodes_props = (
     ('CompositorNodePixelate', 'PIXELATE', 'Pixelate'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_vector_nodes_props = (
     ('CompositorNodeNormal', 'NORMAL', 'Normal'),
     ('CompositorNodeMapValue', 'MAP_VALUE', 'Map Value'),
@@ -250,6 +264,7 @@ compo_vector_nodes_props = (
     ('CompositorNodeCurveVec', 'CURVE_VEC', 'Vector Curves'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_matte_nodes_props = (
     ('CompositorNodeKeying', 'KEYING', 'Keying'),
     ('CompositorNodeKeyingScreen', 'KEYINGSCREEN', 'Keying Screen'),
@@ -265,6 +280,7 @@ compo_matte_nodes_props = (
     ('CompositorNodeDoubleEdgeMask', 'DOUBLEEDGEMASK', 'Double Edge Mask'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_distort_nodes_props = (
     ('CompositorNodeScale', 'SCALE', 'Scale'),
     ('CompositorNodeLensdist', 'LENSDIST', 'Lens Distortion'),
@@ -280,6 +296,7 @@ compo_distort_nodes_props = (
     ('CompositorNodePlaneTrackDeform', 'PLANETRACKDEFORM', 'Plane Track Deform'),
     )
 # (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
@@ -331,77 +348,13 @@ operations = [
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
     ]
 
-# in NWBatchChangeNodes additional types/operations in a form that can be used as 'items' for EnumProperty.
+# in NWBatchChangeNodes additional types/operations. Can be used as 'items' for EnumProperty.
 # used list, not tuple for easy merging with other lists.
 navs = [
     ('CURRENT', 'Current', 'Leave at current state'),
     ('NEXT', 'Next', 'Next blend type/operation'),
     ('PREV', 'Prev', 'Previous blend type/operation'),
     ]
-
-# list of mixing shaders
-merge_shaders_types = ('MIX', 'ADD')
-
-# list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
-# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
-regular_shaders = (
-    ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
-    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
-    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
-    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
-    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
-    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
-    ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
-    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
-    ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
-    ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
-    ('ShaderNodeEmission', 'EMISSION', 'Emission'),
-    ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
-    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
-    ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
-    )
-
-# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
-merge_shaders = (
-    ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
-    ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
-    )
-
-# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
-texture_list = (
-    ('ShaderNodeTexImage', 'TEX_IMAGE', 'Image'),
-    ('ShaderNodeTexEnvironment', 'TEX_ENVIRONMENT', 'Environment'),
-    ('ShaderNodeTexSky', 'TEX_SKY', 'Sky'),
-    ('ShaderNodeTexNoise', 'TEX_NOISE', 'Noise'),
-    ('ShaderNodeTexWave', 'TEX_WAVE', 'Wave'),
-    ('ShaderNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'),
-    ('ShaderNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'),
-    ('ShaderNodeTexGradient', 'TEX_GRADIENT', 'Gradient'),
-    ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
-    ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
-    ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
-    )
-
-output_types = 'OUTPUT_MATERIAL', 'OUTPUT_WORLD', 'OUTPUT_LAMP', 'COMPOSITE'
-
-non_input_attrs = (
-    'image',
-    'color_space',
-    'projection',
-    'distribution',
-    'component',
-    'falloff',
-    'sundirection',
-    'wave_type',
-    'coloring',
-    'musgrave_type',
-    'gradient_type',
-    'turbulence_depth',
-    'offset',
-    'offset_frequency',
-    'squash',
-    'squash_frequency'
-    )
 
 draw_color_sets = {
     "red_white": (
@@ -501,34 +454,12 @@ def hack_force_update(nodes):
         if node.inputs:
             for inpt in node.inputs:
                 try:
-                    inpt.default_value = inpt.default_value # set value to itself to force update
+                    # set value to itself to force update
+                    inpt.default_value = inpt.default_value
                     return True
                 except:
                     pass
     return False
-
-
-def get_nodes_links(context):
-    space = context.space_data
-    tree = space.node_tree
-    nodes = tree.nodes
-    links = tree.links
-    active = nodes.active
-    context_active = context.active_node
-    # check if we are working on regular node tree or node group is currently edited.
-    # if group is edited - active node of space_tree is the group
-    # if context.active_node != space active node - it means that the group is being edited.
-    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
-    # if context.active_node == space.active_node it means that we are not currently editing group
-    is_main_tree = True
-    if active:
-        is_main_tree = context_active == active
-    if not is_main_tree:  # if group is currently edited
-        tree = active.node_tree
-        nodes = tree.nodes
-        links = tree.links
-
-    return nodes, links
 
 
 def is_start_node(node):
@@ -547,25 +478,6 @@ def is_end_node(node):
             bool = False
             break
     return bool
-
-def overlaps(node1, node2):
-    dim1x = node1.dimensions.x
-    dim1y = node1.dimensions.y
-    dim2x = node2.dimensions.x
-    dim2y = node2.dimensions.y
-    
-    return(
-        (  # check for x overlap
-            # if either edges are inside the second node
-            (node2.location.x <= node1.location.x <= (node2.location.x + dim2x)) or (node2.location.x <= (node1.location.x + dim1x) <= (node2.location.x + dim2x)) or\
-            # if each edge is on either side of the second node
-            (node1.location.x <= node2.location.x <= (node1.location.x + dim1x)) and (node1.location.x <= (node2.location.x + dim2x) <= (node1.location.x + dim1x))
-            ) and\
-            (  # check for y overlap
-            ((node2.location.y - dim2y) <= node1.location.y <= node2.location.y) or ((node2.location.y - dim2y) <= (node1.location.y - dim1y) <= node2.location.y) or\
-            ((node1.location.y - dim1y) <= node2.location.y <= node1.location.y) and ((node1.location.y - dim1y) <= (node2.location.y - dim2y) <= node1.location.y)
-            )
-        )
 
 
 def node_mid_pt(node, axis):
@@ -699,15 +611,33 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
             bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
+def get_nodes_links(context):
+    space = context.space_data
+    tree = space.node_tree
+    nodes = tree.nodes
+    links = tree.links
+    active = nodes.active
+    context_active = context.active_node
+    # check if we are working on regular node tree or node group is currently edited.
+    # if group is edited - active node of space_tree is the group
+    # if context.active_node != space active node - it means that the group is being edited.
+    # in such case we set "nodes" to be nodes of this group, "links" to be links of this group
+    # if context.active_node == space.active_node it means that we are not currently editing group
+    is_main_tree = True
+    if active:
+        is_main_tree = context_active == active
+    if not is_main_tree:  # if group is currently edited
+        tree = active.node_tree
+        nodes = tree.nodes
+        links = tree.links
+
+    return nodes, links
+
+
 # Addon prefs
 class NWNodeWrangler(bpy.types.AddonPreferences):
     bl_idname = __name__
-
-    # merge_hide = bpy.props.BoolProperty(
-    #     name="Hide Mix Nodes on Creation",
-    #     default=True,
-    #     description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded"
-    # )
+    
     merge_hide = EnumProperty(
         name="Hide Mix nodes",
         items=(
@@ -1133,8 +1063,7 @@ class NWEmissionViewer(Operator, NWBase):
 
         # to select at specific mouse position:
         # bpy.ops.node.select(mouse_x=156, mouse_y=410, extend=False)
-        shader_types = [x[1] for x in regular_shaders]
-        mix_shader_types = [x[1] for x in merge_shaders]
+        shader_types = [x[1] for x in shaders_shader_nodes_props]
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
         select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
@@ -1143,10 +1072,11 @@ class NWEmissionViewer(Operator, NWBase):
             in_group = context.active_node != context.space_data.node_tree.nodes.active
             active = nodes.active
             valid = False
+            output_types = [x[1] for x in shaders_output_nodes_props]
             if active:
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
                     if active.select:
-                        if active.type not in shader_types and active.type not in mix_shader_types:
+                        if active.type not in shader_types:
                             valid = True
             if valid:                        
                 # get material_output node
@@ -1649,7 +1579,7 @@ class NWMergeNodes(Operator, NWBase):
             if node.select and node.outputs:
                 if merge_type == 'AUTO':
                     for (type, types_list, dst) in (
-                            ('SHADER', merge_shaders_types, selected_shader),
+                            ('SHADER', ('MIX', 'ADD'), selected_shader),
                             ('RGBA', [t[0] for t in blend_types], selected_mix),
                             ('VALUE', [t[0] for t in operations], selected_math),
                             ):
@@ -1667,7 +1597,7 @@ class NWMergeNodes(Operator, NWBase):
                             dst.append([i, node.location.x, node.location.y])
                 else:
                     for (type, types_list, dst) in (
-                            ('SHADER', merge_shaders_types, selected_shader),
+                            ('SHADER', ('MIX', 'ADD'), selected_shader),
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
                             ):
@@ -1791,6 +1721,7 @@ class NWBatchChangeNodes(Operator, NWBase):
             )
 
     def execute(self, context):
+        
         nodes, links = get_nodes_links(context)
         blend_type = self.blend_type
         operation = self.operation
@@ -2063,8 +1994,8 @@ class NWAddTextureSetup(Operator, NWBase):
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active
-        shader_types = [x[1] for x in regular_shaders]
-        texture_types = [x[1] for x in texture_list]
+        shader_types = [x[1] for x in shaders_shader_nodes_props if x[1] not in {'MIX_SHADER', 'ADD_SHADER'}]
+        texture_types = [x[1] for x in shaders_texture_nodes_props]
         valid = False
         if active:
             if active.select:
@@ -2076,10 +2007,10 @@ class NWAddTextureSetup(Operator, NWBase):
             locy = active.location.y
             
             xoffset = [500.0, 700.0]
-            isshader=True
+            isshader = True
             if active.type not in shader_types:
-                xoffset=[290.0, 500.0]
-                isshader=False
+                xoffset = [290.0, 500.0]
+                isshader = False
                 
             coordout=2
             image_type='ShaderNodeTexImage'
@@ -2087,18 +2018,18 @@ class NWAddTextureSetup(Operator, NWBase):
             if (active.type in texture_types and active.type != 'TEX_IMAGE') or (active.type == 'BACKGROUND'):
                 coordout=0 # image texture uses UVs, procedural textures and Background shader use Generated
                 if active.type == 'BACKGROUND':
-                    image_type='ShaderNodeTexEnvironment'
+                    image_type = 'ShaderNodeTexEnvironment'
                     
             if isshader:
-                tex = nodes.new (image_type)
+                tex = nodes.new(image_type)
                 tex.location = [locx - 200.0, locy + 28.0]
                 
             map = nodes.new('ShaderNodeMapping')
             map.location = [locx - xoffset[0], locy + 80.0]
-            map.width=240
+            map.width = 240
             coord = nodes.new('ShaderNodeTexCoord')            
             coord.location = [locx - xoffset[1], locy+40.0]
-            active.select=False
+            active.select = False
             
             if isshader:
                 nodes.active = tex
@@ -2459,6 +2390,9 @@ class NWLinkToOutputNode(Operator, NWBase):
         active = nodes.active
         output_node = None
         tree_type = context.space_data.tree_type
+        output_types_shaders = [x[1] for x in shaders_output_nodes_props]
+        output_types_compo = ['COMPOSITE']
+        output_types = output_types_shaders + output_types_compo
         for node in nodes:
             if node.type in output_types:
                 output_node = node
@@ -2598,7 +2532,7 @@ class NWMergeShadersMenu(Menu, NWBase):
 
     def draw(self, context):
         layout = self.layout
-        for type in merge_shaders_types:
+        for type in ('MIX', 'ADD'):
             props = layout.operator(NWMergeNodes.bl_idname, text=type)
             props.mode = type
             props.merge_type = 'SHADER'
@@ -3297,3 +3231,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+ś
