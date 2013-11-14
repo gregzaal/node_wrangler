@@ -332,11 +332,11 @@ class NWSwapNodeType(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         to_type = self.to_type
         # Those types of nodes will not swap.
-        src_excludes = ('CompositorNodeComposite', 'NodeFrame')
+        src_excludes = ('NodeFrame')
         # Those attributes of nodes will be copied if possible
         attrs_to_pass = ('color', 'hide', 'label', 'mute', 'parent',\
             'show_options', 'show_preview', 'show_texture',\
-            'use_clamp', 'use_custom_color', 'location'
+            'use_alpha', 'use_clamp', 'use_custom_color', 'location'
             )
         selected = [n for n in nodes if n.select]
         reselect = []
@@ -347,6 +347,11 @@ class NWSwapNodeType(Operator, NWBase):
             for attr in attrs_to_pass:
                 if hasattr(node, attr) and hasattr(new_node, attr):
                     setattr(new_node, attr, getattr(node, attr))
+            # set image datablock of dst to image of src
+            if hasattr(node, 'image') and hasattr(new_node, 'image'):
+                if node.image:
+                    new_node.image = node.image
+            # Special cases
             if new_node.type == 'SWITCH':
                 new_node.hide = True
             # Dictionaries: src_sockets and dst_sockets:
