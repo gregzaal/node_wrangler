@@ -746,7 +746,7 @@ class NWLazyMix(Operator, NWBase):
             end_pos = [event.mouse_region_x, event.mouse_region_y]
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
-            node2=None
+            node2 = None
             node2 = node_at_pos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
@@ -819,7 +819,7 @@ class NWLazyConnect(Operator, NWBase):
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
 
-        elif event.type == 'LEFTMOUSE':
+        elif event.type == 'RIGHTMOUSE':
             end_pos = [event.mouse_region_x, event.mouse_region_y]
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
@@ -3143,7 +3143,7 @@ kmi_defs = (
     # Lazy Mix
     (NWLazyMix.bl_idname, 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
-    (NWLazyConnect.bl_idname, 'LEFTMOUSE', False, False, True, None, "Lazy Connect"),
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, False, False, None, "Lazy Connect"),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
