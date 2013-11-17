@@ -497,6 +497,29 @@ def autolink (node1, node2, links):
                 link_made = True
                 links.new(outp, inp)
                 return True
+    if not link_made: # force some connection even if the type doesn't match
+        for outp in node1.outputs:
+            for inp in node2.inputs:
+                if not inp.is_linked:
+                    link_made = True
+                    links.new(outp, inp)
+                    return True
+    if not link_made:  # even if no sockets are open, force one of matching type
+        for outp in node1.outputs:
+            for inp in node2.inputs:
+                if inp.type == outp.type:
+                    link_made = True
+                    links.new(outp, inp)
+                    return True
+    if not link_made:  # do something!
+        for outp in node1.outputs:
+            for inp in node2.inputs:
+                link_made = True
+                links.new(outp, inp)
+                return True
+
+    if not link_made:
+        self.report({'ERROR'}, ("Could not make a link from "+node1.name+" to "+node2.name))
     return link_made
 
 
