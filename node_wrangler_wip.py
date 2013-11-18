@@ -497,29 +497,31 @@ def autolink (node1, node2, links):
                 link_made = True
                 links.new(outp, inp)
                 return True
-    if not link_made: # force some connection even if the type doesn't match
-        for outp in node1.outputs:
-            for inp in node2.inputs:
-                if not inp.is_linked:
-                    link_made = True
-                    links.new(outp, inp)
-                    return True
-    if not link_made:  # even if no sockets are open, force one of matching type
-        for outp in node1.outputs:
-            for inp in node2.inputs:
-                if inp.type == outp.type:
-                    link_made = True
-                    links.new(outp, inp)
-                    return True
-    if not link_made:  # do something!
-        for outp in node1.outputs:
-            for inp in node2.inputs:
+
+    # force some connection even if the type doesn't match
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if not inp.is_linked:
                 link_made = True
                 links.new(outp, inp)
                 return True
 
-    if not link_made:
-        print ("Could not make a link from " + node1.name + " to " + node2.name)
+    # even if no sockets are open, force one of matching type
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if inp.type == outp.type:
+                link_made = True
+                links.new(outp, inp)
+                return True
+
+    # do something!
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            link_made = True
+            links.new(outp, inp)
+            return True
+
+    print ("Could not make a link from " + node1.name + " to " + node2.name)
     return link_made
 
 
@@ -867,14 +869,15 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    autolink(node1, node2, links) # TODO replace with own function
+                    link_success = autolink(node1, node2, links) # TODO replace with own function
 
                     for node in original_sel:
                         node.select = True
                     for node in original_unsel:
                         node.select = False
 
-            hack_force_update(nodes)
+            if link_success:
+                hack_force_update(nodes)
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
 
