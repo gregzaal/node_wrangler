@@ -519,7 +519,7 @@ def autolink (node1, node2, links):
                 return True
 
     if not link_made:
-        self.report({'ERROR'}, ("Could not make a link from "+node1.name+" to "+node2.name))
+        print ("Could not make a link from " + node1.name + " to " + node2.name)
     return link_made
 
 
