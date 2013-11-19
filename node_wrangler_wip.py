@@ -1,4 +1,4 @@
-# BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# END GPL LICENSE BLOCK #####
+# ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
@@ -37,7 +37,7 @@ from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty,
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
 
-#
+#################
 # rl_outputs:
 # list of outputs of Input Render Layer
 # with attributes determinig if pass is used,
@@ -817,8 +817,6 @@ class NWLazyMix(Operator, NWBase):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
-# TODO - won't connect if the only available sockets are already connected, so force it in this case to the first possible one
-
 
 class NWLazyConnect(Operator, NWBase):
 
@@ -1058,18 +1056,18 @@ class NWResetBG(Operator, NWBase):
         return {'FINISHED'}
 
 
-class NWAddUVNode(Operator, NWBase):
+class NWAddAttrNode(Operator, NWBase):
 
-    "Add an Attribute node for this UV layer"
-    bl_idname = 'node.nw_add_uv_node'
+    "Add an Attribute node with this name"
+    bl_idname = 'node.nw_add_attr_node'
     bl_label = 'Add UV map'
-    uv_name = StringProperty()
+    attr_name = StringProperty()
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type="ShaderNodeAttribute")
         nodes, links = get_nodes_links(context)
-        nodes.active.attribute_name = self.uv_name
+        nodes.active.attribute_name = self.attr_name
         return {'FINISHED'}
 
 
@@ -2761,9 +2759,47 @@ class NWUVMenu(bpy.types.Menu):
 
         if uvs:
             for uv in uvs:
-                l.operator(NWAddUVNode.bl_idname, text=uv).uv_name = uv
+                l.operator(NWAddAttrNode.bl_idname, text=uv).attr_name = uv
         else:
             l.label("No UV layers on objects with this material")
+
+
+class NWVertColMenu(bpy.types.Menu):
+    bl_idname = "NODE_MT_nw_node_vertex_color_menu"
+    bl_label = "Vertex Colors"
+
+    @classmethod
+    def poll(cls, context):
+        if context.area.spaces[0].node_tree:
+            if context.area.spaces[0].node_tree.type == 'SHADER':
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def draw(self, context):
+        l = self.layout
+        nodes, links = get_nodes_links(context)
+        mat = context.object.active_material
+
+        objs = []
+        for obj in bpy.data.objects:
+            for slot in obj.material_slots:
+                if slot.material == mat:
+                    objs.append(obj)
+        vcols = []
+        for obj in objs:
+            if obj.data.vertex_colors:
+                for vcol in obj.data.vertex_colors:
+                    vcols.append(vcol.name)
+        vcols = list(set(vcols))  # get a unique list
+
+        if vcols:
+            for vcol in vcols:
+                l.operator(NWAddAttrNode.bl_idname, text=vcol).attr_name = vcol
+        else:
+            l.label("No Vertex Color layers on objects with this material")
 
 
 class NWSwapNodeTypeMenu(Menu, NWBase):
@@ -2994,8 +3030,12 @@ def select_parent_children_buttons(self, context):
     layout.operator(NWSelectParentChildren.bl_idname, text="Select parent frame").option = 'PARENT'
 
 
-def uvs_menu_func(self, context):
-    self.layout.menu("NODE_MT_nw_node_uvs_menu")
+def attr_nodes_menu_func(self, context):
+    col = self.layout.column(align=True)
+    col.menu("NODE_MT_nw_node_uvs_menu")
+    col.menu("NODE_MT_nw_node_vertex_color_menu")
+    col.separator()
+
 
 
 def bgreset_menu_func(self, context):
@@ -3247,7 +3287,8 @@ def register():
 
     # menu items
     bpy.types.NODE_MT_select.append(select_parent_children_buttons)
-    bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(uvs_menu_func)
+    bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
+    bpy.types.NODE_PT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
     bpy.types.NODE_PT_active_node_properties.append(showimage_menu_func)
 
@@ -3271,7 +3312,8 @@ def unregister():
 
     # menuitems
     bpy.types.NODE_MT_select.remove(select_parent_children_buttons)
-    bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(uvs_menu_func)
+    bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
+    bpy.types.NODE_PT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
     bpy.types.NODE_PT_active_node_properties.remove(showimage_menu_func)
 
