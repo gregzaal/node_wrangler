@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+# BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,7 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# ##### END GPL LICENSE BLOCK #####
+# END GPL LICENSE BLOCK #####
 
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
@@ -27,7 +27,7 @@ bl_info = {
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
     'tracker_url': "http://projects.blender.org/tracker/index.php?func=detail&aid=33543&group_id=153&atid=469",
     'category': "Node",
-    }
+}
 
 import bpy
 import blf
@@ -37,7 +37,7 @@ from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty,
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
 
-#################
+#
 # rl_outputs:
 # list of outputs of Input Render Layer
 # with attributes determinig if pass is used,
@@ -75,7 +75,7 @@ rl_outputs = (
     ('use_pass_uv', 'UV', 'UV', True, True),
     ('use_pass_vector', 'Speed', 'Vector', True, True),
     ('use_pass_z', 'Z', 'Depth', True, True),
-    )
+)
 
 # shader nodes
 # (rna_type.identifier, type, rna_type.name)
@@ -95,14 +95,14 @@ shaders_input_nodes_props = (
     ('ShaderNodeHairInfo', 'HAIR_INFO', 'Hair Info'),
     ('ShaderNodeParticleInfo', 'PARTICLE_INFO', 'Particle Info'),
     ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_output_nodes_props = (
     ('ShaderNodeOutputMaterial', 'OUTPUT_MATERIAL', 'Material Output'),
     ('ShaderNodeOutputLamp', 'OUTPUT_LAMP', 'Lamp Output'),
     ('ShaderNodeOutputWorld', 'OUTPUT_WORLD', 'World Output'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_shader_nodes_props = (
@@ -122,7 +122,7 @@ shaders_shader_nodes_props = (
     ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
     ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_texture_nodes_props = (
@@ -137,7 +137,7 @@ shaders_texture_nodes_props = (
     ('ShaderNodeTexMagic', 'TEX_MAGIC', 'Magic'),
     ('ShaderNodeTexChecker', 'TEX_CHECKER', 'Checker'),
     ('ShaderNodeTexBrick', 'TEX_BRICK', 'Brick')
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_color_nodes_props = (
@@ -148,7 +148,7 @@ shaders_color_nodes_props = (
     ('ShaderNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
     ('ShaderNodeGamma', 'GAMMA', 'Gamma'),
     ('ShaderNodeBrightContrast', 'BRIGHTCONTRAST', 'Bright Contrast'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_vector_nodes_props = (
@@ -158,7 +158,7 @@ shaders_vector_nodes_props = (
     ('ShaderNodeNormal', 'NORMAL', 'Normal'),
     ('ShaderNodeVectorCurve', 'CURVE_VEC', 'Vector Curves'),
     ('ShaderNodeVectorTransform', 'VECT_TRANSFORM', 'Vector Transform'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_converter_nodes_props = (
@@ -172,13 +172,13 @@ shaders_converter_nodes_props = (
     ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
     ('ShaderNodeWavelength', 'WAVELENGTH', 'Wavelength'),
     ('ShaderNodeBlackbody', 'BLACKBODY', 'Blackbody'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 shaders_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
-    )
+)
 
 # compositing nodes
 # (rna_type.identifier, type, rna_type.name)
@@ -194,7 +194,7 @@ compo_input_nodes_props = (
     ('CompositorNodeBokehImage', 'BOKEHIMAGE', 'Bokeh Image'),
     ('CompositorNodeTime', 'TIME', 'Time'),
     ('CompositorNodeTrackPos', 'TRACKPOS', 'Track Position'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_output_nodes_props = (
@@ -203,7 +203,7 @@ compo_output_nodes_props = (
     ('CompositorNodeSplitViewer', 'SPLITVIEWER', 'Split Viewer'),
     ('CompositorNodeOutputFile', 'OUTPUT_FILE', 'File Output'),
     ('CompositorNodeLevels', 'LEVELS', 'Levels'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_color_nodes_props = (
@@ -219,7 +219,7 @@ compo_color_nodes_props = (
     ('CompositorNodeColorCorrection', 'COLORCORRECTION', 'Color Correction'),
     ('CompositorNodeTonemap', 'TONEMAP', 'Tonemap'),
     ('CompositorNodeZcombine', 'ZCOMBINE', 'Z Combine'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_converter_nodes_props = (
@@ -237,7 +237,7 @@ compo_converter_nodes_props = (
     ('CompositorNodeCombYUVA', 'COMBYUVA', 'Combine YUVA'),
     ('CompositorNodeSepYCCA', 'SEPYCCA', 'Separate YCbCrA'),
     ('CompositorNodeCombYCCA', 'COMBYCCA', 'Combine YCbCrA'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_filter_nodes_props = (
@@ -253,7 +253,7 @@ compo_filter_nodes_props = (
     ('CompositorNodeInpaint', 'INPAINT', 'Inpaint'),
     ('CompositorNodeDBlur', 'DBLUR', 'Directional Blur'),
     ('CompositorNodePixelate', 'PIXELATE', 'Pixelate'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_vector_nodes_props = (
@@ -262,7 +262,7 @@ compo_vector_nodes_props = (
     ('CompositorNodeMapRange', 'MAP_RANGE', 'Map Range'),
     ('CompositorNodeNormalize', 'NORMALIZE', 'Normalize'),
     ('CompositorNodeCurveVec', 'CURVE_VEC', 'Vector Curves'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_matte_nodes_props = (
@@ -278,7 +278,7 @@ compo_matte_nodes_props = (
     ('CompositorNodeChromaMatte', 'CHROMA_MATTE', 'Chroma Key'),
     ('CompositorNodeColorMatte', 'COLOR_MATTE', 'Color Key'),
     ('CompositorNodeDoubleEdgeMask', 'DOUBLEEDGEMASK', 'Double Edge Mask'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_distort_nodes_props = (
@@ -294,14 +294,14 @@ compo_distort_nodes_props = (
     ('CompositorNodeTransform', 'TRANSFORM', 'Transform'),
     ('CompositorNodeStabilize', 'STABILIZE2D', 'Stabilize 2D'),
     ('CompositorNodePlaneTrackDeform', 'PLANETRACKDEFORM', 'Plane Track Deform'),
-    )
+)
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
 compo_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
     ('CompositorNodeSwitch', 'SWITCH', 'Switch'),
-    )
+)
 
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
 # used list, not tuple for easy merging with other lists.
@@ -324,7 +324,7 @@ blend_types = [
     ('COLOR', 'Color', 'Color Mode'),
     ('SOFT_LIGHT', 'Soft Light', 'Soft Light Mode'),
     ('LINEAR_LIGHT', 'Linear Light', 'Linear Light Mode'),
-    ]
+]
 
 # list of operations of "Math" nodes in a form that can be used as 'items' for EnumProperty.
 # used list, not tuple for easy merging with other lists.
@@ -346,7 +346,7 @@ operations = [
     ('ROUND', 'Round', 'Round Mode'),
     ('LESS_THAN', 'Less Than', 'Less Than Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
-    ]
+]
 
 # in NWBatchChangeNodes additional types/operations. Can be used as 'items' for EnumProperty.
 # used list, not tuple for easy merging with other lists.
@@ -354,44 +354,44 @@ navs = [
     ('CURRENT', 'Current', 'Leave at current state'),
     ('NEXT', 'Next', 'Next blend type/operation'),
     ('PREV', 'Prev', 'Previous blend type/operation'),
-    ]
+]
 
 draw_color_sets = {
     "red_white": (
         (1.0, 1.0, 1.0, 0.7),
         (1.0, 0.0, 0.0, 0.7),
         (0.8, 0.2, 0.2, 1.0)
-        ),
+    ),
     "green": (
         (0.0, 0.0, 0.0, 1.0),
         (0.38, 0.77, 0.38, 1.0),
         (0.38, 0.77, 0.38, 1.0)
-        ),
+    ),
     "yellow": (
         (0.0, 0.0, 0.0, 1.0),
         (0.77, 0.77, 0.16, 1.0),
         (0.77, 0.77, 0.16, 1.0)
-        ),
+    ),
     "purple": (
         (0.0, 0.0, 0.0, 1.0),
         (0.38, 0.38, 0.77, 1.0),
         (0.38, 0.38, 0.77, 1.0)
-        ),
+    ),
     "grey": (
         (0.0, 0.0, 0.0, 1.0),
         (0.63, 0.63, 0.63, 1.0),
         (0.63, 0.63, 0.63, 1.0)
-        ),
+    ),
     "black": (
         (1.0, 1.0, 1.0, 0.7),
         (0.0, 0.0, 0.0, 0.7),
         (0.2, 0.2, 0.2, 1.0)
-        )
-    }
+    )
+}
 
 
 def nice_hotkey_name(punc):
-    # convert the ugly string name into the actual character    
+    # convert the ugly string name into the actual character
     pairs = (
         ('LEFTMOUSE', "LMB"),
         ('MIDDLEMOUSE', "MMB"),
@@ -438,7 +438,7 @@ def nice_hotkey_name(punc):
         ('NUMPAD_MINUS', "Numpad -"),
         ('NUMPAD_ENTER', "Numpad Enter"),
         ('NUMPAD_PLUS', "Numpad +"),
-        )
+    )
     nice_punc = False
     for (ugly, nice) in pairs:
         if punc == ugly:
@@ -482,14 +482,15 @@ def is_end_node(node):
 
 def node_mid_pt(node, axis):
     if axis == 'x':
-        d = node.location.x+(node.dimensions.x/2)
+        d = node.location.x + (node.dimensions.x / 2)
     elif axis == 'y':
-        d = node.location.y-(node.dimensions.y/2)
-    else: d = 0
+        d = node.location.y - (node.dimensions.y / 2)
+    else:
+        d = 0
     return d
 
 
-def autolink (node1, node2, links):
+def autolink(node1, node2, links):
     link_made = False
     for outp in node1.outputs:
         for inp in node2.inputs:
@@ -521,7 +522,7 @@ def autolink (node1, node2, links):
             links.new(outp, inp)
             return True
 
-    print ("Could not make a link from " + node1.name + " to " + node2.name)
+    print("Could not make a link from " + node1.name + " to " + node2.name)
     return link_made
 
 
@@ -534,18 +535,18 @@ def node_at_pos(nodes, context, event):
     x, y = context.space_data.cursor_location
 
     # nearest node
-    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x-node_mid_pt(k, 'x'))**2 + (y-node_mid_pt(k, 'y'))**2))
+    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x - node_mid_pt(k, 'x')) ** 2 + (y - node_mid_pt(k, 'y')) ** 2))
 
     for node in nodes:
-        if (node.location.x <= x <= node.location.x+node.dimensions.x) and \
-           (node.location.y-node.dimensions.y <= y <= node.location.y):
+        if (node.location.x <= x <= node.location.x + node.dimensions.x) and \
+           (node.location.y - node.dimensions.y <= y <= node.location.y):
             nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
         if nodes_under_mouse[0] != nodes_near_mouse[0]:
-            target_node = nodes_under_mouse[0] # use the node under the mouse if there is one and only one
+            target_node = nodes_under_mouse[0]  # use the node under the mouse if there is one and only one
         else:
-            target_node = nodes_near_mouse[0] # else use the nearest node
+            target_node = nodes_near_mouse[0]  # else use the nearest node
     else:
         target_node = nodes_near_mouse[0]
     return target_node
@@ -561,7 +562,7 @@ def store_mouse_cursor(context, event):
         space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
     else:
         space.cursor_location = tree.view_center
-        
+
 
 def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
@@ -569,7 +570,7 @@ def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glLineWidth(size)
 
     bgl.glBegin(bgl.GL_LINE_STRIP)
-    #bgl.glBegin(bgl.GL_LINES)
+    # bgl.glBegin(bgl.GL_LINES)
     try:
         bgl.glVertex2f(x1, y1)
         bgl.glVertex2f(x2, y2)
@@ -584,10 +585,10 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     radius = radius
     sides = 32
     #bgl.glVertex2f(m1x, m1y)
-    for i in range(sides+1):
-        cosine= radius * cos(i*2*pi/sides) + mx
-        sine  = radius * sin(i*2*pi/sides) + my
-        bgl.glVertex2f(cosine,sine)
+    for i in range(sides + 1):
+        cosine = radius * cos(i * 2 * pi / sides) + mx
+        sine = radius * sin(i * 2 * pi / sides) + my
+        bgl.glVertex2f(cosine, sine)
     bgl.glEnd()
 
 
@@ -620,8 +621,8 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         draw_circle(m1x, m1y, 6, colors[0])
         draw_circle(m2x, m2y, 6, colors[0])
 
-        draw_line(m1x, m1y, m2x, m2y, 4, colors[0]) # line outline
-        draw_line(m1x, m1y, m2x, m2y, 2, colors[1]) # line inner
+        draw_line(m1x, m1y, m2x, m2y, 4, colors[0])  # line outline
+        draw_line(m1x, m1y, m2x, m2y, 2, colors[1])  # line inner
 
         # circle inner
         draw_circle(m1x, m1y, 5, colors[2])
@@ -662,14 +663,14 @@ def get_nodes_links(context):
 # Addon prefs
 class NWNodeWrangler(bpy.types.AddonPreferences):
     bl_idname = __name__
-    
+
     merge_hide = EnumProperty(
         name="Hide Mix nodes",
         items=(
             ("ALWAYS", "Always", "Always collapse the new merge nodes"),
             ("NON_SHADER", "Non-Shader", "Collapse in all cases except for shaders"),
             ("NEVER", "Never", "Never collapse the new merge nodes")
-            ),
+        ),
         default='NON_SHADER',
         description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy whether to collapse them or show the full node with options expanded")
     merge_position = EnumProperty(
@@ -677,7 +678,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
         items=(
             ("CENTER", "Center", "Place the Mix node between the two nodes"),
             ("BOTTOM", "Bottom", "Place the Mix node at the same height as the lowest node")
-            ),
+        ),
         default='CENTER',
         description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy the position of the new nodes")
     bgl_antialiasing = BoolProperty(
@@ -732,6 +733,7 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
 
 class NWBase:
+
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -740,6 +742,7 @@ class NWBase:
 
 # OPERATORS
 class NWLazyMix(Operator, NWBase):
+
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "node.nw_lazy_mix"
     bl_label = "Mix Nodes"
@@ -755,7 +758,7 @@ class NWLazyMix(Operator, NWBase):
 
         start_pos = [event.mouse_region_x, event.mouse_region_y]
 
-        node1=None
+        node1 = None
         if not context.scene.NWBusyDrawing:
             node1 = node_at_pos(nodes, context, event)
             if node1:
@@ -788,12 +791,11 @@ class NWLazyMix(Operator, NWBase):
 
                     bpy.ops.node.nw_merge_nodes(mode=self.mode, merge_type=self.merge_type)
 
-
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
 
         elif event.type == 'ESC':
-            print ('cancelled')
+            print('cancelled')
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
             return {'CANCELLED'}
 
@@ -816,7 +818,10 @@ class NWLazyMix(Operator, NWBase):
             return {'CANCELLED'}
 
 # TODO - won't connect if the only available sockets are already connected, so force it in this case to the first possible one
+
+
 class NWLazyConnect(Operator, NWBase):
+
     """Connect two nodes without clicking a specific socket (automatically determined"""
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
@@ -832,7 +837,7 @@ class NWLazyConnect(Operator, NWBase):
 
         start_pos = [event.mouse_region_x, event.mouse_region_y]
 
-        node1=None
+        node1 = None
         if not context.scene.NWBusyDrawing:
             node1 = node_at_pos(nodes, context, event)
             if node1:
@@ -848,7 +853,7 @@ class NWLazyConnect(Operator, NWBase):
             end_pos = [event.mouse_region_x, event.mouse_region_y]
             bpy.types.SpaceNodeEditor.draw_handler_remove(self._handle, 'WINDOW')
 
-            node2=None
+            node2 = None
             node2 = node_at_pos(nodes, context, event)
             if node2:
                 context.scene.NWBusyDrawing = node2.name
@@ -869,7 +874,7 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    link_success = autolink(node1, node2, links) # TODO replace with own function
+                    link_success = autolink(node1, node2, links)  # TODO replace with own function
 
                     for node in original_sel:
                         node.select = True
@@ -945,7 +950,7 @@ class NWDeleteUnused(Operator, NWBase):
         temp_deleted_nodes = []
         del_unused_iterations = len(nodes)
         for it in range(0, del_unused_iterations):
-            temp_deleted_nodes = list(deleted_nodes) # keep record of last iteration
+            temp_deleted_nodes = list(deleted_nodes)  # keep record of last iteration
             for node in nodes:
                 node.select = False
             for node in nodes:
@@ -954,16 +959,16 @@ class NWDeleteUnused(Operator, NWBase):
                     deleted_nodes.append(node.name)
                     bpy.ops.node.delete()
 
-            if temp_deleted_nodes == deleted_nodes: # stop iterations when there are no more nodes to be deleted
+            if temp_deleted_nodes == deleted_nodes:  # stop iterations when there are no more nodes to be deleted
                 break
         # get unique list of deleted nodes (iterations would count the same node more than once)
         deleted_nodes = list(set(deleted_nodes))
         for n in deleted_nodes:
             self.report({'INFO'}, "Node " + n + " deleted")
         num_deleted = len(deleted_nodes)
-        n=' node'
-        if num_deleted>1:
-            n+='s'
+        n = ' node'
+        if num_deleted > 1:
+            n += 's'
         if num_deleted:
             self.report({'INFO'}, "Deleted " + str(num_deleted) + n)
         else:
@@ -975,7 +980,7 @@ class NWDeleteUnused(Operator, NWBase):
             if node.name in selection:
                 node.select = True
         return {'FINISHED'}
-    
+
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
 
@@ -1079,13 +1084,13 @@ class NWEmissionViewer(Operator, NWBase):
         space = context.space_data
         valid = False
         if space.type == 'NODE_EDITOR':
-            #if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node is not None and context.active_node.type != "OUTPUT_MATERIAL":
+            # if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node is not None and context.active_node.type != "OUTPUT_MATERIAL":
             if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node.type != "OUTPUT_MATERIAL":
                 valid = True
         return valid
 
     def invoke(self, context, event):
-    #def execute(self, context):
+    # def execute(self, context):
 
         # to select at specific mouse position:
         # bpy.ops.node.select(mouse_x=156, mouse_y=410, extend=False)
@@ -1093,7 +1098,7 @@ class NWEmissionViewer(Operator, NWBase):
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
         select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
-        if 'FINISHED' in select_node: # only run if mouse click is on a node
+        if 'FINISHED' in select_node:  # only run if mouse click is on a node
             nodes, links = get_nodes_links(context)
             in_group = context.active_node != context.space_data.node_tree.nodes.active
             active = nodes.active
@@ -1104,14 +1109,14 @@ class NWEmissionViewer(Operator, NWBase):
                     if active.select:
                         if active.type not in shader_types:
                             valid = True
-            if valid:                        
+            if valid:
                 # get material_output node
-                materialout_exists=False
-                materialout=None # placeholder node
+                materialout_exists = False
+                materialout = None  # placeholder node
                 for node in nodes:
-                    if node.type=="OUTPUT_MATERIAL":
-                        materialout_exists=True
-                        materialout=node
+                    if node.type == "OUTPUT_MATERIAL":
+                        materialout_exists = True
+                        materialout = node
                 if not materialout:
                     materialout = nodes.new('ShaderNodeOutputMaterial')
                     sorted_by_xloc = (sorted(nodes, key=lambda x: x.location.x))
@@ -1122,79 +1127,79 @@ class NWEmissionViewer(Operator, NWBase):
                     sum_yloc = 0
                     for node in nodes:
                         sum_yloc += node.location.y
-                    materialout.location.y = sum_yloc/len(nodes) #put material output at average y location
-                    materialout.select=False
+                    materialout.location.y = sum_yloc / len(nodes)  # put material output at average y location
+                    materialout.select = False
                 # get Emission Viewer node
-                emission_exists=False
-                emission_placeholder=nodes[0]
+                emission_exists = False
+                emission_placeholder = nodes[0]
                 for node in nodes:
                     if "Emission Viewer" in node.name:
-                        emission_exists=True
-                        emission_placeholder=node
-                        
-                position=0
-                for link in links: # check if Emission Viewer is already connected to active node
-                    if link.from_node.name==active.name and "Emission Viewer" in link.to_node.name and "Emission Viewer" in materialout.inputs[0].links[0].from_node.name:
-                        num_outputs=len(link.from_node.outputs)
-                        index=0
+                        emission_exists = True
+                        emission_placeholder = node
+
+                position = 0
+                for link in links:  # check if Emission Viewer is already connected to active node
+                    if link.from_node.name == active.name and "Emission Viewer" in link.to_node.name and "Emission Viewer" in materialout.inputs[0].links[0].from_node.name:
+                        num_outputs = len(link.from_node.outputs)
+                        index = 0
                         for output in link.from_node.outputs:
-                            if link.from_socket==output:
-                                position=index
-                            index=index+1
-                        position=position+1
-                        if position>=num_outputs:
-                            position=0
-                            
+                            if link.from_socket == output:
+                                position = index
+                            index = index + 1
+                        position = position + 1
+                        if position >= num_outputs:
+                            position = 0
+
                 # Store selection
-                selection=[]
+                selection = []
                 for node in nodes:
-                   if node.select==True:
-                        selection.append(node.name)       
-                
+                    if node.select == True:
+                        selection.append(node.name)
+
                 locx = active.location.x
                 locy = active.location.y
                 dimx = active.dimensions.x
                 dimy = active.dimensions.y
                 if not emission_exists:
                     emission = nodes.new('ShaderNodeEmission')
-                    emission.hide=True
-                    emission.location = [materialout.location.x, (materialout.location.y+40)]
-                    emission.label="Viewer"
-                    emission.name="Emission Viewer"
-                    emission.use_custom_color=True
-                    emission.color=(0.6,0.5,0.4)
+                    emission.hide = True
+                    emission.location = [materialout.location.x, (materialout.location.y + 40)]
+                    emission.label = "Viewer"
+                    emission.name = "Emission Viewer"
+                    emission.use_custom_color = True
+                    emission.color = (0.6, 0.5, 0.4)
                 else:
-                    emission=emission_placeholder
-                           
+                    emission = emission_placeholder
+
                 nodes.active = emission
                 links.new(active.outputs[position], emission.inputs[0])
                 bpy.ops.node.nw_link_out()
-                    
+
                 # Restore selection
-                emission.select=False
-                nodes.active=active
+                emission.select = False
+                nodes.active = active
                 for node in nodes:
                     if node.name in selection:
-                        node.select=True 
-            else: # if active node is a shader, connect to output
+                        node.select = True
+            else:  # if active node is a shader, connect to output
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
                     bpy.ops.node.nw_link_out()
 
-                    # ----Delete Emission Viewer----            
+                    # ----Delete Emission Viewer----
                     if [x for x in nodes if x.name == 'Emission Viewer']:
                         # Store selection
-                        selection=[]
+                        selection = []
                         for node in nodes:
-                           if node.select==True:
+                            if node.select == True:
                                 selection.append(node.name)
-                                node.select=False
+                                node.select = False
                         # Delete it
                         nodes['Emission Viewer'].select = True
                         bpy.ops.node.delete()
                         # Restore selection
                         for node in nodes:
                             if node.name in selection:
-                                node.select=True 
+                                node.select = True
 
             return {'FINISHED'}
         else:
@@ -1206,9 +1211,9 @@ class NWFrameSelected(Operator, NWBase):
     bl_label = "Frame Selected"
     bl_description = "Add a frame node and parent the selected nodes to it"
     bl_options = {'REGISTER', 'UNDO'}
-    label_prop = StringProperty(name='Label', default = ' ', description='The visual name of the frame node')
+    label_prop = StringProperty(name='Label', default=' ', description='The visual name of the frame node')
     color_prop = FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
-                                                min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
+                                     min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
 
     @classmethod
     def poll(cls, context):
@@ -1223,17 +1228,17 @@ class NWFrameSelected(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         selected = []
         for node in nodes:
-            if node.select==True:
+            if node.select == True:
                 selected.append(node)
-                
+
         bpy.ops.node.add_node(type='NodeFrame')
-        frm=nodes.active
+        frm = nodes.active
         frm.label = self.label_prop
         frm.use_custom_color = True
         frm.color = self.color_prop
-        
+
         for node in selected:
-            node.parent=frm
+            node.parent = frm
 
         return {'FINISHED'}
 
@@ -1259,9 +1264,9 @@ class NWReloadImages(Operator, NWBase):
         for node in nodes:
             if node.type in image_types:
                 if node.type == "TEXTURE":
-                    if node.texture: # node has texture assigned
+                    if node.texture:  # node has texture assigned
                         if node.texture.type in ['IMAGE', 'ENVIRONMENT_MAP']:
-                            if node.texture.image: # texture has image assigned
+                            if node.texture.image:  # texture has image assigned
                                 node.texture.image.reload()
                                 num_reloaded += 1
                 else:
@@ -1271,7 +1276,7 @@ class NWReloadImages(Operator, NWBase):
 
         if num_reloaded:
             self.report({'INFO'}, "Reloaded images")
-            print ("Reloaded "+str(num_reloaded)+" images")
+            print("Reloaded " + str(num_reloaded) + " images")
             hack_force_update(nodes)
             # bpy.ops.node.mute_toggle()
             # bpy.ops.node.mute_toggle() # stupid hack to update the node tree
@@ -1294,9 +1299,9 @@ class NWViewImage(Operator, NWBase):
             if space.node_tree is not None:
                 node = space.node_tree.nodes.active
                 if node.type == "TEXTURE":
-                    if node.texture: # node has texture assigned
+                    if node.texture:  # node has texture assigned
                         if node.texture.type in ['IMAGE', 'ENVIRONMENT_MAP']:
-                            if node.texture.image: # texture has image assigned
+                            if node.texture.image:  # texture has image assigned
                                 valid = True
                 elif node.type == 'MOVIECLIP':
                     if node.clip:
@@ -1351,52 +1356,53 @@ class NWViewImage(Operator, NWBase):
             context.area.type = 'IMAGE_EDITOR'
             context.space_data.image = image
             context.space_data.mode = 'VIEW'
-            
+
         return {'FINISHED'}
 
 
 class NWSwapNodeType(Operator, NWBase):
+
     """Swap type of selected nodes """
     bl_idname = "node.nw_swap_node_type"
     bl_label = "Swap Node Type"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     to_type = EnumProperty(
         name="Swap to type",
-        items=list(shaders_input_nodes_props) +\
-            list(shaders_output_nodes_props) +\
-            list(shaders_shader_nodes_props) +\
-            list(shaders_texture_nodes_props) +\
-            list(shaders_color_nodes_props) +\
-            list(shaders_vector_nodes_props) +\
-            list(shaders_converter_nodes_props) +\
-            list(shaders_layout_nodes_props) +\
-            list(compo_input_nodes_props) +\
-            list(compo_output_nodes_props) +\
-            list(compo_color_nodes_props) +\
-            list(compo_converter_nodes_props) +\
-            list(compo_filter_nodes_props) +\
-            list(compo_vector_nodes_props) +\
-            list(compo_matte_nodes_props) +\
-            list(compo_distort_nodes_props) +\
-            list(compo_layout_nodes_props),
-        )
-    
+        items=list(shaders_input_nodes_props) +
+        list(shaders_output_nodes_props) +
+        list(shaders_shader_nodes_props) +
+        list(shaders_texture_nodes_props) +
+        list(shaders_color_nodes_props) +
+        list(shaders_vector_nodes_props) +
+        list(shaders_converter_nodes_props) +
+        list(shaders_layout_nodes_props) +
+        list(compo_input_nodes_props) +
+        list(compo_output_nodes_props) +
+        list(compo_color_nodes_props) +
+        list(compo_converter_nodes_props) +
+        list(compo_filter_nodes_props) +
+        list(compo_vector_nodes_props) +
+        list(compo_matte_nodes_props) +
+        list(compo_distort_nodes_props) +
+        list(compo_layout_nodes_props),
+    )
+
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         to_type = self.to_type
         # Those types of nodes will not swap.
         src_excludes = ('NodeFrame')
         # Those attributes of nodes will be copied if possible
-        attrs_to_pass = ('color', 'hide', 'label', 'mute', 'parent',\
-            'show_options', 'show_preview', 'show_texture',\
-            'use_alpha', 'use_clamp', 'use_custom_color', 'location'
-            )
+        attrs_to_pass = ('color', 'hide', 'label', 'mute', 'parent',
+                         'show_options', 'show_preview', 'show_texture',
+                         'use_alpha', 'use_clamp', 'use_custom_color', 'location'
+                         )
         selected = [n for n in nodes if n.select]
         reselect = []
-        for node in [n for n in selected if\
-                n.rna_type.identifier not in src_excludes and\
-                n.rna_type.identifier != to_type]:
+        for node in [n for n in selected if
+                     n.rna_type.identifier not in src_excludes and
+                     n.rna_type.identifier != to_type]:
             new_node = nodes.new(to_type)
             for attr in attrs_to_pass:
                 if hasattr(node, attr) and hasattr(new_node, attr):
@@ -1418,11 +1424,11 @@ class NWSwapNodeType(Operator, NWBase):
             src_sockets = {
                 'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
                 'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
-                }
+            }
             dst_sockets = {
                 'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
                 'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE': [], 'MAIN': None},
-                }
+            }
             types_order_one = 'SHADER', 'RGBA', 'VECTOR', 'VALUE'
             types_order_two = 'SHADER', 'VECTOR', 'RGBA', 'VALUE'
             # check src node to set src_sockets values and dst node to set dst_sockets dict values
@@ -1452,12 +1458,12 @@ class NWSwapNodeType(Operator, NWBase):
                         if sockets[in_out_name][type_check]:
                             sockets[in_out_name]['MAIN'] = type_check
                             break
-            
+
             matches = {
-                    'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
-                    'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
-                    }
-            
+                'INPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
+                'OUTPUTS': {'SHADER': [], 'RGBA': [], 'VECTOR': [], 'VALUE_NAME': [], 'VALUE': [], 'MAIN': []},
+            }
+
             for inout, soctype in (
                     ('INPUTS', 'MAIN',),
                     ('INPUTS', 'SHADER',),
@@ -1469,7 +1475,7 @@ class NWSwapNodeType(Operator, NWBase):
                     ('OUTPUTS', 'RGBA',),
                     ('OUTPUTS', 'VECTOR',),
                     ('OUTPUTS', 'VALUE',),
-                    ):
+            ):
                 if src_sockets[inout][soctype] and dst_sockets[inout][soctype]:
                     if soctype == 'MAIN':
                         sc = src_sockets[inout][src_sockets[inout]['MAIN']]
@@ -1488,12 +1494,12 @@ class NWSwapNodeType(Operator, NWBase):
                                 if s[2] == soc[2]:  # if names match
                                     # append src (index, dval), dst (index, dval)
                                     matches['INPUTS']['VALUE_NAME'].append(((s[1], s[3]), (soc[1], soc[3])))
-            
+
             # When src ['INPUTS']['MAIN'] is 'VECTOR' replace 'MAIN' with matches VECTOR if possible.
             # This creates better links when relinking textures.
             if src_sockets['INPUTS']['MAIN'] == 'VECTOR' and matches['INPUTS']['VECTOR']:
                 matches['INPUTS']['MAIN'] = matches['INPUTS']['VECTOR']
-            
+
             # Pass default values and RELINK:
             for tp in ('MAIN', 'SHADER', 'RGBA', 'VECTOR', 'VALUE_NAME', 'VALUE'):
                 # INPUTS: Base on matches in proper order.
@@ -1553,6 +1559,7 @@ class NWSwapNodeType(Operator, NWBase):
             nodes.remove(node)
         return {'FINISHED'}
 
+
 class NWMergeNodes(Operator, NWBase):
     bl_idname = "node.nw_merge_nodes"
     bl_label = "Merge Nodes"
@@ -1560,25 +1567,25 @@ class NWMergeNodes(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(
-            name="mode",
-            description="All possible blend types and math operations",
-            items=blend_types + [op for op in operations if op not in blend_types],
-            )
+        name="mode",
+        description="All possible blend types and math operations",
+        items=blend_types + [op for op in operations if op not in blend_types],
+    )
     merge_type = EnumProperty(
-            name="merge type",
-            description="Type of Merge to be used",
-            items=(
-                ('AUTO', 'Auto', 'Automatic Output Type Detection'),
-                ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
-                ('MIX', 'Mix Node', 'Merge using Mix Nodes'),
-                ('MATH', 'Math Node', 'Merge using Math Nodes'),
-                ),
-            )
+        name="merge type",
+        description="Type of Merge to be used",
+        items=(
+            ('AUTO', 'Auto', 'Automatic Output Type Detection'),
+            ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
+            ('MIX', 'Mix Node', 'Merge using Mix Nodes'),
+            ('MATH', 'Math Node', 'Merge using Math Nodes'),
+        ),
+    )
 
     def execute(self, context):
         settings = context.user_preferences.addons[__name__].preferences
         merge_hide = settings.merge_hide
-        merge_position = settings.merge_position # 'center' or 'bottom'
+        merge_position = settings.merge_position  # 'center' or 'bottom'
 
         do_hide = False
         do_hide_shader = False
@@ -1587,7 +1594,6 @@ class NWMergeNodes(Operator, NWBase):
             do_hide_shader = True
         elif merge_hide == 'NON_SHADER':
             do_hide = True
-
 
         tree_type = context.space_data.node_tree.type
         if tree_type == 'COMPOSITING':
@@ -1608,7 +1614,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
                             ('RGBA', [t[0] for t in blend_types], selected_mix),
                             ('VALUE', [t[0] for t in operations], selected_math),
-                            ):
+                    ):
                         output_type = node.outputs[0].type
                         valid_mode = mode in types_list
                         # When mode is 'MIX' use mix node for both 'RGBA' and 'VALUE' output types.
@@ -1626,7 +1632,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
-                            ):
+                    ):
                         if merge_type == type and mode in types_list:
                             dst.append([i, node.location.x, node.location.y])
         # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
@@ -1645,7 +1651,7 @@ class NWMergeNodes(Operator, NWBase):
                 loc_x = nodes_list[0][1] + 250.0
                 nodes_list.sort(key=lambda k: k[2], reverse=True)
                 if merge_position == 'CENTER':
-                    loc_y = ((nodes_list[len(nodes_list) - 1][2])+(nodes_list[len(nodes_list) - 2][2]))/2  # average yloc of last two nodes (lowest two)
+                    loc_y = ((nodes_list[len(nodes_list) - 1][2]) + (nodes_list[len(nodes_list) - 2][2])) / 2  # average yloc of last two nodes (lowest two)
                 else:
                     loc_y = nodes_list[len(nodes_list) - 1][2]
                 offset_y = 100
@@ -1664,7 +1670,7 @@ class NWMergeNodes(Operator, NWBase):
                         add.show_preview = False
                         add.hide = do_hide
                         if do_hide:
-                            loc_y = loc_y -50
+                            loc_y = loc_y - 50
                         first = 1
                         second = 2
                         add.width_hidden = 100.0
@@ -1674,7 +1680,7 @@ class NWMergeNodes(Operator, NWBase):
                         add.operation = mode
                         add.hide = do_hide
                         if do_hide:
-                            loc_y = loc_y -50
+                            loc_y = loc_y - 50
                         first = 0
                         second = 1
                         add.width_hidden = 100.0
@@ -1684,7 +1690,7 @@ class NWMergeNodes(Operator, NWBase):
                             add = nodes.new(add_type)
                             add.hide = do_hide_shader
                             if do_hide_shader:
-                                loc_y = loc_y -50
+                                loc_y = loc_y - 50
                             first = 1
                             second = 2
                             add.width_hidden = 100.0
@@ -1693,7 +1699,7 @@ class NWMergeNodes(Operator, NWBase):
                             add = nodes.new(add_type)
                             add.hide = do_hide_shader
                             if do_hide_shader:
-                                loc_y = loc_y -50
+                                loc_y = loc_y - 50
                             first = 0
                             second = 1
                             add.width_hidden = 100.0
@@ -1738,16 +1744,16 @@ class NWBatchChangeNodes(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     blend_type = EnumProperty(
-            name="Blend Type",
-            items=blend_types + navs,
-            )
+        name="Blend Type",
+        items=blend_types + navs,
+    )
     operation = EnumProperty(
-            name="Operation",
-            items=operations + navs,
-            )
+        name="Operation",
+        items=operations + navs,
+    )
 
     def execute(self, context):
-        
+
         nodes, links = get_nodes_links(context)
         blend_type = self.blend_type
         operation = self.operation
@@ -1863,7 +1869,7 @@ class NWCopySettings(Operator, NWBase):
                 attributes = (
                     'hide', 'show_preview', 'mute', 'label',
                     'use_custom_color', 'color', 'width', 'width_hidden',
-                    )
+                )
                 for attr in attributes:
                     setattr(copied, attr, getattr(node, attr))
                 # Handle scenario when 'node' is in frame. 'copied' is in same frame then.
@@ -1909,14 +1915,14 @@ class NWCopyLabel(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     option = EnumProperty(
-            name="option",
-            description="Source of name of label",
-            items=(
-                ('FROM_ACTIVE', 'from active', 'from active node',),
-                ('FROM_NODE', 'from node', 'from node linked to selected node'),
-                ('FROM_SOCKET', 'from socket', 'from socket linked to selected node'),
-                )
-            )
+        name="option",
+        description="Source of name of label",
+        items=(
+            ('FROM_ACTIVE', 'from active', 'from active node',),
+            ('FROM_NODE', 'from node', 'from node linked to selected node'),
+            ('FROM_SOCKET', 'from socket', 'from socket linked to selected node'),
+        )
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1969,23 +1975,24 @@ class NWClearLabel(Operator, NWBase):
 
 
 class NWModifyLabels(Operator, NWBase):
+
     """Modify Labels of all selected nodes."""
     bl_idname = "node.nw_modify_labels"
     bl_label = "Modify Labels"
     bl_options = {'REGISTER', 'UNDO'}
 
     prepend = StringProperty(
-        name = "Add to Beginning"
-        )
+        name="Add to Beginning"
+    )
     append = StringProperty(
-        name = "Add to End"
-        )
+        name="Add to End"
+    )
     replace_from = StringProperty(
-        name = "Text to Replace"
-        )
+        name="Text to Replace"
+    )
     replace_to = StringProperty(
-        name = "Replace with"
-        )
+        name="Replace with"
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1994,7 +2001,6 @@ class NWModifyLabels(Operator, NWBase):
 
         return {'FINISHED'}
 
-    
     def invoke(self, context, event):
         self.prepend = ""
         self.append = ""
@@ -2031,38 +2037,38 @@ class NWAddTextureSetup(Operator, NWBase):
         if valid:
             locx = active.location.x
             locy = active.location.y
-            
+
             xoffset = [500.0, 700.0]
             isshader = True
             if active.type not in shader_types:
                 xoffset = [290.0, 500.0]
                 isshader = False
-                
-            coordout=2
-            image_type='ShaderNodeTexImage'
-            
+
+            coordout = 2
+            image_type = 'ShaderNodeTexImage'
+
             if (active.type in texture_types and active.type != 'TEX_IMAGE') or (active.type == 'BACKGROUND'):
-                coordout=0 # image texture uses UVs, procedural textures and Background shader use Generated
+                coordout = 0  # image texture uses UVs, procedural textures and Background shader use Generated
                 if active.type == 'BACKGROUND':
                     image_type = 'ShaderNodeTexEnvironment'
-                    
+
             if isshader:
                 tex = nodes.new(image_type)
                 tex.location = [locx - 200.0, locy + 28.0]
-                
+
             map = nodes.new('ShaderNodeMapping')
             map.location = [locx - xoffset[0], locy + 80.0]
             map.width = 240
-            coord = nodes.new('ShaderNodeTexCoord')            
-            coord.location = [locx - xoffset[1], locy+40.0]
+            coord = nodes.new('ShaderNodeTexCoord')
+            coord.location = [locx - xoffset[1], locy + 40.0]
             active.select = False
-            
+
             if isshader:
                 nodes.active = tex
                 links.new(tex.outputs[0], active.inputs[0])
                 links.new(map.outputs[0], tex.inputs[0])
                 links.new(coord.outputs[coordout], map.inputs[0])
-                
+
             else:
                 nodes.active = map
                 links.new(map.outputs[0], active.inputs[0])
@@ -2078,13 +2084,13 @@ class NWAddReroutes(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     option = EnumProperty(
-            name="option",
-            items=[
-                ('ALL', 'to all', 'Add to all outputs'),
-                ('LOOSE', 'to loose', 'Add only to loose outputs'),
-                ('LINKED', 'to linked', 'Add only to linked outputs'),
-                ]
-            )
+        name="option",
+        items=[
+            ('ALL', 'to all', 'Add to all outputs'),
+            ('LOOSE', 'to loose', 'Add only to loose outputs'),
+            ('LINKED', 'to linked', 'Add only to linked outputs'),
+        ]
+    )
 
     def execute(self, context):
         tree_type = context.space_data.node_tree.type
@@ -2258,13 +2264,13 @@ class NWAlignNodes(Operator, NWBase):
 
     # option: 'Vertically', 'Horizontally'
     option = EnumProperty(
-            name="option",
-            description="Direction",
-            items=(
-                ('AXIS_X', "Align Vertically", 'Align Vertically'),
-                ('AXIS_Y', "Aligh Horizontally", 'Aligh Horizontally'),
-                )
-            )
+        name="option",
+        description="Direction",
+        items=(
+            ('AXIS_X', "Align Vertically", 'Align Vertically'),
+            ('AXIS_Y', "Aligh Horizontally", 'Aligh Horizontally'),
+        )
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2355,12 +2361,12 @@ class NWSelectParentChildren(Operator, NWBase):
     bl_options = {'REGISTER', 'UNDO'}
 
     option = EnumProperty(
-            name="option",
-            items=(
-                ('PARENT', 'Select Parent', 'Select Parent Frame'),
-                ('CHILD', 'Select Children', 'Select members of selected frame'),
-                )
-            )
+        name="option",
+        items=(
+            ('PARENT', 'Select Parent', 'Select Parent Frame'),
+            ('CHILD', 'Select Children', 'Select members of selected frame'),
+        )
+    )
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2384,7 +2390,7 @@ class NWDetachOutputs(Operator, NWBase):
     bl_idname = "node.nw_detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         selected = context.selected_nodes
@@ -2397,7 +2403,7 @@ class NWDetachOutputs(Operator, NWBase):
         for new_node in new_nodes:
             new_node.select = True
         bpy.ops.transform.translate('INVOKE_DEFAULT')
-        
+
         return {'FINISHED'}
 
 
@@ -2405,12 +2411,12 @@ class NWLinkToOutputNode(Operator, NWBase):
     bl_idname = "node.nw_link_out"
     bl_label = "Connect to Output"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         space = context.space_data
         return (space.type == 'NODE_EDITOR' and space.node_tree is not None and context.active_node is not None)
-    
+
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active
@@ -2440,20 +2446,20 @@ class NWLinkToOutputNode(Operator, NWBase):
 
             out_input_index = 0
             if tree_type == 'ShaderNodeTree':
-                if active.outputs[output_index].type != 'SHADER': # connect to displacement if not a shader
+                if active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
                     out_input_index = 2
             links.new(active.outputs[output_index], output_node.inputs[out_input_index])
 
-        hack_force_update(nodes) # viewport render does not update
+        hack_force_update(nodes)  # viewport render does not update
 
         return {'FINISHED'}
 
 
-#############################################################
+#
 #  P A N E L
-#############################################################
+#
 
-def drawlayout(context, layout, mode = 'non-panel'):
+def drawlayout(context, layout, mode='non-panel'):
     tree_type = context.space_data.tree_type
 
     col = layout.column(align=True)
@@ -2461,23 +2467,23 @@ def drawlayout(context, layout, mode = 'non-panel'):
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWSwapNodeTypeMenu.bl_idname, text = "Swap Type/Node")
+    col.menu(NWSwapNodeTypeMenu.bl_idname, text="Swap Type/Node")
     col.separator()
 
     if tree_type == 'ShaderNodeTree':
         col = layout.column(align=True)
-        col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon = 'NODE_SEL')
+        col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon='NODE_SEL')
         col.separator()
 
     col = layout.column(align=True)
-    col.operator(NWDetachOutputs.bl_idname, icon = 'UNLINKED')
+    col.operator(NWDetachOutputs.bl_idname, icon='UNLINKED')
     col.operator(NWSwapOutputs.bl_idname)
-    col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon = 'LAYER_USED')
+    col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon='LAYER_USED')
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected", icon = 'LINKED')
-    col.operator(NWLinkToOutputNode.bl_idname, icon = 'DRIVER')
+    col.menu(NWLinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected", icon='LINKED')
+    col.operator(NWLinkToOutputNode.bl_idname, icon='DRIVER')
     col.separator()
 
     col = layout.column(align=True)
@@ -2495,16 +2501,16 @@ def drawlayout(context, layout, mode = 'non-panel'):
 
     col = layout.column(align=True)
     if tree_type == 'CompositorNodeTree':
-        col.operator(NWResetBG.bl_idname, icon = 'ZOOM_PREVIOUS')
-    col.operator(NWReloadImages.bl_idname, icon = 'FILE_REFRESH')
+        col.operator(NWResetBG.bl_idname, icon='ZOOM_PREVIOUS')
+    col.operator(NWReloadImages.bl_idname, icon='FILE_REFRESH')
     col.separator()
 
     col = layout.column(align=True)
-    col.operator(NWFrameSelected.bl_idname, icon = 'STICKY_UVS_LOC')
+    col.operator(NWFrameSelected.bl_idname, icon='STICKY_UVS_LOC')
     col.separator()
 
     col = layout.column(align=True)
-    col.operator(NWDeleteUnused.bl_idname, icon = 'CANCEL')
+    col.operator(NWDeleteUnused.bl_idname, icon='CANCEL')
     col.separator()
 
 
@@ -2513,24 +2519,21 @@ class NodeWranglerPanel(Panel, NWBase):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Node Wrangler"
-    
+
     prepend = StringProperty(
-        name = 'prepend',
-        )
+        name='prepend',
+    )
     append = StringProperty()
     remove = StringProperty()
 
     def draw(self, context):
-        self.layout.label(text = "(Quick access: Ctrl+Space)")
+        self.layout.label(text="(Quick access: Ctrl+Space)")
         drawlayout(context, self.layout, mode='panel')
 
 
-
-#############################################################
+#
 #  M E N U S
-#############################################################
-
-
+#
 class NodeWranglerMenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_node_wrangler_menu"
     bl_label = "Node Wrangler"
@@ -2738,7 +2741,7 @@ class NWUVMenu(bpy.types.Menu):
                 return False
         else:
             return False
-            
+
     def draw(self, context):
         l = self.layout
         nodes, links = get_nodes_links(context)
@@ -2754,11 +2757,11 @@ class NWUVMenu(bpy.types.Menu):
             if obj.data.uv_layers:
                 for uv in obj.data.uv_layers:
                     uvs.append(uv.name)
-        uvs = list(set(uvs)) # get a unique list
+        uvs = list(set(uvs))  # get a unique list
 
         if uvs:
             for uv in uvs:
-                l.operator(NWAddUVNode.bl_idname, text = uv).uv_name = uv
+                l.operator(NWAddUVNode.bl_idname, text=uv).uv_name = uv
         else:
             l.label("No UV layers on objects with this material")
 
@@ -2766,7 +2769,7 @@ class NWUVMenu(bpy.types.Menu):
 class NWSwapNodeTypeMenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_node_type_menu"
     bl_label = "Swap Type to..."
-    
+
     def draw(self, context):
         layout = self.layout
         tree = context.space_data.node_tree
@@ -2794,77 +2797,84 @@ class NWSwapNodeTypeMenu(Menu, NWBase):
 class NWSwapShadersInputSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_input_submenu"
     bl_label = "Input"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_input_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersOutputSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_output_submenu"
     bl_label = "Output"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_output_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersShaderSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_shader_submenu"
     bl_label = "Shader"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_shader_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersTextureSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_texture_submenu"
     bl_label = "Texture"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_texture_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersColorSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_color_submenu"
     bl_label = "Color"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_color_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersVectorSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_vector_submenu"
     bl_label = "Vector"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_vector_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersConverterSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_converter_submenu"
     bl_label = "Converter"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_converter_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapShadersLayoutSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_shaders_layout_submenu"
     bl_label = "Layout"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_layout_nodes_props:
@@ -2872,90 +2882,99 @@ class NWSwapShadersLayoutSubmenu(Menu, NWBase):
                 props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
+
 class NWSwapCompoInputSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_input_submenu"
     bl_label = "Input"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_input_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoOutputSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_output_submenu"
     bl_label = "Output"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_output_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoColorSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_color_submenu"
     bl_label = "Color"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_color_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoConverterSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_converter_submenu"
     bl_label = "Converter"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_converter_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoFilterSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_filter_submenu"
     bl_label = "Filter"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_filter_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoVectorSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_vector_submenu"
     bl_label = "Vector"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_vector_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoMatteSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_matte_submenu"
     bl_label = "Matte"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_matte_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoDistortSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_distort_submenu"
     bl_label = "Distort"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_distort_nodes_props:
             props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
+
 class NWSwapCompoLayoutSubmenu(Menu, NWBase):
     bl_idname = "NODE_MT_nw_swap_compo_layout_submenu"
     bl_label = "Layout"
-    
+
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_layout_nodes_props:
@@ -2964,9 +2983,9 @@ class NWSwapCompoLayoutSubmenu(Menu, NWBase):
                 props.to_type = ident
 
 
-#############################################################
+#
 #  APPENDAGES TO EXISTING UI
-#############################################################
+#
 
 
 def select_parent_children_buttons(self, context):
@@ -2996,14 +3015,14 @@ def showimage_menu_func(self, context):
         if node.type == 'TEXTURE':
             if node.texture.type != 'IMAGE':
                 txt = 'INVALID'
-        
+
         if txt != 'INVALID':
             self.layout.operator(NWViewImage.bl_idname, icon="UI", text=txt)
 
 
-#############################################################
+#
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
-#############################################################
+#
 
 addon_keymaps = []
 # kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props, nice name)
@@ -3178,8 +3197,9 @@ kmi_defs = (
     ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
     ('wm.call_menu', 'S', False, True, False, (('name', NWSwapNodeTypeMenu.bl_idname),), "Swap node type menu"),
-    )
+)
 # TODO, make new function keymaps use class.bl_idname and not op.name directly
+
 
 def register():
     # props
