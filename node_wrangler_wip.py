@@ -859,6 +859,7 @@ class NWLazyConnect(Operator, NWBase):
             if node1 == node2:
                 cont = False
 
+            link_success = False
             if cont:
                 if node1 and node2:
                     original_sel = []
@@ -872,7 +873,7 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    link_success = autolink(node1, node2, links)  # TODO replace with own function
+                    link_success = autolink(node1, node2, links)
 
                     for node in original_sel:
                         node.select = True
