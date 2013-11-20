@@ -18,10 +18,10 @@
 
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
-    'author': "Greg Zaal, Bartek Skorupa",
+    'author': "Bartek Skorupa, Greg Zaal",
     'version': (2, 40),
     'blender': (2, 69, 0),
-    'location': "Node Editor Properties Panel (Ctrl-SPACE)",
+    'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
     'warning': "",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
