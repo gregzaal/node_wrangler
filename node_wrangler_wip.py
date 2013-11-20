@@ -2455,57 +2455,6 @@ class NWLinkToOutputNode(Operator, NWBase):
         return {'FINISHED'}
 
 
-class NWLinkSkyWithSun(Operator, NWBase):
-    bl_idname = "node.nw_link_sky_with_sun"
-    bl_label = "Link Sky with Sun Lamp"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        world = context.scene.world
-        tree = world.node_tree
-        valid = False
-        if tree and world.use_nodes:
-            if [n for n in tree.nodes if n.type == "TEX_SKY"]:
-                valid = True
-        return valid
-
-    def execute(self, context):
-        # later would be nice to provide choide of which sky node to use,
-        # but for now just use the first one
-        tree = context.scene.world.node_tree
-        node = [n for n in tree.nodes if n.type == "TEX_SKY"][0]
-        lampob = bpy.data.objects[context.scene.NWSunObject]
-        # TODO - check if there is a driver first, or if it's keyed (replace try-except)
-        try:
-            # taken mostly from a script by Eugenio Pignataro Oscurart
-            dr = node.driver_add("sun_direction")
-            # set drivers
-            # X
-            dr[0].driver.expression = 'var'
-            var = dr[0].driver.variables.new()
-            var.type = 'SINGLE_PROP'
-            var.targets[0].id = lampob
-            var.targets[0].data_path = 'matrix_world[2][0]'
-            # Y
-            dr[1].driver.expression = 'var'
-            var = dr[1].driver.variables.new()
-            var.type = 'SINGLE_PROP'
-            var.targets[0].id = lampob
-            var.targets[0].data_path = 'matrix_world[2][1]'    
-            # Y
-            dr[2].driver.expression = 'var'
-            var = dr[2].driver.variables.new()
-            var.type = 'SINGLE_PROP'
-            var.targets[0].id = lampob
-            var.targets[0].data_path = 'matrix_world[2][2]'              
-
-            return {'FINISHED'}
-
-        except:
-            self.report({'ERROR'}, "Failed to add driver")
-            return {'CANCELLED'}
-
 #
 #  P A N E L
 #
@@ -3111,12 +3060,6 @@ def showimage_menu_func(self, context):
         if txt != 'INVALID':
             self.layout.operator(NWViewImage.bl_idname, icon="UI", text=txt)
 
-
-def sun_sky_menu_func(self, context):
-    col = self.layout.column(align = True)
-    col.prop_search(context.scene, "NWSunObject", bpy.data, "objects")
-    col.operator(NWLinkSkyWithSun.bl_idname, icon="LAMP_SUN")
-
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
 #
@@ -3308,10 +3251,6 @@ def register():
         name="Color Type!",
         default="x",
         description="An internal property used to store the line color")
-    bpy.types.Scene.NWSunObject = StringProperty(
-        name="Sun Lamp",
-        default="",
-        description="The lamp object to use to drive the Sky rotation")
 
     bpy.utils.register_module(__name__)
 
@@ -3330,14 +3269,12 @@ def register():
     bpy.types.NODE_PT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
     bpy.types.NODE_PT_active_node_properties.append(showimage_menu_func)
-    bpy.types.CyclesWorld_PT_surface.append(sun_sky_menu_func)
 
 
 def unregister():
     # props
     del bpy.types.Scene.NWBusyDrawing
     del bpy.types.Scene.NWDrawColType
-    del bpy.types.Scene.NWSunObject
 
     bpy.utils.unregister_module(__name__)
 
@@ -3352,7 +3289,6 @@ def unregister():
     bpy.types.NODE_PT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
     bpy.types.NODE_PT_active_node_properties.remove(showimage_menu_func)
-    bpy.types.CyclesWorld_PT_surface.remove(sun_sky_menu_func)
 
 if __name__ == "__main__":
     register()
