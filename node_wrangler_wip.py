@@ -449,16 +449,17 @@ def nice_hotkey_name(punc):
     return nice_punc
 
 
-def hack_force_update(nodes):
-    for node in nodes:
-        if node.inputs:
-            for inpt in node.inputs:
-                try:
-                    # set value to itself to force update
-                    inpt.default_value = inpt.default_value
-                    return True
-                except:
-                    pass
+def hack_force_update(context, nodes):
+    if context.space_data.tree_type == "ShaderNodeTree":
+        for node in nodes:
+            if node.inputs:
+                for inpt in node.inputs:
+                    try:
+                        # set value to itself to force update
+                        inpt.default_value = inpt.default_value
+                        return True
+                    except:
+                        pass
     return False
 
 
@@ -881,7 +882,7 @@ class NWLazyConnect(Operator, NWBase):
                         node.select = False
 
             if link_success:
-                hack_force_update(nodes)
+                hack_force_update(context, nodes)
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
 
@@ -1034,7 +1035,7 @@ class NWSwapOutputs(Operator, NWBase):
             except:
                 self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
 
-        hack_force_update(nodes)
+        hack_force_update(context, nodes)
         return {'FINISHED'}
 
 
@@ -1276,7 +1277,7 @@ class NWReloadImages(Operator, NWBase):
         if num_reloaded:
             self.report({'INFO'}, "Reloaded images")
             print("Reloaded " + str(num_reloaded) + " images")
-            hack_force_update(nodes)
+            hack_force_update(context, nodes)
             # bpy.ops.node.mute_toggle()
             # bpy.ops.node.mute_toggle() # stupid hack to update the node tree
             return {'FINISHED'}
@@ -2449,7 +2450,7 @@ class NWLinkToOutputNode(Operator, NWBase):
                     out_input_index = 2
             links.new(active.outputs[output_index], output_node.inputs[out_input_index])
 
-        hack_force_update(nodes)  # viewport render does not update
+        hack_force_update(context, nodes)  # viewport render does not update
 
         return {'FINISHED'}
 
