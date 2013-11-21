@@ -1286,80 +1286,6 @@ class NWReloadImages(Operator, NWBase):
             return {'CANCELLED'}
 
 
-class NWViewImage(Operator, NWBase):
-    bl_idname = "node.nw_view_image"
-    bl_label = "View Image"
-    bl_description = "Switch this window to an image editor and show the image for this node"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.node_tree is not None:
-                node = space.node_tree.nodes.active
-                if node.type == "TEXTURE":
-                    if node.texture:  # node has texture assigned
-                        if node.texture.type in ['IMAGE', 'ENVIRONMENT_MAP']:
-                            if node.texture.image:  # texture has image assigned
-                                valid = True
-                elif node.type == 'MOVIECLIP':
-                    if node.clip:
-                        valid = True
-                elif node.type in ['R_LAYERS', 'VIEWER', 'COMPOSITE']:
-                    valid = True
-                elif node.type == 'MASK':
-                    if node.mask:
-                        valid = True
-                else:
-                    if node.image:
-                        valid = True
-        return valid
-
-    def execute(self, context):
-        node = context.space_data.node_tree.nodes.active
-        image = ""
-        if node.type == "TEXTURE":
-            image = node.texture.image
-            context.area.type = 'IMAGE_EDITOR'
-            context.space_data.image = image
-            context.space_data.mode = 'VIEW'
-        elif node.type == 'MOVIECLIP':
-            image = node.clip
-            context.area.type = 'CLIP_EDITOR'
-            context.space_data.clip = image
-        elif node.type in ['R_LAYERS', 'COMPOSITE']:
-            if "Render Result" in [img.name for img in bpy.data.images]:
-                context.area.type = 'IMAGE_EDITOR'
-                context.space_data.image = bpy.data.images['Render Result']
-                context.space_data.mode = 'VIEW'
-            else:
-                self.report({'ERROR'}, "Render Result not found, try rerendering")
-        elif node.type == 'VIEWER':
-            if "Viewer Node" in [img.name for img in bpy.data.images]:
-                context.area.type = 'IMAGE_EDITOR'
-                context.space_data.image = bpy.data.images['Viewer Node']
-                context.space_data.mode = 'VIEW'
-            else:
-                self.report({'ERROR'}, "Viewer not found, try reconnecting it")
-        elif node.type == 'MASK':
-            image = node.mask
-            context.area.type = 'IMAGE_EDITOR'
-            if "Viewer Node" in [img.name for img in bpy.data.images]:
-                context.space_data.image = bpy.data.images['Viewer Node']
-            elif "Render Result" in [img.name for img in bpy.data.images]:
-                context.space_data.image = bpy.data.images['Render Result']
-            context.space_data.mode = 'MASK'
-            context.space_data.mask = image
-        else:
-            image = node.image
-            context.area.type = 'IMAGE_EDITOR'
-            context.space_data.image = image
-            context.space_data.mode = 'VIEW'
-
-        return {'FINISHED'}
-
-
 class NWSwitchNodeType(Operator, NWBase):
 
     """Switch type of selected nodes """
@@ -3043,23 +2969,6 @@ def bgreset_menu_func(self, context):
     self.layout.operator(NWResetBG.bl_idname)
 
 
-def showimage_menu_func(self, context):
-    node = context.space_data.node_tree.nodes.active
-    if node.type in ["IMAGE", "TEX_IMAGE", "TEX_ENVIRONMENT", "TEXTURE", "R_LAYERS", "MOVIECLIP", "VIEWER", "COMPOSITE", "MASK"]:
-        txt = "View Image"
-        if node.type in ['R_LAYERS', 'COMPOSITE']:
-            txt = "View Render Result"
-        elif node.type == 'MOVIECLIP':
-            txt = "View Clip"
-        elif node.type == 'MASK':
-            txt = "Edit Mask"
-        if node.type == 'TEXTURE':
-            if node.texture.type != 'IMAGE':
-                txt = 'INVALID'
-
-        if txt != 'INVALID':
-            self.layout.operator(NWViewImage.bl_idname, icon="UI", text=txt)
-
 #
 #  REGISTER/UNREGISTER CLASSES AND KEYMAP ITEMS
 #
@@ -3267,7 +3176,6 @@ def register():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
-    bpy.types.NODE_PT_active_node_properties.append(showimage_menu_func)
 
 
 def unregister():
@@ -3287,7 +3195,6 @@ def unregister():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
-    bpy.types.NODE_PT_active_node_properties.remove(showimage_menu_func)
 
 if __name__ == "__main__":
     register()
