@@ -1362,9 +1362,9 @@ class NWViewImage(Operator, NWBase):
 
 class NWSwitchNodeType(Operator, NWBase):
 
-    """Switc type of selected nodes """
+    """Switch type of selected nodes """
     bl_idname = "node.nw_swtch_node_type"
-    bl_label = "Swch Node Type"
+    bl_label = "Switch Node Type"
     bl_options = {'REGISTER', 'UNDO'}
 
     to_type = EnumProperty(
