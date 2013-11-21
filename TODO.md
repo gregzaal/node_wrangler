@@ -4,9 +4,7 @@ Todo
 Short term:
 -----------
 * Add driver for mapping node (option for offset) - drive the position, rotation and scale with an Empty
-* Link Sky Texture vector with a Sun Lamp's rotation
 * Color ramp element positions (node.color_ramp.elements[0])
-* Add Vertex colors menu (same as UV Layers)
 * Clamp the output of selected nodes (Mix node, second input, Clamp on)
 * Map Z-depth range by picking two points on the backdrop image (nearest, furthest), or by automatically mapping it so it's 0-1 (minimum 0, maximum 1)
 * Comment node
@@ -16,12 +14,8 @@ Short term:
  - Heading
  - Text colour
  - Use frame node and parent text to this
-* Hotkey for 'View Image' function
-* When viewing the image/mask/clip of a node, add button to header to jump back to node editor
 * Auto set frame range of image sequence
 * Make sure everything works inside groups.
-* Make Lazy Connect replace other links when theres no free one available.
-* Ctrl+Shift+A to add a node connected to the selected node(s) - same menu as Shift+A, but add one node per selected nodes and place it to the right, connecting everything nicely.
 * Increase/Decrease mix fac hotkeys also work for other node values.
 * Lazy functions should use the nearest border, not the nearest center
 * Lazy Mix: when to/from node is the same node, add a clamp
