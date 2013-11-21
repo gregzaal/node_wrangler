@@ -1360,15 +1360,15 @@ class NWViewImage(Operator, NWBase):
         return {'FINISHED'}
 
 
-class NWSwapNodeType(Operator, NWBase):
+class NWSwitchNodeType(Operator, NWBase):
 
-    """Swap type of selected nodes """
-    bl_idname = "node.nw_swap_node_type"
-    bl_label = "Swap Node Type"
+    """Switc type of selected nodes """
+    bl_idname = "node.nw_swtch_node_type"
+    bl_label = "Swch Node Type"
     bl_options = {'REGISTER', 'UNDO'}
 
     to_type = EnumProperty(
-        name="Swap to type",
+        name="Switch to type",
         items=list(shaders_input_nodes_props) +
         list(shaders_output_nodes_props) +
         list(shaders_shader_nodes_props) +
@@ -1507,7 +1507,7 @@ class NWSwapNodeType(Operator, NWBase):
                     # pass dvals
                     if src_dval and dst_dval and tp in {'RGBA', 'VALUE_NAME'}:
                         new_node.inputs[dst_i].default_value = src_dval
-                    # Special case: swap to math
+                    # Special case: switch to math
                     if node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
                             new_node.type == 'MATH' and\
                             tp == 'MAIN':
@@ -1516,7 +1516,7 @@ class NWSwapNodeType(Operator, NWBase):
                         if node.type == 'MIX_RGB':
                             if node.blend_type in [o[0] for o in operations]:
                                 new_node.operation = node.blend_type
-                    # Special case: swap from math to some types
+                    # Special case: switch from math to some types
                     if node.type == 'MATH' and\
                             new_node.type in {'MIX_RGB', 'ALPHAOVER', 'ZCOMBINE'} and\
                             tp == 'MAIN':
@@ -2467,7 +2467,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.separator()
 
     col = layout.column(align=True)
-    col.menu(NWSwapNodeTypeMenu.bl_idname, text="Swap Type/Node")
+    col.menu(NWSwitchNodeTypeMenu.bl_idname, text="Switch Node Type")
     col.separator()
 
     if tree_type == 'ShaderNodeTree':
@@ -2804,220 +2804,220 @@ class NWVertColMenu(bpy.types.Menu):
             l.label("No Vertex Color layers on objects with this material")
 
 
-class NWSwapNodeTypeMenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_node_type_menu"
-    bl_label = "Swap Type to..."
+class NWSwitchNodeTypeMenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_node_type_menu"
+    bl_label = "Switch Type to..."
 
     def draw(self, context):
         layout = self.layout
         tree = context.space_data.node_tree
         if tree.type == 'SHADER':
-            layout.menu(NWSwapShadersInputSubmenu.bl_idname)
-            layout.menu(NWSwapShadersOutputSubmenu.bl_idname)
-            layout.menu(NWSwapShadersShaderSubmenu.bl_idname)
-            layout.menu(NWSwapShadersTextureSubmenu.bl_idname)
-            layout.menu(NWSwapShadersColorSubmenu.bl_idname)
-            layout.menu(NWSwapShadersVectorSubmenu.bl_idname)
-            layout.menu(NWSwapShadersConverterSubmenu.bl_idname)
-            layout.menu(NWSwapShadersLayoutSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersTextureSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersColorSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
+            layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
         if tree.type == 'COMPOSITING':
-            layout.menu(NWSwapCompoInputSubmenu.bl_idname)
-            layout.menu(NWSwapCompoOutputSubmenu.bl_idname)
-            layout.menu(NWSwapCompoColorSubmenu.bl_idname)
-            layout.menu(NWSwapCompoConverterSubmenu.bl_idname)
-            layout.menu(NWSwapCompoFilterSubmenu.bl_idname)
-            layout.menu(NWSwapCompoVectorSubmenu.bl_idname)
-            layout.menu(NWSwapCompoMatteSubmenu.bl_idname)
-            layout.menu(NWSwapCompoDistortSubmenu.bl_idname)
-            layout.menu(NWSwapCompoLayoutSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoInputSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoOutputSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoColorSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoConverterSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoFilterSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoVectorSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoMatteSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoDistortSubmenu.bl_idname)
+            layout.menu(NWSwitchCompoLayoutSubmenu.bl_idname)
 
 
-class NWSwapShadersInputSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_input_submenu"
+class NWSwitchShadersInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_input_submenu"
     bl_label = "Input"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_input_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersOutputSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_output_submenu"
+class NWSwitchShadersOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_output_submenu"
     bl_label = "Output"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_output_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersShaderSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_shader_submenu"
+class NWSwitchShadersShaderSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_shader_submenu"
     bl_label = "Shader"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_shader_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersTextureSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_texture_submenu"
+class NWSwitchShadersTextureSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_texture_submenu"
     bl_label = "Texture"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_texture_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersColorSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_color_submenu"
+class NWSwitchShadersColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_color_submenu"
     bl_label = "Color"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_color_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersVectorSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_vector_submenu"
+class NWSwitchShadersVectorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_vector_submenu"
     bl_label = "Vector"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_vector_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersConverterSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_converter_submenu"
+class NWSwitchShadersConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_converter_submenu"
     bl_label = "Converter"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_converter_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapShadersLayoutSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_shaders_layout_submenu"
+class NWSwitchShadersLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_shaders_layout_submenu"
     bl_label = "Layout"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in shaders_layout_nodes_props:
             if type != 'FRAME':
-                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
 
-class NWSwapCompoInputSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_input_submenu"
+class NWSwitchCompoInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_input_submenu"
     bl_label = "Input"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_input_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoOutputSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_output_submenu"
+class NWSwitchCompoOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_output_submenu"
     bl_label = "Output"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_output_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoColorSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_color_submenu"
+class NWSwitchCompoColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_color_submenu"
     bl_label = "Color"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_color_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoConverterSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_converter_submenu"
+class NWSwitchCompoConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_converter_submenu"
     bl_label = "Converter"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_converter_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoFilterSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_filter_submenu"
+class NWSwitchCompoFilterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_filter_submenu"
     bl_label = "Filter"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_filter_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoVectorSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_vector_submenu"
+class NWSwitchCompoVectorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_vector_submenu"
     bl_label = "Vector"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_vector_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoMatteSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_matte_submenu"
+class NWSwitchCompoMatteSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_matte_submenu"
     bl_label = "Matte"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_matte_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoDistortSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_distort_submenu"
+class NWSwitchCompoDistortSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_distort_submenu"
     bl_label = "Distort"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_distort_nodes_props:
-            props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
             props.to_type = ident
 
 
-class NWSwapCompoLayoutSubmenu(Menu, NWBase):
-    bl_idname = "NODE_MT_nw_swap_compo_layout_submenu"
+class NWSwitchCompoLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_compo_layout_submenu"
     bl_label = "Layout"
 
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_layout_nodes_props:
             if type != 'FRAME':
-                props = layout.operator(NWSwapNodeType.bl_idname, text=rna_name)
+                props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
 
 
@@ -3236,9 +3236,8 @@ kmi_defs = (
     ('wm.call_menu', 'EQUAL', False, True, False, (('name', NWNodeAlignMenu.bl_idname),), "Node alignment menu"),
     ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
     ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', False, True, False, (('name', NWSwapNodeTypeMenu.bl_idname),), "Swap node type menu"),
+    ('wm.call_menu', 'S', False, True, False, (('name', NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
 )
-# TODO, make new function keymaps use class.bl_idname and not op.name directly
 
 
 def register():
