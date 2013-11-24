@@ -1084,16 +1084,20 @@ class NWEmissionViewer(Operator, NWBase):
         space = context.space_data
         valid = False
         if space.type == 'NODE_EDITOR':
-            # if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node is not None and context.active_node.type != "OUTPUT_MATERIAL":
-            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and context.active_node.type != "OUTPUT_MATERIAL":
+            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and (context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD"):
                 valid = True
         return valid
 
     def invoke(self, context, event):
-    # def execute(self, context):
-
-        # to select at specific mouse position:
-        # bpy.ops.node.select(mouse_x=156, mouse_y=410, extend=False)
+        shader_type = context.space_data.shader_type
+        if shader_type == 'OBJECT':
+            shader_output_type = "OUTPUT_MATERIAL"
+            shader_output_ident = "ShaderNodeOutputMaterial"
+            shader_viewer_ident = "ShaderNodeEmission"
+        elif shader_type == 'WORLD':
+            shader_output_type = "OUTPUT_WORLD"
+            shader_output_ident = "ShaderNodeOutputWorld"
+            shader_viewer_ident = "ShaderNodeBackground"
         shader_types = [x[1] for x in shaders_shader_nodes_props]
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
@@ -1114,11 +1118,11 @@ class NWEmissionViewer(Operator, NWBase):
                 materialout_exists = False
                 materialout = None  # placeholder node
                 for node in nodes:
-                    if node.type == "OUTPUT_MATERIAL":
+                    if node.type == shader_output_type:
                         materialout_exists = True
                         materialout = node
                 if not materialout:
-                    materialout = nodes.new('ShaderNodeOutputMaterial')
+                    materialout = nodes.new(shader_output_ident)
                     sorted_by_xloc = (sorted(nodes, key=lambda x: x.location.x))
                     max_xloc_node = sorted_by_xloc[-1]
                     if max_xloc_node.name == 'Emission Viewer':
@@ -1161,7 +1165,7 @@ class NWEmissionViewer(Operator, NWBase):
                 dimx = active.dimensions.x
                 dimy = active.dimensions.y
                 if not emission_exists:
-                    emission = nodes.new('ShaderNodeEmission')
+                    emission = nodes.new(shader_viewer_ident)
                     emission.hide = True
                     emission.location = [materialout.location.x, (materialout.location.y + 40)]
                     emission.label = "Viewer"
