@@ -451,25 +451,10 @@ def nice_hotkey_name(punc):
 
 def hack_force_update(context, nodes):
     if context.space_data.tree_type == "ShaderNodeTree":
-        for node in nodes:
-            if node.inputs:
-                for inpt in node.inputs:
-                    try:
-                        # set value to itself to force update
-                        inpt.default_value = inpt.default_value
-                        return True
-                    except:
-                        pass
+        node = nodes.new('ShaderNodeMath')
+        node.inputs[0].default_value = 0.0
+        nodes.remove(node)
     return False
-
-
-def is_start_node(node):
-    bool = True
-    for input in node.inputs:
-        if input.links:
-            bool = False
-            break
-    return bool
 
 
 def is_end_node(node):
@@ -571,7 +556,6 @@ def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glLineWidth(size)
 
     bgl.glBegin(bgl.GL_LINE_STRIP)
-    # bgl.glBegin(bgl.GL_LINES)
     try:
         bgl.glVertex2f(x1, y1)
         bgl.glVertex2f(x2, y2)
@@ -585,7 +569,6 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     radius = radius
     sides = 32
-    #bgl.glVertex2f(m1x, m1y)
     for i in range(sides + 1):
         cosine = radius * cos(i * 2 * pi / sides) + mx
         sine = radius * sin(i * 2 * pi / sides) + my
@@ -734,7 +717,6 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
 
 class NWBase:
-
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -743,7 +725,6 @@ class NWBase:
 
 # OPERATORS
 class NWLazyMix(Operator, NWBase):
-
     """Add a Mix RGB/Shader node by interactively drawing lines between nodes"""
     bl_idname = "node.nw_lazy_mix"
     bl_label = "Mix Nodes"
@@ -820,7 +801,6 @@ class NWLazyMix(Operator, NWBase):
 
 
 class NWLazyConnect(Operator, NWBase):
-
     """Connect two nodes without clicking a specific socket (automatically determined"""
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
@@ -919,8 +899,7 @@ class NWLazyConnect(Operator, NWBase):
 
 
 class NWDeleteUnused(Operator, NWBase):
-
-    'Delete all nodes whose output is not used'
+    """Delete all nodes whose output is not used"""
     bl_idname = 'node.nw_del_unused'
     bl_label = 'Delete Unused Nodes'
     bl_options = {'REGISTER', 'UNDO'}
@@ -986,8 +965,7 @@ class NWDeleteUnused(Operator, NWBase):
 
 
 class NWSwapOutputs(Operator, NWBase):
-
-    "Swap the output connections of the two selected nodes"
+    """Swap the output connections of the two selected nodes"""
     bl_idname = 'node.nw_swap_outputs'
     bl_label = 'Swap Outputs'
     bl_options = {'REGISTER', 'UNDO'}
@@ -1040,8 +1018,7 @@ class NWSwapOutputs(Operator, NWBase):
 
 
 class NWResetBG(Operator, NWBase):
-
-    'Reset the zoom and position of the background image'
+    """Reset the zoom and position of the background image"""
     bl_idname = 'node.nw_bg_reset'
     bl_label = 'Reset Backdrop'
     bl_options = {'REGISTER', 'UNDO'}
@@ -1059,8 +1036,7 @@ class NWResetBG(Operator, NWBase):
 
 
 class NWAddAttrNode(Operator, NWBase):
-
-    "Add an Attribute node with this name"
+    """Add an Attribute node with this name"""
     bl_idname = 'node.nw_add_attr_node'
     bl_label = 'Add UV map'
     attr_name = StringProperty()
@@ -1282,8 +1258,6 @@ class NWReloadImages(Operator, NWBase):
             self.report({'INFO'}, "Reloaded images")
             print("Reloaded " + str(num_reloaded) + " images")
             hack_force_update(context, nodes)
-            # bpy.ops.node.mute_toggle()
-            # bpy.ops.node.mute_toggle() # stupid hack to update the node tree
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, "No images found to reload in this node tree")
@@ -1291,7 +1265,6 @@ class NWReloadImages(Operator, NWBase):
 
 
 class NWSwitchNodeType(Operator, NWBase):
-
     """Switch type of selected nodes """
     bl_idname = "node.nw_swtch_node_type"
     bl_label = "Switch Node Type"
@@ -1905,7 +1878,6 @@ class NWClearLabel(Operator, NWBase):
 
 
 class NWModifyLabels(Operator, NWBase):
-
     """Modify Labels of all selected nodes."""
     bl_idname = "node.nw_modify_labels"
     bl_label = "Modify Labels"
@@ -2008,6 +1980,7 @@ class NWAddTextureSetup(Operator, NWBase):
 
 
 class NWAddReroutes(Operator, NWBase):
+    """Add Reroute Nodes and link them to outputs of selected nodes"""
     bl_idname = "node.nw_add_reroutes"
     bl_label = "Add Reroutes"
     bl_description = "Add Reroutes to Outputs"
@@ -2107,6 +2080,7 @@ class NWAddReroutes(Operator, NWBase):
 
 
 class NWLinkActiveToSelected(Operator, NWBase):
+    """Link active node to selected nodes basing on various criteria"""
     bl_idname = "node.nw_link_active_to_selected"
     bl_label = "Link Active Node to Selected"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2317,6 +2291,7 @@ class NWSelectParentChildren(Operator, NWBase):
 
 
 class NWDetachOutputs(Operator, NWBase):
+    """Detach outputs of selected node leaving inluts liked"""
     bl_idname = "node.nw_detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
@@ -2338,6 +2313,7 @@ class NWDetachOutputs(Operator, NWBase):
 
 
 class NWLinkToOutputNode(Operator, NWBase):
+    """Link to Composite node or Material Output node"""
     bl_idname = "node.nw_link_out"
     bl_label = "Connect to Output"
     bl_options = {'REGISTER', 'UNDO'}
