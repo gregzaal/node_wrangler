@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (2, 40),
+    'version': (3, 00),
     'blender': (2, 69, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -29,9 +29,7 @@ bl_info = {
     'category': "Node",
 }
 
-import bpy
-import blf
-import bgl
+import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
 from mathutils import Vector
@@ -730,9 +728,6 @@ class NWLazyMix(Operator, NWBase):
     bl_label = "Mix Nodes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = StringProperty(default='MIX')
-    merge_type = StringProperty(default='AUTO')
-
     def modal(self, context, event):
         context.area.tag_redraw()
         nodes, links = get_nodes_links(context)
@@ -771,7 +766,7 @@ class NWLazyMix(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    bpy.ops.node.nw_merge_nodes(mode=self.mode, merge_type=self.merge_type)
+                    bpy.ops.node.nw_merge_nodes(mode="MIX", merge_type="AUTO")
 
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
@@ -805,9 +800,6 @@ class NWLazyConnect(Operator, NWBase):
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}
-
-    mode = StringProperty(default='MIX')
-    merge_type = StringProperty(default='AUTO')
 
     def modal(self, context, event):
         context.area.tag_redraw()
