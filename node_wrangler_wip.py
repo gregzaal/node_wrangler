@@ -19,13 +19,14 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (3, 00),
+    'version': (3, 1),
     'blender': (2, 69, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
     'warning': "",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?func=detail&aid=33543&group_id=153&atid=469",
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Nodes/Nodes_Efficiency_Tools",
+    'tracker_url': "https://developer.blender.org/T33543",
     'category': "Node",
 }
 
@@ -117,9 +118,12 @@ shaders_shader_nodes_props = (
     ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
     ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
     ('ShaderNodeEmission', 'EMISSION', 'Emission'),
+    ('ShaderNodeBsdfHair', 'BSDF_HAIR', 'Hair BSDF'),
     ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
     ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
+    ('ShaderNodeVolumeAbsorption', 'VOLUME_ABSORPTION', 'Volume Absorption'),
+    ('ShaderNodeVolumeScatter', 'VOLUME_SCATTER', 'Volume Scatter'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
@@ -574,6 +578,109 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnd()
 
 
+def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glEnable(bgl.GL_BLEND)
+    settings = bpy.context.user_preferences.addons[__name__].preferences
+    if settings.bgl_antialiasing:
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    sides = 16
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+
+    nlocx = node.location.x+1
+    nlocy = node.location.y+1
+    ndimx = node.dimensions.x
+    ndimy = node.dimensions.y
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (4<=i<=8):
+            if mx != 12000 and my != 12000:  # nodes that go over the view border give 12000 as coords
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (0<=i<=4):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+
+    bgl.glEnd()
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (8<=i<=12):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (12<=i<=16):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m2x-radius,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m1x,m1y)
+        bgl.glVertex2f(m1x-radius,m1y)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m2x,m1y+radius)
+        bgl.glVertex2f(m1x,m1y+radius)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m2x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x+radius,m2y)
+        bgl.glVertex2f(m1x+radius,m1y)
+        bgl.glVertex2f(m1x,m1y)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy-ndimy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m2x,m1y-radius)
+        bgl.glVertex2f(m1x,m1y-radius)
+    bgl.glEnd()
+
+    bgl.glDisable(bgl.GL_BLEND)
+    if settings.bgl_antialiasing:
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+
+
 def draw_callback_mixnodes(self, context, mode="MIX"):
     if self.mouse_path:
         settings = context.user_preferences.addons[__name__].preferences
@@ -599,6 +706,18 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         m2x = self.mouse_path[-1][0]
         m2y = self.mouse_path[-1][1]
 
+        nodes = context.space_data.node_tree.nodes
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
+
+        draw_rounded_node_border(n1, radius=6, colour=[1.0, 0.2, 0.2, 0.4])
+        draw_rounded_node_border(n1, radius=5, colour=[0.0, 0.0, 0.0, 0.5])
+        draw_rounded_node_border(n2, radius=6, colour=[1.0, 0.2, 0.2, 0.4])
+        draw_rounded_node_border(n2, radius=5, colour=[0.0, 0.0, 0.0, 0.5])
+
+        # m1x, m1y = context.region.view2d.view_to_region(node_mid_pt(n1, 'x'), node_mid_pt(n1, 'y'))
+        # m2x, m2y = context.region.view2d.view_to_region(node_mid_pt(n2, 'x'), node_mid_pt(n2, 'y'))
+
         # circle outline
         draw_circle(m1x, m1y, 6, colors[0])
         draw_circle(m2x, m2y, 6, colors[0])
@@ -609,6 +728,21 @@ def draw_callback_mixnodes(self, context, mode="MIX"):
         # circle inner
         draw_circle(m1x, m1y, 5, colors[2])
         draw_circle(m2x, m2y, 5, colors[2])
+
+        # Draw Text
+        font_id = 0
+        bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
+        blf.size(font_id, 14, 72)
+        blf.position(font_id, m1x, m1y+10, 0)
+        if n1.label:
+            blf.draw(font_id, n1.label)
+        else:
+            blf.draw(font_id, n1.name)
+        blf.position(font_id, m2x, m2y+10, 0)
+        if n2.label:
+            blf.draw(font_id, n2.label)
+        else:
+            blf.draw(font_id, n2.name)
 
         # restore opengl defaults
         bgl.glLineWidth(1)
@@ -816,6 +950,10 @@ class NWLazyConnect(Operator, NWBase):
         else:
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
+
+        context.scene.NWLazySource = node1.name
+        context.scene.NWLazyTarget = node_at_pos(nodes, context, event).name
+        #print (context.scene.NWLazySource + " -> " + context.scene.NWLazyTarget)
 
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
@@ -3131,6 +3269,14 @@ def register():
         name="Color Type!",
         default="x",
         description="An internal property used to store the line color")
+    bpy.types.Scene.NWLazySource = StringProperty(
+        name="Lazy Source!",
+        default="x",
+        description="An internal property used to store the first node in a Lazy Connect operation")
+    bpy.types.Scene.NWLazyTarget = StringProperty(
+        name="Lazy Target!",
+        default="x",
+        description="An internal property used to store the last node in a Lazy Connect operation")
 
     bpy.utils.register_module(__name__)
 
@@ -3154,6 +3300,8 @@ def unregister():
     # props
     del bpy.types.Scene.NWBusyDrawing
     del bpy.types.Scene.NWDrawColType
+    del bpy.types.Scene.NWLazySource
+    del bpy.types.Scene.NWLazyTarget
 
     bpy.utils.unregister_module(__name__)
 
