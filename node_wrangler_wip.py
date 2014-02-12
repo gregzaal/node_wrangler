@@ -30,6 +30,11 @@ bl_info = {
     'category': "Node",
 }
 
+'''
+TODO
+lazy match by name first
+'''
+
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
@@ -522,8 +527,14 @@ def node_at_pos(nodes, context, event):
     store_mouse_cursor(context, event)
     x, y = context.space_data.cursor_location
 
-    # nearest node
-    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x - node_mid_pt(k, 'x')) ** 2 + (y - node_mid_pt(k, 'y')) ** 2))
+    node_points_with_dist = []
+    for node in nodes:
+        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - node.location.y) ** 2), "TL"])
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - node.location.y) ** 2), "TR"])
+        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2), "BL"])
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2), "BR"])
+
+    nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 
     for node in nodes:
         if (node.location.x <= x <= node.location.x + node.dimensions.x) and \
@@ -531,12 +542,12 @@ def node_at_pos(nodes, context, event):
             nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
-        if nodes_under_mouse[0] != nodes_near_mouse[0]:
+        if nodes_under_mouse[0] != nearest_node:
             target_node = nodes_under_mouse[0]  # use the node under the mouse if there is one and only one
         else:
-            target_node = nodes_near_mouse[0]  # else use the nearest node
+            target_node = nearest_node  # else use the nearest node
     else:
-        target_node = nodes_near_mouse[0]
+        target_node = nearest_node
     return target_node
 
 
