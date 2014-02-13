@@ -527,12 +527,19 @@ def node_at_pos(nodes, context, event):
     store_mouse_cursor(context, event)
     x, y = context.space_data.cursor_location
 
+    # Make a list of each corner (and middle of border) for each node.
+    # Will be sorted to find nearest point and thus nearest node
     node_points_with_dist = []
     for node in nodes:
-        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - node.location.y) ** 2), "TL"])
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - node.location.y) ** 2), "TR"])
-        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2), "BL"])
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2), "BR"])
+        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - node.location.y) ** 2)])  # Top Left
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - node.location.y) ** 2)])  # Top Right
+        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Bottom Left
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Bottom Right
+
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+(node.dimensions.x/2))) ** 2 + (y - node.location.y) ** 2)])  # Mid Top
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+(node.dimensions.x/2))) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Mid Bottom
+        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-(node.dimensions.y/2))) ** 2)])  # Mid Left
+        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-(node.dimensions.y/2))) ** 2)])  # Mid Right
 
     nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 
@@ -565,16 +572,19 @@ def store_mouse_cursor(context, event):
 
 def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     bgl.glLineWidth(size)
+    bgl.glShadeModel(bgl.GL_SMOOTH)
 
     bgl.glBegin(bgl.GL_LINE_STRIP)
     try:
+        bgl.glColor4f(colour[0]+(1.0-colour[0])/4, colour[1]+(1.0-colour[1])/4, colour[2]+(1.0-colour[2])/4, colour[3]+(1.0-colour[3])/4)
         bgl.glVertex2f(x1, y1)
+        bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
         bgl.glVertex2f(x2, y2)
     except:
         pass
     bgl.glEnd()
+    bgl.glShadeModel(bgl.GL_FLAT)
 
 
 def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
@@ -692,68 +702,54 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
-def draw_callback_mixnodes(self, context, mode="MIX"):
+def draw_callback_mixnodes(self, context):
     if self.mouse_path:
+        nodes = context.space_data.node_tree.nodes
         settings = context.user_preferences.addons[__name__].preferences
         if settings.bgl_antialiasing:
             bgl.glEnable(bgl.GL_LINE_SMOOTH)
-
-        colors = []
-        if mode == 'MIX':
-            colors = draw_color_sets['red_white']
-        elif mode == 'RGBA':
-            colors = draw_color_sets['yellow']
-        elif mode == 'VECTOR':
-            colors = draw_color_sets['purple']
-        elif mode == 'VALUE':
-            colors = draw_color_sets['grey']
-        elif mode == 'SHADER':
-            colors = draw_color_sets['green']
-        else:
-            colors = draw_color_sets['black']
 
         m1x = self.mouse_path[0][0]
         m1y = self.mouse_path[0][1]
         m2x = self.mouse_path[-1][0]
         m2y = self.mouse_path[-1][1]
 
-        nodes = context.space_data.node_tree.nodes
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
 
-        draw_rounded_node_border(n1, radius=6, colour=[1.0, 0.2, 0.2, 0.4])
-        draw_rounded_node_border(n1, radius=5, colour=[0.0, 0.0, 0.0, 0.5])
-        draw_rounded_node_border(n2, radius=6, colour=[1.0, 0.2, 0.2, 0.4])
-        draw_rounded_node_border(n2, radius=5, colour=[0.0, 0.0, 0.0, 0.5])
+        draw_rounded_node_border(n1, radius=6, colour=[1.0, 0.2, 0.2, 0.4])  # outline
+        draw_rounded_node_border(n1, radius=5, colour=[0.0, 0.0, 0.0, 0.5])  # inner
+        draw_rounded_node_border(n2, radius=6, colour=[1.0, 0.2, 0.2, 0.4])  # outline
+        draw_rounded_node_border(n2, radius=5, colour=[0.0, 0.0, 0.0, 0.5])  # inner
 
         # m1x, m1y = context.region.view2d.view_to_region(node_mid_pt(n1, 'x'), node_mid_pt(n1, 'y'))
         # m2x, m2y = context.region.view2d.view_to_region(node_mid_pt(n2, 'x'), node_mid_pt(n2, 'y'))
 
-        # circle outline
-        draw_circle(m1x, m1y, 6, colors[0])
-        draw_circle(m2x, m2y, 6, colors[0])
+        draw_line(m1x, m1y, m2x, m2y, 4, [1.0, 0.2, 0.2, 0.4])  # line outline
+        draw_line(m1x, m1y, m2x, m2y, 2, [0.0, 0.0, 0.0, 0.5])  # line inner
 
-        draw_line(m1x, m1y, m2x, m2y, 4, colors[0])  # line outline
-        draw_line(m1x, m1y, m2x, m2y, 2, colors[1])  # line inner
+        # circle outline
+        draw_circle(m1x, m1y, 6, [1.0, 0.2, 0.2, 0.4])
+        draw_circle(m2x, m2y, 6, [1.0, 0.2, 0.2, 0.4])
 
         # circle inner
-        draw_circle(m1x, m1y, 5, colors[2])
-        draw_circle(m2x, m2y, 5, colors[2])
+        draw_circle(m1x, m1y, 5, [0.3, 0.05, 0.05, 1.0])
+        draw_circle(m2x, m2y, 5, [0.3, 0.05, 0.05, 1.0])
 
-        # Draw Text
-        font_id = 0
-        bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
-        blf.size(font_id, 14, 72)
-        blf.position(font_id, m1x, m1y+10, 0)
-        if n1.label:
-            blf.draw(font_id, n1.label)
-        else:
-            blf.draw(font_id, n1.name)
-        blf.position(font_id, m2x, m2y+10, 0)
-        if n2.label:
-            blf.draw(font_id, n2.label)
-        else:
-            blf.draw(font_id, n2.name)
+        # # Draw Text
+        # font_id = 0
+        # bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
+        # blf.size(font_id, 14, 72)
+        # blf.position(font_id, m1x, m1y+10, 0)
+        # if n1.label:
+        #     blf.draw(font_id, n1.label)
+        # else:
+        #     blf.draw(font_id, n1.name)
+        # blf.position(font_id, m2x, m2y+10, 0)
+        # if n2.label:
+        #     blf.draw(font_id, n2.label)
+        # else:
+        #     blf.draw(font_id, n2.name)
 
         # restore opengl defaults
         bgl.glLineWidth(1)
@@ -964,7 +960,6 @@ class NWLazyConnect(Operator, NWBase):
 
         context.scene.NWLazySource = node1.name
         context.scene.NWLazyTarget = node_at_pos(nodes, context, event).name
-        #print (context.scene.NWLazySource + " -> " + context.scene.NWLazyTarget)
 
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
@@ -1019,13 +1014,9 @@ class NWLazyConnect(Operator, NWBase):
             node = node_at_pos(nodes, context, event)
             if node:
                 context.scene.NWBusyDrawing = node.name
-                if node.outputs:
-                    context.scene.NWDrawColType = node.outputs[0].type
-            else:
-                context.scene.NWDrawColType = 'x'
 
             # the arguments we pass the the callback
-            args = (self, context, context.scene.NWDrawColType)
+            args = (self, context)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
@@ -3276,10 +3267,6 @@ def register():
         name="Busy Drawing!",
         default="",
         description="An internal property used to store only the first mouse position")
-    bpy.types.Scene.NWDrawColType = StringProperty(
-        name="Color Type!",
-        default="x",
-        description="An internal property used to store the line color")
     bpy.types.Scene.NWLazySource = StringProperty(
         name="Lazy Source!",
         default="x",
@@ -3310,7 +3297,6 @@ def register():
 def unregister():
     # props
     del bpy.types.Scene.NWBusyDrawing
-    del bpy.types.Scene.NWDrawColType
     del bpy.types.Scene.NWLazySource
     del bpy.types.Scene.NWLazyTarget
 
