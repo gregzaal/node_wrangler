@@ -702,12 +702,21 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
-def draw_callback_mixnodes(self, context):
+def draw_callback_mixnodes(self, context, mode):
     if self.mouse_path:
         nodes = context.space_data.node_tree.nodes
         settings = context.user_preferences.addons[__name__].preferences
         if settings.bgl_antialiasing:
             bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
+        if mode == "LINK":
+            col_outer = [1.0, 0.2, 0.2, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.3, 0.05, 0.05, 1.0]
+        elif mode == "MIX":
+            col_outer = [0.2, 1.0, 0.2, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.05, 0.3, 0.05, 1.0]
 
         m1x = self.mouse_path[0][0]
         m1y = self.mouse_path[0][1]
@@ -717,24 +726,24 @@ def draw_callback_mixnodes(self, context):
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
 
-        draw_rounded_node_border(n1, radius=6, colour=[1.0, 0.2, 0.2, 0.4])  # outline
-        draw_rounded_node_border(n1, radius=5, colour=[0.0, 0.0, 0.0, 0.5])  # inner
-        draw_rounded_node_border(n2, radius=6, colour=[1.0, 0.2, 0.2, 0.4])  # outline
-        draw_rounded_node_border(n2, radius=5, colour=[0.0, 0.0, 0.0, 0.5])  # inner
+        draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
+        draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
 
         # m1x, m1y = context.region.view2d.view_to_region(node_mid_pt(n1, 'x'), node_mid_pt(n1, 'y'))
         # m2x, m2y = context.region.view2d.view_to_region(node_mid_pt(n2, 'x'), node_mid_pt(n2, 'y'))
 
-        draw_line(m1x, m1y, m2x, m2y, 4, [1.0, 0.2, 0.2, 0.4])  # line outline
-        draw_line(m1x, m1y, m2x, m2y, 2, [0.0, 0.0, 0.0, 0.5])  # line inner
+        draw_line(m1x, m1y, m2x, m2y, 4, col_outer)  # line outline
+        draw_line(m1x, m1y, m2x, m2y, 2, col_inner)  # line inner
 
         # circle outline
-        draw_circle(m1x, m1y, 6, [1.0, 0.2, 0.2, 0.4])
-        draw_circle(m2x, m2y, 6, [1.0, 0.2, 0.2, 0.4])
+        draw_circle(m1x, m1y, 6, col_outer)
+        draw_circle(m2x, m2y, 6, col_outer)
 
         # circle inner
-        draw_circle(m1x, m1y, 5, [0.3, 0.05, 0.05, 1.0])
-        draw_circle(m2x, m2y, 5, [0.3, 0.05, 0.05, 1.0])
+        draw_circle(m1x, m1y, 5, col_circle_inner)
+        draw_circle(m2x, m2y, 5, col_circle_inner)
 
         # # Draw Text
         # font_id = 0
@@ -885,6 +894,9 @@ class NWLazyMix(Operator, NWBase):
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
 
+        context.scene.NWLazySource = node1.name
+        context.scene.NWLazyTarget = node_at_pos(nodes, context, event).name
+
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
 
@@ -1016,7 +1028,7 @@ class NWLazyConnect(Operator, NWBase):
                 context.scene.NWBusyDrawing = node.name
 
             # the arguments we pass the the callback
-            args = (self, context)
+            args = (self, context, "LINK")
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
