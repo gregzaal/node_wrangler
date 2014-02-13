@@ -30,11 +30,6 @@ bl_info = {
     'category': "Node",
 }
 
-'''
-TODO
-lazy match by name first
-'''
-
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
@@ -485,6 +480,14 @@ def node_mid_pt(node, axis):
 
 def autolink(node1, node2, links):
     link_made = False
+
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if not inp.is_linked and inp.name == outp.name:
+                link_made = True
+                links.new(outp, inp)
+                return True
+
     for outp in node1.outputs:
         for inp in node2.inputs:
             if not inp.is_linked and inp.type == outp.type:
