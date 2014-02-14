@@ -464,6 +464,10 @@ def hack_force_update(context, nodes):
     return False
 
 
+def dpifac():
+    return bpy.context.user_preferences.system.dpi/72
+
+
 def is_end_node(node):
     bool = True
     for output in node.outputs:
@@ -534,26 +538,39 @@ def node_at_pos(nodes, context, event):
 
     store_mouse_cursor(context, event)
     x, y = context.space_data.cursor_location
+    x = x
+    y = y
+    # x = x*dpifac()
 
     # Make a list of each corner (and middle of border) for each node.
     # Will be sorted to find nearest point and thus nearest node
     node_points_with_dist = []
     for node in nodes:
-        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - node.location.y) ** 2)])  # Top Left
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - node.location.y) ** 2)])  # Top Right
-        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Bottom Left
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Bottom Right
+        locx = node.location.x
+        locy = node.location.y
+        dimx = node.dimensions.x/dpifac()
+        dimy = node.dimensions.y/dpifac()
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - locy) ** 2)])  # Top Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - locy) ** 2)])  # Top Right
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Right
 
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+(node.dimensions.x/2))) ** 2 + (y - node.location.y) ** 2)])  # Mid Top
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+(node.dimensions.x/2))) ** 2 + (y - (node.location.y-node.dimensions.y)) ** 2)])  # Mid Bottom
-        node_points_with_dist.append([node, sqrt((x - node.location.x) ** 2 + (y - (node.location.y-(node.dimensions.y/2))) ** 2)])  # Mid Left
-        node_points_with_dist.append([node, sqrt((x - (node.location.x+node.dimensions.x)) ** 2 + (y - (node.location.y-(node.dimensions.y/2))) ** 2)])  # Mid Right
+        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - locy) ** 2)])  # Mid Top
+        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-dimy)) ** 2)])  # Mid Bottom
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Right
+
+        #node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Center
 
     nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 
     for node in nodes:
-        if (node.location.x <= x <= node.location.x + node.dimensions.x) and \
-           (node.location.y - node.dimensions.y <= y <= node.location.y):
+        locx = node.location.x
+        locy = node.location.y
+        dimx = node.dimensions.x/dpifac()
+        dimy = node.dimensions.y/dpifac()
+        if (locx <= x <= locx + dimx) and \
+           (locy - dimy <= y <= locy):
             nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
@@ -615,8 +632,8 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     sides = 16
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
 
-    nlocx = node.location.x+1
-    nlocy = node.location.y+1
+    nlocx = (node.location.x+1)*dpifac()
+    nlocy = (node.location.y+1)*dpifac()
     ndimx = node.dimensions.x
     ndimy = node.dimensions.y
 
