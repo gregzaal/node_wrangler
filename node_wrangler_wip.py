@@ -1038,7 +1038,6 @@ class NWLazyConnect(Operator, NWBase):
                             bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListOutputs.bl_idname)
                         elif len(node1.outputs) == 1:
                             bpy.ops.node.nw_call_inputs_menu(from_socket=0)
-                        link_success = True
                     else:
                         link_success = autolink(node1, node2, links)
 
@@ -2566,6 +2565,9 @@ class NWMakeLink(Operator, NWBase):
         n2 = nodes[context.scene.NWLazyTarget]
 
         links.new(n1.outputs[self.from_socket], n2.inputs[self.to_socket])
+
+        hack_force_update(context, nodes)
+
         return {'FINISHED'}
 
 
@@ -2733,12 +2735,12 @@ class NWConnectionListOutputs(Menu, NWBase):
             index=0
             for o in n1.outputs:
                 if o.enabled:  # Check which passes the render layer has enabled
-                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=index
+                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name, icon="RADIOBUT_OFF").from_socket=index
                 index+=1
         else:
             index=0
             for o in n1.outputs:
-                layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=index
+                layout.operator(NWCallInputsMenu.bl_idname, text=o.name, icon="RADIOBUT_OFF").from_socket=index
                 index+=1
 
 
@@ -2756,7 +2758,7 @@ class NWConnectionListInputs(Menu, NWBase):
 
         index = 0
         for i in n2.inputs:
-            op = layout.operator(NWMakeLink.bl_idname, text=i.name)
+            op = layout.operator(NWMakeLink.bl_idname, text=i.name, icon="FORWARD")
             op.from_socket = context.scene.NWSourceSocket
             op.to_socket = index
             index+=1
