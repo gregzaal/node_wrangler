@@ -30,6 +30,11 @@ bl_info = {
     'category': "Node",
 }
 
+'''
+TODO
+draw labels above node when zoomed out
+'''
+
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
@@ -2709,8 +2714,13 @@ class NWConnectionListOutputs(Menu, NWBase):
 
         n1 = nodes[context.scene.NWLazySource]
 
-        for o in n1.outputs:
-            layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
+        if n1.type == "R_LAYERS":
+            for o in n1.outputs:
+                if o.enabled:  # Check which passes the render layer has enabled
+                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
+        else:            
+            for o in n1.outputs:
+                layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
 
 
 class NWConnectionListInputs(Menu, NWBase):
