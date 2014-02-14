@@ -37,7 +37,7 @@ draw labels above node when zoomed out
 
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
-from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
+from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
 
@@ -1037,7 +1037,7 @@ class NWLazyConnect(Operator, NWBase):
                         if len(node1.outputs) > 1 and node2.inputs:
                             bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListOutputs.bl_idname)
                         elif len(node1.outputs) == 1:
-                            bpy.ops.node.nw_call_inputs_menu(from_socket=node1.outputs[0].name)
+                            bpy.ops.node.nw_call_inputs_menu(from_socket=0)
                         link_success = True
                     else:
                         link_success = autolink(node1, node2, links)
@@ -2551,8 +2551,8 @@ class NWMakeLink(Operator, NWBase):
     bl_idname = 'node.nw_make_link'
     bl_label = 'Make Link'
     bl_options = {'REGISTER', 'UNDO'}
-    from_socket = StringProperty()
-    to_socket = StringProperty()
+    from_socket = IntProperty()
+    to_socket = IntProperty()
 
     @classmethod
     def poll(cls, context):
@@ -2565,8 +2565,6 @@ class NWMakeLink(Operator, NWBase):
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
 
-        print ("Link: "+self.from_socket+" -> "+self.to_socket)
-
         links.new(n1.outputs[self.from_socket], n2.inputs[self.to_socket])
         return {'FINISHED'}
 
@@ -2576,7 +2574,7 @@ class NWCallInputsMenu(Operator, NWBase):
     bl_idname = 'node.nw_call_inputs_menu'
     bl_label = 'Make Link'
     bl_options = {'REGISTER', 'UNDO'}
-    from_socket = StringProperty()
+    from_socket = IntProperty()
 
     @classmethod
     def poll(cls, context):
@@ -2732,12 +2730,16 @@ class NWConnectionListOutputs(Menu, NWBase):
         n1 = nodes[context.scene.NWLazySource]
 
         if n1.type == "R_LAYERS":
+            index=0
             for o in n1.outputs:
                 if o.enabled:  # Check which passes the render layer has enabled
-                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
-        else:            
+                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=index
+                index+=1
+        else:
+            index=0
             for o in n1.outputs:
-                layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
+                layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=index
+                index+=1
 
 
 class NWConnectionListInputs(Menu, NWBase):
@@ -2752,10 +2754,12 @@ class NWConnectionListInputs(Menu, NWBase):
 
         #print (self.from_socket)
 
+        index = 0
         for i in n2.inputs:
             op = layout.operator(NWMakeLink.bl_idname, text=i.name)
             op.from_socket = context.scene.NWSourceSocket
-            op.to_socket = i.name
+            op.to_socket = index
+            index+=1
 
 
 class NWMergeMathMenu(Menu, NWBase):
@@ -3418,9 +3422,9 @@ def register():
         name="Lazy Target!",
         default="x",
         description="An internal property used to store the last node in a Lazy Connect operation")
-    bpy.types.Scene.NWSourceSocket = StringProperty(
+    bpy.types.Scene.NWSourceSocket = IntProperty(
         name="Source Socket!",
-        default="x",
+        default=0,
         description="An internal property used to store the source socket in a Lazy Connect operation")
 
     bpy.utils.register_module(__name__)
