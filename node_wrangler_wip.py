@@ -716,6 +716,10 @@ def draw_callback_mixnodes(self, context, mode):
             col_outer = [1.0, 0.2, 0.2, 0.4]
             col_inner = [0.0, 0.0, 0.0, 0.5]
             col_circle_inner = [0.3, 0.05, 0.05, 1.0]
+        if mode == "LINKMENU":
+            col_outer = [0.4, 0.6, 1.0, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.08, 0.15, .3, 1.0]
         elif mode == "MIX":
             col_outer = [0.2, 1.0, 0.2, 0.4]
             col_inner = [0.0, 0.0, 0.0, 0.5]
@@ -956,6 +960,7 @@ class NWLazyConnect(Operator, NWBase):
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}
+    with_menu = BoolProperty()
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -1005,7 +1010,15 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    link_success = autolink(node1, node2, links)
+                    #link_success = autolink(node1, node2, links)
+                    if self.with_menu:
+                        if len(node1.outputs) > 1 and node2.inputs:
+                            bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListOutputs.bl_idname)
+                        elif len(node1.outputs) == 1:
+                            bpy.ops.node.nw_call_inputs_menu(from_socket=node1.outputs[0].name)
+                        link_success = True
+                    else:
+                        link_success = autolink(node1, node2, links)
 
                     for node in original_sel:
                         node.select = True
@@ -1031,7 +1044,10 @@ class NWLazyConnect(Operator, NWBase):
                 context.scene.NWBusyDrawing = node.name
 
             # the arguments we pass the the callback
-            args = (self, context, "LINK")
+            mode = "LINK"
+            if self.with_menu:
+                mode = "LINKMENU"
+            args = (self, context, mode)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
@@ -2508,6 +2524,57 @@ class NWLinkToOutputNode(Operator, NWBase):
         return {'FINISHED'}
 
 
+class NWMakeLink(Operator, NWBase):
+    """Make a link from one socket to another"""
+    bl_idname = 'node.nw_make_link'
+    bl_label = 'Make Link'
+    bl_options = {'REGISTER', 'UNDO'}
+    from_socket = StringProperty()
+    to_socket = StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
+
+        print ("Link: "+self.from_socket+" -> "+self.to_socket)
+
+        links.new(n1.outputs[self.from_socket], n2.inputs[self.to_socket])
+        return {'FINISHED'}
+
+
+class NWCallInputsMenu(Operator, NWBase):
+    """Link from this output"""
+    bl_idname = 'node.nw_call_inputs_menu'
+    bl_label = 'Make Link'
+    bl_options = {'REGISTER', 'UNDO'}
+    from_socket = StringProperty()
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        context.scene.NWSourceSocket = self.from_socket
+
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
+        if len(n2.inputs) > 1:
+            bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListInputs.bl_idname)
+        elif len(n2.inputs) == 1:
+            links.new(n1.outputs[self.from_socket], n2.inputs[0])
+        return {'FINISHED'}
+
+
 #
 #  P A N E L
 #
@@ -2630,6 +2697,38 @@ class NWMergeMixMenu(Menu, NWBase):
             props = layout.operator(NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'MIX'
+
+
+class NWConnectionListOutputs(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_connection_list_out"
+    bl_label = "From:"
+
+    def draw(self, context):
+        layout = self.layout
+        nodes, links = get_nodes_links(context)
+
+        n1 = nodes[context.scene.NWLazySource]
+
+        for o in n1.outputs:
+            layout.operator(NWCallInputsMenu.bl_idname, text=o.name).from_socket=o.name
+
+
+class NWConnectionListInputs(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_connection_list_in"
+    bl_label = "To:"
+
+    def draw(self, context):
+        layout = self.layout
+        nodes, links = get_nodes_links(context)
+
+        n2 = nodes[context.scene.NWLazyTarget]
+
+        #print (self.from_socket)
+
+        for i in n2.inputs:
+            op = layout.operator(NWMakeLink.bl_idname, text=i.name)
+            op.from_socket = context.scene.NWSourceSocket
+            op.to_socket = i.name
 
 
 class NWMergeMathMenu(Menu, NWBase):
@@ -3265,6 +3364,8 @@ kmi_defs = (
     (NWLazyMix.bl_idname, 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
     (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, False, False, None, "Lazy Connect"),
+    # Lazy Connect with Menu
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, True, False, (('with_menu', True),), "Lazy Connect"),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
@@ -3290,6 +3391,10 @@ def register():
         name="Lazy Target!",
         default="x",
         description="An internal property used to store the last node in a Lazy Connect operation")
+    bpy.types.Scene.NWSourceSocket = StringProperty(
+        name="Source Socket!",
+        default="x",
+        description="An internal property used to store the source socket in a Lazy Connect operation")
 
     bpy.utils.register_module(__name__)
 
@@ -3314,6 +3419,7 @@ def unregister():
     del bpy.types.Scene.NWBusyDrawing
     del bpy.types.Scene.NWLazySource
     del bpy.types.Scene.NWLazyTarget
+    del bpy.types.Scene.NWSourceSocket
 
     bpy.utils.unregister_module(__name__)
 
