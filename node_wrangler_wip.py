@@ -540,7 +540,6 @@ def node_at_pos(nodes, context, event):
     x, y = context.space_data.cursor_location
     x = x
     y = y
-    # x = x*dpifac()
 
     # Make a list of each corner (and middle of border) for each node.
     # Will be sorted to find nearest point and thus nearest node
@@ -760,9 +759,6 @@ def draw_callback_mixnodes(self, context, mode):
         draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
         draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
 
-        # m1x, m1y = context.region.view2d.view_to_region(node_mid_pt(n1, 'x'), node_mid_pt(n1, 'y'))
-        # m2x, m2y = context.region.view2d.view_to_region(node_mid_pt(n2, 'x'), node_mid_pt(n2, 'y'))
-
         draw_line(m1x, m1y, m2x, m2y, 4, col_outer)  # line outline
         draw_line(m1x, m1y, m2x, m2y, 2, col_inner)  # line inner
 
@@ -773,21 +769,6 @@ def draw_callback_mixnodes(self, context, mode):
         # circle inner
         draw_circle(m1x, m1y, 5, col_circle_inner)
         draw_circle(m2x, m2y, 5, col_circle_inner)
-
-        # # Draw Text
-        # font_id = 0
-        # bgl.glColor4f(1.0, 1.0, 1.0, 0.8)
-        # blf.size(font_id, 14, 72)
-        # blf.position(font_id, m1x, m1y+10, 0)
-        # if n1.label:
-        #     blf.draw(font_id, n1.label)
-        # else:
-        #     blf.draw(font_id, n1.name)
-        # blf.position(font_id, m2x, m2y+10, 0)
-        # if n2.label:
-        #     blf.draw(font_id, n2.label)
-        # else:
-        #     blf.draw(font_id, n2.name)
 
         # restore opengl defaults
         bgl.glLineWidth(1)
@@ -2420,7 +2401,6 @@ class NWAlignNodes(Operator, NWBase):
                         parent = parent.parent
                     loc_x += offset_x + w
             else:  # if self.option == 'AXIS_Y'
-                #loc_x = (max_y_loc_x + max_y_w / 2.0 + min_y_loc_x + min_y_w / 2.0) / 2.0
                 loc_x = (max_x + max_x_w / 2.0 + min_x + min_x_w / 2.0) / 2.0
                 loc_y = min_y
                 offset_y = (max_y - min_y + total_h - min_y_h) / (count - 1)
