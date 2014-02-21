@@ -30,11 +30,6 @@ bl_info = {
     'category': "Node",
 }
 
-'''
-TODO
-draw labels above node when zoomed out
-'''
-
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty
@@ -1694,7 +1689,7 @@ class NWMergeNodes(Operator, NWBase):
                             output_type = 'RGBA'
                             valid_mode = True
                         if output_type == type and valid_mode:
-                            dst.append([i, node.location.x, node.location.y])
+                            dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
                 else:
                     for (type, types_list, dst) in (
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
@@ -1702,7 +1697,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('MATH', [t[0] for t in operations], selected_math),
                     ):
                         if merge_type == type and mode in types_list:
-                            dst.append([i, node.location.x, node.location.y])
+                            dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
         # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
         # use only 'Mix' nodes for merging.
         # For that we add selected_math list to selected_mix list and clear selected_math.
@@ -1716,10 +1711,15 @@ class NWMergeNodes(Operator, NWBase):
                 # sort list by loc_x - reversed
                 nodes_list.sort(key=lambda k: k[1], reverse=True)
                 # get maximum loc_x
-                loc_x = nodes_list[0][1] + 250.0
+                loc_x = nodes_list[0][1] + nodes_list[0][3] + 50
                 nodes_list.sort(key=lambda k: k[2], reverse=True)
                 if merge_position == 'CENTER':
                     loc_y = ((nodes_list[len(nodes_list) - 1][2]) + (nodes_list[len(nodes_list) - 2][2])) / 2  # average yloc of last two nodes (lowest two)
+                    if nodes_list[len(nodes_list) - 1][-1] == True:  # if last node is hidden, mix should be shifted up a bit
+                        if do_hide:
+                            loc_y += 40
+                        else:
+                            loc_y += 80
                 else:
                     loc_y = nodes_list[len(nodes_list) - 1][2]
                 offset_y = 100
@@ -1799,7 +1799,7 @@ class NWMergeNodes(Operator, NWBase):
                     index -= 1
                 # set "last" of added nodes as active
                 nodes.active = last_add
-                for i, x, y in nodes_list:
+                for i, x, y, dx, h in nodes_list:
                     nodes[i].select = False
 
         return {'FINISHED'}
