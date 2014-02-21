@@ -1124,17 +1124,17 @@ class NWDeleteUnused(Operator, NWBase):
         return context.window_manager.invoke_confirm(self, event)
 
 
-class NWSwapOutputs(Operator, NWBase):
-    """Swap the output connections of the two selected nodes"""
-    bl_idname = 'node.nw_swap_outputs'
-    bl_label = 'Swap Outputs'
+class NWSwapLinks(Operator, NWBase):
+    """Swap the output connections of the two selected nodes, or two similar inputs of a single node"""
+    bl_idname = 'node.nw_swap_links'
+    bl_label = 'Swap Links'
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
         snode = context.space_data
         if context.selected_nodes:
-            return len(context.selected_nodes) == 2
+            return len(context.selected_nodes) <= 2
         else:
             return False
 
@@ -1142,36 +1142,96 @@ class NWSwapOutputs(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         selected_nodes = context.selected_nodes
         n1 = selected_nodes[0]
-        n2 = selected_nodes[1]
-        n1_outputs = []
-        n2_outputs = []
 
-        out_index = 0
-        for output in n1.outputs:
-            if output.links:
-                for link in output.links:
-                    n1_outputs.append([out_index, link.to_socket])
-                    links.remove(link)
-            out_index += 1
+        # Swap outputs
+        if len(selected_nodes) == 2:
+            n2 = selected_nodes[1]
+            if n1.outputs and n2.outputs:
+                n1_outputs = []
+                n2_outputs = []
 
-        out_index = 0
-        for output in n2.outputs:
-            if output.links:
-                for link in output.links:
-                    n2_outputs.append([out_index, link.to_socket])
-                    links.remove(link)
-            out_index += 1
+                out_index = 0
+                for output in n1.outputs:
+                    if output.links:
+                        for link in output.links:
+                            n1_outputs.append([out_index, link.to_socket])
+                            links.remove(link)
+                    out_index += 1
 
-        for connection in n1_outputs:
-            try:
-                links.new(n2.outputs[connection[0]], connection[1])
-            except:
-                self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
-        for connection in n2_outputs:
-            try:
-                links.new(n1.outputs[connection[0]], connection[1])
-            except:
-                self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                out_index = 0
+                for output in n2.outputs:
+                    if output.links:
+                        for link in output.links:
+                            n2_outputs.append([out_index, link.to_socket])
+                            links.remove(link)
+                    out_index += 1
+
+                for connection in n1_outputs:
+                    try:
+                        links.new(n2.outputs[connection[0]], connection[1])
+                    except:
+                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+                for connection in n2_outputs:
+                    try:
+                        links.new(n1.outputs[connection[0]], connection[1])
+                    except:
+                        self.report({'WARNING'}, "Some connections have been lost due to differing numbers of output sockets")
+            else:
+                if n1.outputs or n2.outputs:
+                    self.report({'WARNING'}, "One of the nodes has no outputs!")
+                else:
+                    self.report({'WARNING'}, "Neither of the nodes have outputs!")
+
+        # Swap Inputs
+        elif len(selected_nodes) == 1:
+            if n1.inputs:
+                types = []
+                i=0
+                for i1 in n1.inputs:
+                    if i1.is_linked:
+                        similar_types = 0
+                        for i2 in n1.inputs:
+                            if i1.type == i2.type and i2.is_linked:
+                                similar_types += 1
+                        types.append ([i1, similar_types, i])
+                    i += 1
+                types.sort(key=lambda k: k[1], reverse=True)
+
+                if types:
+                    t = types[0]
+                    if t[1] == 2:
+                        for i2 in n1.inputs:
+                            if t[0].type == i2.type == t[0].type and t[0] != i2 and i2.is_linked:
+                                pair = [t[0], i2]
+                        i1f = pair[0].links[0].from_socket
+                        i1t = pair[0].links[0].to_socket
+                        i2f = pair[1].links[0].from_socket
+                        i2t = pair[1].links[0].to_socket
+                        links.new(i1f, i2t)
+                        links.new(i2f, i1t)
+                    if t[1] == 1:
+                        if len(types) == 1:
+                            fs = t[0].links[0].from_socket
+                            i = t[2]
+                            links.remove(t[0].links[0])
+                            if i+1 == len(n1.inputs):
+                                i = -1
+                            i += 1
+                            while n1.inputs[i].is_linked:
+                                i += 1
+                            links.new(fs, n1.inputs[i])
+                        elif len(types) == 2:
+                            i1f = types[0][0].links[0].from_socket
+                            i1t = types[0][0].links[0].to_socket
+                            i2f = types[1][0].links[0].from_socket
+                            i2t = types[1][0].links[0].to_socket
+                            links.new(i1f, i2t)
+                            links.new(i2f, i1t)
+
+                else:
+                    self.report({'WARNING'}, "This node has no input connections to swap!")
+            else:
+                self.report({'WARNING'}, "This node has no inputs to swap!")
 
         hack_force_update(context, nodes)
         return {'FINISHED'}
@@ -1711,7 +1771,7 @@ class NWMergeNodes(Operator, NWBase):
                 # sort list by loc_x - reversed
                 nodes_list.sort(key=lambda k: k[1], reverse=True)
                 # get maximum loc_x
-                loc_x = nodes_list[0][1] + nodes_list[0][3] + 50
+                loc_x = nodes_list[0][1] + nodes_list[0][3] + 70
                 nodes_list.sort(key=lambda k: k[2], reverse=True)
                 if merge_position == 'CENTER':
                     loc_y = ((nodes_list[len(nodes_list) - 1][2]) + (nodes_list[len(nodes_list) - 2][2])) / 2  # average yloc of last two nodes (lowest two)
@@ -2599,7 +2659,7 @@ def drawlayout(context, layout, mode='non-panel'):
 
     col = layout.column(align=True)
     col.operator(NWDetachOutputs.bl_idname, icon='UNLINKED')
-    col.operator(NWSwapOutputs.bl_idname)
+    col.operator(NWSwapLinks.bl_idname)
     col.menu(NWAddReroutesMenu.bl_idname, text="Add Reroutes", icon='LAYER_USED')
     col.separator()
 
@@ -3368,7 +3428,7 @@ kmi_defs = (
     # Frame Seleted
     (NWFrameSelected.bl_idname, 'P', False, True, False, None, "Frame selected nodes"),
     # Swap Outputs
-    (NWSwapOutputs.bl_idname, 'S', False, False, True, None, "Swap Outputs"),
+    (NWSwapLinks.bl_idname, 'S', False, False, True, None, "Swap Outputs"),
     # Emission Viewer
     (NWEmissionViewer.bl_idname, 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
