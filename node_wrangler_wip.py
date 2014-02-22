@@ -32,9 +32,11 @@ bl_info = {
 
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
-from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty
+from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty, CollectionProperty
+from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
+from os import listdir
 
 #################
 # rl_outputs:
@@ -2637,6 +2639,148 @@ class NWCallInputsMenu(Operator, NWBase):
         return {'FINISHED'}
 
 
+class NWAddSequence(Operator, ImportHelper):
+    """Add an Image Sequence"""
+    bl_idname = 'node.nw_add_sequence'
+    bl_label = 'Import Image Sequence'
+    bl_options = {'REGISTER', 'UNDO'}
+    directory = StringProperty(subtype="DIR_PATH")
+    filename = StringProperty(subtype="FILE_NAME")
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+        directory = self.directory
+        filename = self.filename
+
+
+        if context.space_data.node_tree.type == 'SHADER':
+            node_type = "ShaderNodeTexImage"
+        elif context.space_data.node_tree.type == 'COMPOSITING':
+            node_type = "CompositorNodeImage"
+        else:
+            self.report({'ERROR'}, "Unsupported Node Tree type!")
+            return {'CANCELLED'}
+
+        # if last digit isn't a number, it's not a sequence
+        without_ext = '.'.join(filename.split('.')[:-1])
+        if without_ext[-1].isdigit():
+            without_ext = without_ext[:-1] + '1'
+        else:
+            self.report({'ERROR'}, filename+" does not seem to be part of a sequence")
+            return {'CANCELLED'}
+
+        reverse = without_ext[::-1] # reverse string
+        newreverse = ""
+        non_numbers = ""
+        count_numbers = 0
+        stop = False
+        for char in reverse:
+            if char.isdigit() and stop==False:
+                count_numbers += 1
+                newreverse += '0'  # replace numbers of image sequence with zeros
+            else:
+                stop = True
+                newreverse += char
+                non_numbers = char + non_numbers
+
+        newreverse = '1' + newreverse[1:]
+        without_ext = newreverse[::-1] # reverse string
+
+        # print (without_ext+'.'+filename.split('.')[-1])
+        # print (non_numbers)
+        extension = filename.split('.')[-1]
+
+        num_frames = len(list(f for f in listdir(directory) if f.startswith(non_numbers)))
+
+        for x in range(count_numbers):
+            non_numbers += '#'
+
+        nodes_list = [node for node in nodes]
+        nodes_list.sort(key=lambda k: k.location.x)
+        xloc = nodes_list[0].location.x - 220  # place new nodes at far left
+        yloc = 0
+        for node in nodes:
+            node.select = False
+            yloc += node_mid_pt(node, 'y')
+        yloc = yloc/len(nodes)
+
+        node = nodes.new(node_type)
+        node.location.x = xloc
+        node.location.y = yloc + 110
+        node.label = non_numbers+'.'+extension
+
+        img = bpy.data.images.load(directory+(without_ext+'.'+extension))
+        img.source = 'SEQUENCE'
+        node.image = img
+        if context.space_data.node_tree.type == 'SHADER':
+            node.image_user.frame_duration = num_frames
+        else:
+            node.frame_duration = num_frames
+
+        return {'FINISHED'}
+
+
+class NWAddMultipleImages(Operator, ImportHelper):
+    """Add multiple images at once"""
+    bl_idname = 'node.nw_add_multiple_images'
+    bl_label = 'Open Selected Images'
+    bl_options = {'REGISTER', 'UNDO'}
+    directory = StringProperty(subtype="DIR_PATH")
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+        nodes_list = [node for node in nodes]
+        nodes_list.sort(key=lambda k: k.location.x)
+        xloc = nodes_list[0].location.x - 220  # place new nodes at far left
+        yloc = 0
+        for node in nodes:
+            node.select = False
+            yloc += node_mid_pt(node, 'y')
+        yloc = yloc/len(nodes)
+
+        if context.space_data.node_tree.type == 'SHADER':
+            node_type = "ShaderNodeTexImage"
+        elif context.space_data.node_tree.type == 'COMPOSITING':
+            node_type = "CompositorNodeImage"
+        else:
+            self.report({'ERROR'}, "Unsupported Node Tree type!")
+            return {'CANCELLED'}
+
+        new_nodes = []
+        for f in self.files:
+            fname = f.name
+
+            node = nodes.new(node_type)
+            new_nodes.append(node)
+            node.label = fname
+            node.hide = True
+            node.width_hidden = 100
+            node.location.x = xloc
+            node.location.y = yloc
+            yloc -= 40
+
+            img = bpy.data.images.load(self.directory+fname)
+            node.image = img
+
+        # shift new nodes up to center of tree
+        list_size = new_nodes[0].location.y - new_nodes[-1].location.y
+        for node in new_nodes:
+            node.select = True
+            node.location.y += (list_size/2)
+        return {'FINISHED'}
+
+
 #
 #  P A N E L
 #
@@ -2952,7 +3096,6 @@ class NWNodeAlignMenu(Menu, NWBase):
         layout.operator(NWAlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
 
 
-# TODO, add to toolbar panel
 class NWUVMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_nw_node_uvs_menu"
     bl_label = "UV Maps"
@@ -3264,6 +3407,13 @@ def attr_nodes_menu_func(self, context):
     col.separator()
 
 
+def multipleimages_menu_func(self, context):
+    col = self.layout.column(align=True)
+    col.operator(NWAddMultipleImages.bl_idname, text="Multiple Images")
+    col.operator(NWAddSequence.bl_idname, text="Image Sequence")
+    col.separator()
+    
+
 def bgreset_menu_func(self, context):
     self.layout.operator(NWResetBG.bl_idname)
 
@@ -3485,6 +3635,10 @@ def register():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.prepend(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.append(bgreset_menu_func)
+    bpy.types.NODE_MT_category_SH_NEW_TEXTURE.prepend(multipleimages_menu_func)
+    bpy.types.NODE_PT_category_SH_NEW_TEXTURE.prepend(multipleimages_menu_func)
+    bpy.types.NODE_MT_category_CMP_INPUT.prepend(multipleimages_menu_func)
+    bpy.types.NODE_PT_category_CMP_INPUT.prepend(multipleimages_menu_func)
 
 
 def unregister():
@@ -3506,6 +3660,10 @@ def unregister():
     bpy.types.NODE_MT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_category_SH_NEW_INPUT.remove(attr_nodes_menu_func)
     bpy.types.NODE_PT_backdrop.remove(bgreset_menu_func)
+    bpy.types.NODE_MT_category_SH_NEW_TEXTURE.remove(multipleimages_menu_func)
+    bpy.types.NODE_PT_category_SH_NEW_TEXTURE.remove(multipleimages_menu_func)
+    bpy.types.NODE_MT_category_CMP_INPUT.remove(multipleimages_menu_func)
+    bpy.types.NODE_PT_category_CMP_INPUT.remove(multipleimages_menu_func)
 
 if __name__ == "__main__":
     register()
