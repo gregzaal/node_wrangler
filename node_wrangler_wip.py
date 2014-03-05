@@ -2701,13 +2701,17 @@ class NWAddSequence(Operator, ImportHelper):
             non_numbers += '#'
 
         nodes_list = [node for node in nodes]
-        nodes_list.sort(key=lambda k: k.location.x)
-        xloc = nodes_list[0].location.x - 220  # place new nodes at far left
-        yloc = 0
-        for node in nodes:
-            node.select = False
-            yloc += node_mid_pt(node, 'y')
-        yloc = yloc/len(nodes)
+        if nodes_list:
+            Anodes_list.sort(key=lambda k: k.location.x)
+            xloc = nodes_list[0].location.x - 220  # place new nodes at far left
+            yloc = 0
+            for node in nodes:
+                node.select = False
+                yloc += node_mid_pt(node, 'y')
+            yloc = yloc/len(nodes)
+        else:
+            xloc = 0
+            yloc = 0
 
         node = nodes.new(node_type)
         node.location.x = xloc
