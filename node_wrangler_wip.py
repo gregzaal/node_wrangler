@@ -542,32 +542,50 @@ def node_at_pos(nodes, context, event):
     # Will be sorted to find nearest point and thus nearest node
     node_points_with_dist = []
     for node in nodes:
-        locx = node.location.x
-        locy = node.location.y
-        dimx = node.dimensions.x/dpifac()
-        dimy = node.dimensions.y/dpifac()
-        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - locy) ** 2)])  # Top Left
-        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - locy) ** 2)])  # Top Right
-        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Left
-        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Right
+        skipnode = False
+        if node.type != 'FRAME':  # no point trying to link to a frame node
+            locx = node.location.x
+            locy = node.location.y
+            dimx = node.dimensions.x/dpifac()
+            dimy = node.dimensions.y/dpifac()
+            if node.parent:
+                locx += node.parent.location.x
+                locy += node.parent.location.y
+                if node.parent.parent:
+                    locx += node.parent.parent.location.x
+                    locy += node.parent.parent.location.y
+                    if node.parent.parent.parent:
+                        locx += node.parent.parent.parent.location.x
+                        locy += node.parent.parent.parent.location.y
+                        if node.parent.parent.parent.parent:
+                            # Support three levels or parenting
+                            # There's got to be a better way to do this...
+                            skipnode = True
+            if not skipnode:
+                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - locy) ** 2)])  # Top Left
+                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - locy) ** 2)])  # Top Right
+                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Left
+                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Right
 
-        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - locy) ** 2)])  # Mid Top
-        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-dimy)) ** 2)])  # Mid Bottom
-        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Left
-        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Right
-
-        #node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Center
+                node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - locy) ** 2)])  # Mid Top
+                node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-dimy)) ** 2)])  # Mid Bottom
+                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Left
+                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Right
 
     nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 
     for node in nodes:
-        locx = node.location.x
-        locy = node.location.y
-        dimx = node.dimensions.x/dpifac()
-        dimy = node.dimensions.y/dpifac()
-        if (locx <= x <= locx + dimx) and \
-           (locy - dimy <= y <= locy):
-            nodes_under_mouse.append(node)
+        if node.type != 'FRAME' and skipnode == False:
+            locx = node.location.x
+            locy = node.location.y
+            dimx = node.dimensions.x/dpifac()
+            dimy = node.dimensions.y/dpifac()
+            if node.parent:
+                locx += node.parent.location.x
+                locy += node.parent.location.y
+            if (locx <= x <= locx + dimx) and \
+               (locy - dimy <= y <= locy):
+                nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
         if nodes_under_mouse[0] != nearest_node:
@@ -632,6 +650,16 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     nlocy = (node.location.y+1)*dpifac()
     ndimx = node.dimensions.x
     ndimy = node.dimensions.y
+    if node.parent:
+        nlocx += node.parent.location.x
+        nlocy += node.parent.location.y
+        if node.parent.parent:
+            nlocx += node.parent.parent.location.x
+            nlocy += node.parent.parent.location.y
+            if node.parent.parent.parent:
+                nlocx += node.parent.parent.parent.location.x
+                nlocy += node.parent.parent.parent.location.y
+
 
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
