@@ -19,8 +19,8 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (3, 2),
-    'blender': (2, 69, 0),
+    'version': (3, 3),
+    'blender': (2, 70, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
     'warning': "",
@@ -2774,7 +2774,7 @@ class NWAddMultipleImages(Operator, ImportHelper):
         nodes, links = get_nodes_links(context)
         nodes_list = [node for node in nodes]
         if nodes_list:
-            ggnodes_list.sort(key=lambda k: k.location.x)
+            nodes_list.sort(key=lambda k: k.location.x)
             xloc = nodes_list[0].location.x - 220  # place new nodes at far left
             yloc = 0
             for node in nodes:
