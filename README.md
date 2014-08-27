@@ -1,11 +1,17 @@
 Node Wrangler
 =============
+
+**Note:**
+
+**This repository is no longer up-to-date!**
+
+The most recent version of this add-on can always be found [here](http://git.blender.org/gitweb/gitweb.cgi/blender-addons.git/blob_plain/HEAD:/node_efficiency_tools.py), in Blender's source code :) Which means you probably already have it installed and just need to [enable it](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences/Addons) in your [User Preferences](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences).
+
+----
+
 A Blender Addon with various tools to help node workflow.
 
-Download latest version: https://raw.github.com/gregzaal/node_wrangler/master/node_wrangler.py (right click > Save link as...)
-
-Documentation for version 1.0: http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Node_Wrangler
-Current version: 2.0
+Documentation: http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools
 
 Features
 --------
