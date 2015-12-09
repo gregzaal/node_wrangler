@@ -3,7 +3,7 @@ Node Wrangler
 
 **This repository is no longer up-to-date!**
 
-The most recent version of this add-on can always be found [here](http://git.blender.org/gitweb/gitweb.cgi/blender-addons.git/blob_plain/HEAD:/node_efficiency_tools.py), in Blender's source code :) Which means you probably already have it installed and just need to [enable it](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences/Addons) in your [User Preferences](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences).
+The most recent version of this add-on can always be found [here](http://git.blender.org/gitweb/gitweb.cgi/blender-addons.git/blob_plain/HEAD:/node_wrangler.py), in Blender's source code :) Which means you probably already have it installed and just need to [enable it](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences/Addons) in your [User Preferences](http://wiki.blender.org/index.php/Doc:2.6/Manual/Preferences).
 
 ----
 
